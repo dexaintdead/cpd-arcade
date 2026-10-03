@@ -43,7 +43,7 @@
         '<button class="btn ghost" id="fs" type="button">⛶ Full screen</button>' +
         '<button class="btn ghost" id="share" type="button">Share</button></div>' +
     '</div><aside class="side">' +
-      '<div class="card score"><div><h4>Your best</h4><span style="color:var(--dim);font-size:13px">saved on this device</span></div><b id="best">' + (best() || '—') + '</b></div>' +
+      '<div class="card score"><div><h4>' + esc(g.scoreLabel || 'Your best') + '</h4><span style="color:var(--dim);font-size:13px">saved on this device</span></div><b id="best">' + (best() || '—') + '</b></div>' +
       '<div class="card"><h4>About</h4><p>' + esc(g.about) + '</p></div>' +
       (g.controls ? '<div class="card"><h4>Controls</h4><div class="keys">' + g.controls.map(function (c) { return '<div><kbd>' + esc(c[0]) + '</kbd><span>' + esc(c[1]) + '</span></div>'; }).join('') + '</div></div>' : '') +
       '<div class="card"><h4>Credits</h4><p><b style="color:var(--tx)">' + esc(g.by) + '</b><br>' + esc(g.made || '') + '</p>' +
@@ -67,6 +67,7 @@
     if (e.source !== frame.contentWindow) return;
     var d = e.data || {};
     if (d.arcade === 'over' && d.game === g.slug) { var b = best(); document.getElementById('best').textContent = b || '—'; }
+    if (d.arcade === 'exit' && d.game === g.slug) location.href = './';
   });
 })();
 </script>
