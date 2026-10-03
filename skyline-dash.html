@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Maverick: Skyline Dash · ContentPad Arcade</title>
+<meta name="description" content="Run the rooftops with Maverick. Jump the gaps, dodge the drones, grab the gold. An original ContentPad Arcade game.">
+<meta name="theme-color" content="#120a1f">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&display=swap" rel="stylesheet">
+<style>
+  html,body{margin:0;height:100%;background:#0b0712;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+  body{display:flex;align-items:center;justify-content:center;font-family:"Archivo Black","Arial Black",system-ui,sans-serif;color:#fff}
+  canvas{display:block;image-rendering:auto;max-width:100vw;max-height:100vh;max-height:100dvh}
+  #hud{position:fixed;inset:0;pointer-events:none}
+  .btn{pointer-events:auto;position:fixed;top:max(10px,env(safe-area-inset-top));width:42px;height:42px;border-radius:12px;border:1px solid rgba(255,255,255,.25);background:rgba(18,10,31,.55);color:#fff;font-size:18px;line-height:40px;text-align:center;cursor:pointer;backdrop-filter:blur(6px)}
+  #mute{right:max(10px,env(safe-area-inset-right))}
+  #pause{right:calc(max(10px,env(safe-area-inset-right)) + 50px)}
+  .btn:focus-visible{outline:2px solid #f5c542;outline-offset:2px}
+</style>
+</head>
+<body>
+<canvas id="c" aria-label="Maverick: Skyline Dash game. Press space or tap to jump."></canvas>
+<div id="hud">
+  <button class="btn" id="pause" type="button" aria-label="Pause">❚❚</button>
+  <button class="btn" id="mute" type="button" aria-label="Mute">♪</button>
+</div>
+<script>
+/* Maverick: Skyline Dash — ContentPad Arcade house game #1 (build 2026100301-arcade).
+   Original game and character (Maverick, owned by ContentPad). Art and music made in
+   ContentPad Studio; code written with Claude. One file, no libraries.
+   Controls: Space / ↑ / W / tap / click / controller A = jump (tap again in the air = double jump,
+   hold for a higher jump). P / Esc / Start = pause. M = mute.
+   Talks to the Arcade page that frames it with postMessage {arcade:'score'|'start'|'over'}. */
+(function () {
+  'use strict';
+
+  // ── assets (ContentPad Vault, CORS-open CDN) ─────────────────────────────
+  var CDN = 'https://media.cpdblackbook.com/a2a988e8-fbbd-4510-8238-b1c311f61608/';
+  var ASSETS = window.SKYLINE_ASSETS || {
+    run: CDN + 'fcd2c84d-0826-41bd-aee8-a0d2e717a829.png', jump: CDN + 'a75d7ff3-0643-4dd9-8d79-1ade7aa62f8c.png',
+    hit: CDN + '8558ba80-d633-4beb-bd40-7bb400252e56.png', bg: CDN + 'a92f6293-0b58-41a5-9798-8ad2ac8370d8.png',
+    drone: CDN + '9af22a24-9ede-44f5-a1ef-b697bd7a42d1.png', vent: CDN + 'd30d3220-d0b5-4fa6-ae8c-3bc9b0a5b1c2.png',
+    cloud: CDN + 'e4baee76-fe1a-4ee5-839c-cdd046d1ea86.png', music: CDN + '3289969e-1cad-42bb-801b-5a9f2b6c65cc.mp3'
+  };
+  var KEYED = { run: 1, jump: 1, hit: 1, drone: 1, vent: 1, cloud: 1 };   // green-screen sprites
+  // The Vault CDN sends no CORS headers, so pixels we must read (to key out the green) come
+  // through ContentPad's own /dl route (ContentPad hosts only, CORS *). Everything else loads direct.
+  var VIA = 'https://link.contentpad.io/dl?u=';
+
+  var GAME_ID = 'skyline-dash';
+  var H = 540, W = 960;                  // logical size; W follows the screen's shape
+  var cv = document.getElementById('c'), cx = cv.getContext('2d');
+  var dpr = 1, scale = 1;
+
+  function fit() {
+    var vw = window.innerWidth, vh = window.innerHeight;
+    var aspect = vw / vh;
+    W = Math.round(Math.max(720, Math.min(1280, H * aspect)));
+    scale = Math.min(vw / W, vh / H);
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    cv.width = Math.round(W * scale * dpr); cv.height = Math.round(H * scale * dpr);
+    cv.style.width = Math.round(W * scale) + 'px'; cv.style.height = Math.round(H * scale) + 'px';
+    cx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
+  }
+  window.addEventListener('resize', fit); fit();
+
+  // ── image loading + chroma key (green → transparent, edges de-spilled) ─────
+  var IMG = {}, loaded = 0, needed = 0;
+  function keyGreen(img) {
+    var c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+    var g = c.getContext('2d'); g.drawImage(img, 0, 0);
+    try {
+      var d = g.getImageData(0, 0, c.width, c.height), p = d.data;
+      for (var i = 0; i < p.length; i += 4) {
+        var r = p[i], gr = p[i + 1], b = p[i + 2];
+        var dom = gr - Math.max(r, b);                 // how much greener than anything else
+        if (dom > 60) p[i + 3] = 0;
+        else if (dom > 18) { p[i + 3] = Math.round(255 * (1 - (dom - 18) / 42)); p[i + 1] = Math.max(r, b); }
+        else if (dom > 0) p[i + 1] = Math.max(r, b) + (dom >> 1);   // de-spill the rim
+      }
+      g.putImageData(d, 0, 0);
+    } catch (e) { /* tainted canvas: draw as-is */ }
+    // crop to content so hitboxes match the figure
+    return trim(c);
+  }
+  function trim(c) {
+    var g = c.getContext('2d'), w = c.width, h = c.height, d;
+    try { d = g.getImageData(0, 0, w, h).data; } catch (e) { return c; }
+    var x0 = w, y0 = h, x1 = 0, y1 = 0;
+    for (var y = 0; y < h; y += 2) for (var x = 0; x < w; x += 2) if (d[(y * w + x) * 4 + 3] > 40) {
+      if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+    }
+    if (x1 <= x0 || y1 <= y0) return c;
+    var o = document.createElement('canvas'); o.width = x1 - x0 + 2; o.height = y1 - y0 + 2;
+    o.getContext('2d').drawImage(c, -x0, -y0); return o;
+  }
+  Object.keys(ASSETS).forEach(function (k) {
+    if (k === 'music') return;
+    needed++;
+    var im = new Image(); im.decoding = 'async';
+    if (KEYED[k]) im.crossOrigin = 'anonymous';
+    im.onload = function () { IMG[k] = KEYED[k] ? keyGreen(im) : im; loaded++; };
+    im.onerror = function () { loaded++; };          // procedural fallback draws instead
+    im.src = (KEYED[k] && !window.SKYLINE_ASSETS && ASSETS[k].indexOf(CDN) === 0) ? VIA + encodeURIComponent(ASSETS[k]) : ASSETS[k];
+  });
+
+  // ── audio ────────────────────────────────────────────────────────────────
+  var muted = false, actx = null, music = null;
+  try { muted = localStorage.getItem('arcade_muted') === '1'; } catch (e) {}
+  function audioInit() {
+    if (!actx) { try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (actx && actx.state === 'suspended') actx.resume();
+    if (!music && ASSETS.music) { music = new Audio(ASSETS.music); music.loop = true; music.volume = 0.45; }
+    syncMusic();
+  }
+  function syncMusic() { if (!music) return; if (muted || state !== 'play') music.pause(); else music.play().catch(function () {}); }
+  function blip(f0, f1, dur, type, vol) {
+    if (muted || !actx) return;
+    var o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime;
+    o.type = type || 'square'; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(Math.max(30, f1), t + dur);
+    g.gain.setValueAtTime(vol || 0.08, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  var sfx = {
+    jump: function () { blip(330, 660, 0.14, 'square', 0.06); },
+    jump2: function () { blip(520, 1040, 0.16, 'square', 0.06); },
+    coin: function () { blip(988, 1318, 0.09, 'triangle', 0.09); setTimeout(function () { blip(1318, 1760, 0.12, 'triangle', 0.08); }, 60); },
+    hit: function () { blip(220, 50, 0.45, 'sawtooth', 0.12); },
+    land: function () { blip(120, 70, 0.06, 'sine', 0.05); }
+  };
+
+  // ── world ────────────────────────────────────────────────────────────────
+  var GRAV = 2600, JUMP_V = -880, JUMP2_V = -760, CUT = 0.45;
+  var state = 'title', paused = false, t0 = 0, last = 0;
+  var speed, dist, coins, score, best = 0, shake, flash;
+  var roofs, obs, tokens, parts, stars;
+  var P;   // player
+  try { best = +localStorage.getItem('skyline_best') || 0; } catch (e) {}
+
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+  function reset() {
+    speed = 380; dist = 0; coins = 0; score = 0; shake = 0; flash = 0;
+    roofs = []; obs = []; tokens = []; parts = [];
+    var x = -40; roofs.push({ x: x, w: 1400, y: 430, hue: 0 }); x += 1400;
+    while (x < W + 800) x = addRoof(x, true);
+    P = { x: 0, y: 0, vy: 0, w: 62, h: 92, ground: true, jumps: 0, holding: false, dead: false, deadT: 0, t: 0 };
+    P.x = Math.round(W * 0.22); P.y = roofs[0].y - P.h;
+  }
+  function addRoof(x, easy) {
+    var lvl = Math.min(1, dist / 9000);
+    var gap = easy ? rnd(70, 120) : rnd(90 + lvl * 60, 150 + lvl * 140);
+    var w = rnd(easy ? 420 : 300 - lvl * 80, easy ? 700 : 620 - lvl * 160);
+    var prev = roofs[roofs.length - 1];
+    var y = Math.max(330, Math.min(460, (prev ? prev.y : 430) + rnd(-70, 70)));
+    var r = { x: x + gap, w: w, y: y, hue: Math.floor(Math.random() * 3) };
+    roofs.push(r);
+    if (!easy) populate(r, lvl);
+    return r.x + r.w;
+  }
+  function populate(r, lvl) {
+    var x = r.x + rnd(140, 200);
+    while (x < r.x + r.w - 120) {
+      var roll = Math.random();
+      if (roll < 0.36 + lvl * 0.14) {
+        var kind = Math.random() < 0.55 ? 'vent' : (Math.random() < 0.6 ? 'drone' : 'cloud');
+        if (kind === 'vent') obs.push({ k: 'vent', x: x, y: r.y - 64, w: 70, h: 64 });
+        else if (kind === 'drone') obs.push({ k: 'drone', x: x, y: r.y - rnd(150, 175), w: 74, h: 50, bob: rnd(0, 6) });
+        else obs.push({ k: 'cloud', x: x, y: r.y - rnd(250, 290), w: 92, h: 66, bob: rnd(0, 6) });
+        x += rnd(320, 460) - lvl * 60;
+      } else {
+        var n = 3 + Math.floor(Math.random() * 3), arc = Math.random() < 0.5;
+        for (var i = 0; i < n; i++) tokens.push({ x: x + i * 46, y: r.y - 60 - (arc ? Math.sin(i / (n - 1) * Math.PI) * 110 : 0), r: 15, got: false, s: rnd(0, 6) });
+        x += n * 46 + rnd(140, 220);
+      }
+    }
+  }
+  stars = []; for (var s = 0; s < 70; s++) stars.push({ x: Math.random(), y: Math.random() * 0.5, r: Math.random() * 1.6 + 0.3, tw: Math.random() * 6 });
+  reset();
+
+  // ── input ────────────────────────────────────────────────────────────────
+  function press() {
+    audioInit();
+    if (paused) { togglePause(); return; }
+    if (state === 'title') { start(); return; }
+    if (state === 'over') { if (performance.now() - P.deadT > 700) start(); return; }
+    if (P.ground) { P.vy = JUMP_V; P.ground = false; P.jumps = 1; P.holding = true; sfx.jump(); dust(P.x + 20, P.y + P.h, 8); }
+    else if (P.jumps < 2) { P.vy = JUMP2_V; P.jumps = 2; P.holding = true; sfx.jump2(); ring(P.x + P.w / 2, P.y + P.h); }
+  }
+  function release() { if (P.holding && P.vy < 0) P.vy *= CUT; P.holding = false; }
+  window.addEventListener('keydown', function (e) {
+    if (e.repeat) return;
+    var k = e.key;
+    if (k === ' ' || k === 'ArrowUp' || k === 'w' || k === 'W' || k === 'Enter') { e.preventDefault(); press(); }
+    else if (k === 'p' || k === 'P' || k === 'Escape') togglePause();
+    else if (k === 'm' || k === 'M') toggleMute();
+  });
+  window.addEventListener('keyup', function (e) { if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') release(); });
+  cv.addEventListener('pointerdown', function (e) { e.preventDefault(); press(); });
+  window.addEventListener('pointerup', release);
+  document.getElementById('mute').addEventListener('click', function (e) { e.stopPropagation(); toggleMute(); });
+  document.getElementById('pause').addEventListener('click', function (e) { e.stopPropagation(); togglePause(); });
+  document.addEventListener('visibilitychange', function () { if (document.hidden && state === 'play' && !paused) togglePause(); });
+  window.addEventListener('blur', function () { if (state === 'play' && !paused) togglePause(); });
+  function toggleMute() {
+    muted = !muted; try { localStorage.setItem('arcade_muted', muted ? '1' : '0'); } catch (e) {}
+    document.getElementById('mute').textContent = muted ? '✕' : '♪'; syncMusic();
+  }
+  document.getElementById('mute').textContent = muted ? '✕' : '♪';
+  function togglePause() {
+    if (state !== 'play') return;
+    paused = !paused; document.getElementById('pause').textContent = paused ? '▶' : '❚❚';
+    if (music) { if (paused) music.pause(); else syncMusic(); }
+    last = performance.now();
+  }
+  function post(type, extra) { try { if (window.parent !== window) window.parent.postMessage(Object.assign({ arcade: type, game: GAME_ID }, extra || {}), '*'); } catch (e) {} }
+
+  function start() {
+    reset(); state = 'play'; paused = false; last = performance.now(); syncMusic();
+    if (music) { try { music.currentTime = 0; } catch (e) {} }
+    post('start');
+  }
+  function die() {
+    if (P.dead) return;
+    P.dead = true; P.deadT = performance.now(); P.vy = -620; state = 'over'; shake = 18; flash = 1;
+    sfx.hit(); if (music) music.pause();
+    score = Math.floor(dist / 10) + coins * 25;
+    var rec = score > best; if (rec) { best = score; try { localStorage.setItem('skyline_best', String(best)); } catch (e) {} }
+    P.record = rec;
+    post('over', { score: score, coins: coins, distance: Math.floor(dist / 10) });
+  }
+
+  // ── particles ────────────────────────────────────────────────────────────
+  function dust(x, y, n) { for (var i = 0; i < n; i++) parts.push({ x: x, y: y, vx: rnd(-160, -40), vy: rnd(-120, -20), life: rnd(0.25, 0.5), t: 0, c: 'rgba(255,220,240,', r: rnd(2, 5) }); }
+  function ring(x, y) { parts.push({ x: x, y: y, ring: 1, t: 0, life: 0.35 }); }
+  function sparkle(x, y) { for (var i = 0; i < 10; i++) { var a = i / 10 * Math.PI * 2; parts.push({ x: x, y: y, vx: Math.cos(a) * 180, vy: Math.sin(a) * 180, life: 0.4, t: 0, c: 'rgba(245,197,66,', r: 3 }); } }
+
+  // ── update ───────────────────────────────────────────────────────────────
+  function update(dt) {
+    var i;
+    for (i = parts.length - 1; i >= 0; i--) { var q = parts[i]; q.t += dt; if (q.t > q.life) { parts.splice(i, 1); continue; } if (!q.ring) { q.x += q.vx * dt; q.y += q.vy * dt; q.vy += 500 * dt; } }
+    shake = Math.max(0, shake - 60 * dt); flash = Math.max(0, flash - 2.5 * dt);
+    if (state === 'title') { P.t += dt; return; }
+    if (state === 'over') { P.vy += GRAV * dt; P.y += P.vy * dt; return; }
+
+    speed = Math.min(900, 380 + dist * 0.028);
+    var dx = speed * dt; dist += dx;
+    for (i = 0; i < roofs.length; i++) roofs[i].x -= dx;
+    for (i = 0; i < obs.length; i++) obs[i].x -= dx;
+    for (i = 0; i < tokens.length; i++) tokens[i].x -= dx;
+    while (roofs.length && roofs[0].x + roofs[0].w < -60) roofs.shift();
+    obs = obs.filter(function (o) { return o.x + o.w > -80; });
+    tokens = tokens.filter(function (k) { return k.x > -60 && !k.gone; });
+    var lastR = roofs[roofs.length - 1]; if (lastR.x + lastR.w < W + 600) addRoof(lastR.x + lastR.w, false);
+
+    // player physics
+    var wasGround = P.ground;
+    P.vy += GRAV * (P.holding && P.vy < 0 ? 0.62 : 1) * dt;
+    var ny = P.y + P.vy * dt; P.ground = false;
+    var feetX0 = P.x + 14, feetX1 = P.x + P.w - 14;
+    for (i = 0; i < roofs.length; i++) {
+      var r = roofs[i];
+      if (feetX1 > r.x && feetX0 < r.x + r.w) {
+        if (P.y + P.h <= r.y + 2 && ny + P.h >= r.y) { ny = r.y - P.h; P.vy = 0; P.ground = true; P.jumps = 0; }
+        else if (P.y + P.h > r.y + 8 && P.x + P.w - 10 > r.x && P.x < r.x) { die(); return; }   // ran into a wall
+      }
+    }
+    P.y = ny; P.t += dt * (speed / 380);
+    if (P.ground && !wasGround) { sfx.land(); dust(P.x + 20, P.y + P.h, 6); }
+    if (P.ground && Math.random() < dt * 14) dust(P.x + 12, P.y + P.h, 1);
+    if (P.y > H + 120) { die(); return; }
+
+    // hits (forgiving boxes)
+    var bx = P.x + 16, by = P.y + 12, bw = P.w - 30, bh = P.h - 18;
+    for (i = 0; i < obs.length; i++) {
+      var o = obs[i], oy = o.y + (o.bob != null ? Math.sin(performance.now() / 260 + o.bob) * 8 : 0);
+      if (bx < o.x + o.w - 10 && bx + bw > o.x + 10 && by < oy + o.h - 8 && by + bh > oy + 8) { die(); return; }
+    }
+    for (i = 0; i < tokens.length; i++) {
+      var k = tokens[i]; if (k.got) continue;
+      var cxp = k.x, cyp = k.y; if (cxp > bx - 16 && cxp < bx + bw + 16 && cyp > by - 16 && cyp < by + bh + 16) { k.got = true; k.gone = true; coins++; sfx.coin(); sparkle(cxp, cyp); }
+    }
+    score = Math.floor(dist / 10) + coins * 25;
+  }
+
+  // ── draw ─────────────────────────────────────────────────────────────────
+  var PAL = [['#2a1640', '#ff4fb3'], ['#1d1838', '#f5c542'], ['#251433', '#7b6cff']];
+  function draw(now) {
+    cx.save();
+    if (shake) cx.translate(rnd(-shake, shake) * 0.4, rnd(-shake, shake) * 0.4);
+    // sky
+    var bg = IMG.bg;
+    if (bg) {
+      var bh = H, bw = bg.naturalWidth * (bh / bg.naturalHeight), off = -((dist * 0.08) % bw);
+      var tile = Math.floor((dist * 0.08) / bw);
+      for (var x = off, n = 0; x < W; x += bw, n++) {
+        if ((tile + n) % 2) { cx.save(); cx.translate(x + bw, 0); cx.scale(-1, 1); cx.drawImage(bg, 0, 0, bw, bh); cx.restore(); }
+        else cx.drawImage(bg, x, 0, bw, bh);
+      }
+      cx.fillStyle = 'rgba(12,6,24,.18)'; cx.fillRect(0, 0, W, H);
+    } else {
+      var g = cx.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#1a0b33'); g.addColorStop(0.55, '#a1336f'); g.addColorStop(1, '#f5a742');
+      cx.fillStyle = g; cx.fillRect(0, 0, W, H);
+      stars.forEach(function (s) { cx.fillStyle = 'rgba(255,255,255,' + (0.4 + 0.4 * Math.sin(now / 600 + s.tw)) + ')'; cx.beginPath(); cx.arc(s.x * W, s.y * H, s.r, 0, 7); cx.fill(); });
+    }
+    // far silhouettes (parallax)
+    if (!IMG.bg) drawCity(0.25, '#1a0f2e', 0.55, 90, 210, now);
+    cx.globalAlpha = IMG.bg ? 0.8 : 1; drawCity(0.45, '#140b24', IMG.bg ? 0.78 : 0.66, 70, IMG.bg ? 110 : 160, now); cx.globalAlpha = 1;
+    // rooftops
+    roofs.forEach(drawRoof);
+    // tokens
+    tokens.forEach(function (k) { if (k.got) return; var sx = Math.abs(Math.cos(now / 220 + k.s)); cx.save(); cx.translate(k.x, k.y + Math.sin(now / 300 + k.s) * 4);
+      cx.scale(Math.max(0.25, sx), 1); cx.fillStyle = '#f5c542'; cx.strokeStyle = '#a3711b'; cx.lineWidth = 3; cx.beginPath(); cx.arc(0, 0, k.r, 0, 7); cx.fill(); cx.stroke();
+      cx.fillStyle = '#7a4b0a'; cx.font = 'bold 17px Arial Black, sans-serif'; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText('C', 0, 1); cx.restore(); });
+    // obstacles
+    obs.forEach(function (o) { var oy = o.y + (o.bob != null ? Math.sin(now / 260 + o.bob) * 8 : 0); drawSprite(o.k, o.x, oy, o.w, o.h, fallbackObs); });
+    // player
+    drawPlayer(now);
+    // particles
+    parts.forEach(function (q) { var a = 1 - q.t / q.life;
+      if (q.ring) { cx.strokeStyle = 'rgba(255,79,179,' + a + ')'; cx.lineWidth = 3; cx.beginPath(); cx.ellipse(q.x, q.y, 10 + q.t * 160, 4 + q.t * 40, 0, 0, 7); cx.stroke(); }
+      else { cx.fillStyle = q.c + a + ')'; cx.beginPath(); cx.arc(q.x, q.y, q.r, 0, 7); cx.fill(); } });
+    cx.restore();
+    if (flash) { cx.fillStyle = 'rgba(255,255,255,' + flash * 0.5 + ')'; cx.fillRect(0, 0, W, H); }
+    drawHud(now);
+  }
+  function drawCity(f, col, base, minW, maxH, now) {
+    cx.fillStyle = col; var seg = 120, off = (dist * f) % seg;
+    for (var i = -1; i < W / seg + 2; i++) {
+      var n = Math.floor((dist * f) / seg) + i, h = 60 + (Math.abs(Math.sin(n * 12.9898) * 43758.5453) % 1) * maxH;
+      var x = i * seg - off, y = H * base + 120 - h;
+      cx.fillRect(x, y, seg - 14, H - y);
+      if (f > 0.3) { cx.fillStyle = 'rgba(245,197,66,.18)'; for (var wy = y + 14; wy < H; wy += 22) for (var wx = x + 10; wx < x + seg - 24; wx += 18) if (((n * 7 + wx + wy) | 0) % 5 === 0) cx.fillRect(wx, wy, 6, 9); cx.fillStyle = col; }
+    }
+  }
+  function drawRoof(r) {
+    var p = PAL[r.hue];
+    cx.fillStyle = p[0]; cx.fillRect(r.x, r.y, r.w, H - r.y + 40);
+    cx.fillStyle = 'rgba(255,255,255,.06)'; for (var wy = r.y + 40; wy < H; wy += 34) for (var wx = r.x + 22; wx < r.x + r.w - 30; wx += 44) cx.fillRect(wx, wy, 18, 20);
+    cx.fillStyle = p[1]; cx.fillRect(r.x - 4, r.y - 6, r.w + 8, 8);                     // neon ledge
+    cx.fillStyle = 'rgba(0,0,0,.35)'; cx.fillRect(r.x - 4, r.y + 2, r.w + 8, 8);
+    cx.shadowColor = p[1]; cx.shadowBlur = 14; cx.fillStyle = p[1]; cx.fillRect(r.x - 4, r.y - 6, r.w + 8, 2); cx.shadowBlur = 0;
+  }
+  function drawSprite(k, x, y, w, h, fb) {
+    var im = IMG[k];
+    if (im && im.width) { var s = Math.min(w / im.width, h / im.height) * 1.25, dw = im.width * s, dh = im.height * s; cx.drawImage(im, x + (w - dw) / 2, y + h - dh, dw, dh); }
+    else fb(k, x, y, w, h);
+  }
+  function fallbackObs(k, x, y, w, h) {
+    if (k === 'vent') { cx.fillStyle = '#5a5470'; cx.fillRect(x, y, w, h); cx.strokeStyle = '#2b2740'; cx.lineWidth = 4; cx.beginPath(); cx.arc(x + w / 2, y + h / 2, h / 3, 0, 7); cx.stroke(); }
+    else if (k === 'drone') { cx.fillStyle = '#3b3550'; cx.fillRect(x + 10, y + 18, w - 20, h - 26); cx.fillStyle = '#ff3b5c'; cx.beginPath(); cx.arc(x + w - 22, y + 30, 6, 0, 7); cx.fill(); cx.fillStyle = '#ccc'; cx.fillRect(x, y + 8, 26, 4); cx.fillRect(x + w - 26, y + 8, 26, 4); }
+    else { cx.fillStyle = '#4b4566'; cx.beginPath(); cx.arc(x + 30, y + 30, 26, 0, 7); cx.arc(x + 60, y + 26, 30, 0, 7); cx.fill(); cx.strokeStyle = '#f5c542'; cx.lineWidth = 4; cx.beginPath(); cx.moveTo(x + 46, y + 50); cx.lineTo(x + 38, y + 66); cx.lineTo(x + 52, y + 66); cx.lineTo(x + 44, y + 84); cx.stroke(); }
+  }
+  function drawPlayer(now) {
+    var k = P.dead ? 'hit' : (P.ground || state === 'title' ? 'run' : 'jump');
+    var bob = 0, rot = 0, sx = 1, sy = 1;
+    if (k === 'run') { var ph = (state === 'title' ? now / 1000 * 2.2 : P.t * 2.6) * Math.PI * 2; bob = Math.abs(Math.sin(ph)) * -7; sx = 1 + Math.sin(ph * 2) * 0.03; sy = 1 - Math.sin(ph * 2) * 0.03; rot = Math.sin(ph) * 0.05; }
+    else if (k === 'jump') rot = Math.max(-0.25, Math.min(0.25, P.vy / 3000));
+    else rot = (now - P.deadT) / 300;
+    var x = P.x, y = P.y + bob;
+    cx.fillStyle = 'rgba(0,0,0,.25)'; if (P.ground) { cx.beginPath(); cx.ellipse(x + P.w / 2, P.y + P.h + 2, 28, 6, 0, 0, 7); cx.fill(); }
+    cx.save(); cx.translate(x + P.w / 2, y + P.h); cx.rotate(rot); cx.scale(sx, sy);
+    var im = IMG[k] || IMG.run;
+    if (im && im.width) { var s = (P.h * 1.32) / im.height, dw = im.width * s, dh = im.height * s; cx.drawImage(im, -dw / 2, -dh, dw, dh); }
+    else { cx.fillStyle = '#ff4fb3'; cx.fillRect(-P.w / 2, -P.h, P.w, P.h); cx.fillStyle = '#111'; cx.fillRect(-P.w / 2 - 4, -P.h - 6, P.w + 18, 16); cx.fillStyle = '#fff'; cx.font = 'bold 9px Arial'; cx.fillText('CONTENTPAD', -P.w / 2, -P.h + 5); }
+    cx.restore();
+  }
+  function txt(s, x, y, size, col, align, stroke) {
+    cx.font = size + 'px "Archivo Black","Arial Black",sans-serif'; cx.textAlign = align || 'center'; cx.textBaseline = 'middle';
+    if (stroke !== false) { cx.lineJoin = 'round'; cx.lineWidth = Math.max(3, size / 7); cx.strokeStyle = 'rgba(18,8,32,.85)'; cx.strokeText(s, x, y); }
+    cx.fillStyle = col || '#fff'; cx.fillText(s, x, y);
+  }
+  function drawHud(now) {
+    if (state !== 'title') {
+      txt(String(score), 24, 36, 34, '#fff', 'left');
+      txt('◉ ' + coins + '   BEST ' + best, 26, 70, 16, '#f5c542', 'left');
+    }
+    if (state === 'title') {
+      cx.fillStyle = 'rgba(12,6,24,.45)'; cx.fillRect(0, 0, W, H);
+      txt('MAVERICK', W / 2, H * 0.27, 64, '#fff');
+      txt('SKYLINE DASH', W / 2, H * 0.27 + 60, 40, '#ff4fb3');
+      var pulse = 0.6 + 0.4 * Math.sin(now / 300);
+      txt(matchMedia('(pointer: coarse)').matches ? 'TAP TO RUN' : 'PRESS SPACE, CLICK OR (A) TO RUN', W / 2, H * 0.62, 22, 'rgba(255,255,255,' + pulse + ')');
+      txt('Tap again in the air to double jump · hold for higher', W / 2, H * 0.62 + 34, 14, '#e8dff5', 'center', false);
+      if (best) txt('BEST ' + best, W / 2, H * 0.62 + 66, 16, '#f5c542');
+      if (loaded < needed) txt('loading art ' + loaded + '/' + needed, W / 2, H - 24, 12, '#bbb', 'center', false);
+    }
+    if (state === 'over' && now - P.deadT > 450) {
+      cx.fillStyle = 'rgba(12,6,24,.55)'; cx.fillRect(0, 0, W, H);
+      txt(P.record ? 'NEW BEST!' : 'WIPEOUT', W / 2, H * 0.3, 56, P.record ? '#f5c542' : '#ff4fb3');
+      txt(String(score), W / 2, H * 0.3 + 70, 48, '#fff');
+      txt(coins + ' coins · ' + Math.floor(dist / 10) + ' m', W / 2, H * 0.3 + 118, 18, '#e8dff5', 'center', false);
+      if (now - P.deadT > 700) txt(matchMedia('(pointer: coarse)').matches ? 'TAP TO RUN AGAIN' : 'SPACE TO RUN AGAIN', W / 2, H * 0.72, 22, 'rgba(255,255,255,' + (0.6 + 0.4 * Math.sin(now / 300)) + ')');
+    }
+    if (paused) { cx.fillStyle = 'rgba(12,6,24,.6)'; cx.fillRect(0, 0, W, H); txt('PAUSED', W / 2, H / 2 - 10, 54, '#fff'); txt('tap or press P to keep running', W / 2, H / 2 + 40, 16, '#e8dff5', 'center', false); }
+  }
+
+  // ── controller (Gamepad API): any face button / d-pad up = jump, Start = pause ──
+  var padHeld = false, padStart = false;
+  function pollPad() {
+    var pads = navigator.getGamepads ? navigator.getGamepads() : [], gp = null;
+    for (var i = 0; i < pads.length; i++) if (pads[i] && pads[i].connected) { gp = pads[i]; break; }
+    if (!gp) return;
+    var b = gp.buttons, down = function (n) { return !!(b[n] && b[n].pressed); };
+    var jump = down(0) || down(1) || down(2) || down(3) || down(12) || (gp.axes[1] < -0.6);
+    if (jump && !padHeld) press(); if (!jump && padHeld) release(); padHeld = jump;
+    var st = down(9); if (st && !padStart) { if (state === 'play') togglePause(); else press(); } padStart = st;
+  }
+  window.addEventListener('gamepadconnected', function () { padHeld = true; });
+
+  // ── loop ─────────────────────────────────────────────────────────────────
+  function frame(now) {
+    pollPad();
+    var dt = Math.min(0.033, (now - (last || now)) / 1000); last = now;
+    if (!paused) update(dt);
+    draw(now);
+    requestAnimationFrame(frame);
+  }
+  window.__skyline = { world: function () { return { roofs: roofs, obs: obs, P: P, speed: speed }; }, state: function () { return { state: state, score: score, coins: coins, best: best, dist: dist, y: P.y, ground: P.ground, paused: paused, loaded: loaded, needed: needed }; }, press: press, release: release };
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

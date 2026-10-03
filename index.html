@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ContentPad Arcade — original games, free to play</title>
+<meta name="description" content="Original browser games made with ContentPad. Play free on desktop, phone or with a controller.">
+<meta property="og:title" content="ContentPad Arcade">
+<meta property="og:description" content="Original browser games made with ContentPad. Play free.">
+<meta property="og:image" content="https://media.cpdblackbook.com/a2a988e8-fbbd-4510-8238-b1c311f61608/65ac6d66-2d2f-481d-abf0-92f43cb0fa52.png">
+<meta name="theme-color" content="#0d0915">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="arcade.css?v=1">
+</head>
+<body>
+<header class="bar"><div class="wrap">
+  <a class="logo disp" href="./"><i>▶</i><span>ContentPad <b>Arcade</b></span></a>
+  <nav class="nav" aria-label="Arcade">
+    <a class="on" href="./">Games</a>
+    <a href="#new">New</a>
+    <a href="#soon">Coming soon</a>
+    <a href="#make">Make a game</a>
+  </nav>
+  <a class="cta" href="https://app.contentpad.io/">Make games in ContentPad</a>
+</div></header>
+
+<main class="wrap">
+  <section class="hero" id="hero" aria-label="Featured game"></section>
+
+  <section class="sec" id="new">
+    <h2 class="disp">Play now <small id="countLive"></small></h2>
+    <div class="grid" id="live"></div>
+  </section>
+
+  <section class="sec" id="soon">
+    <h2 class="disp">Coming soon <small>in the works at ContentPad Studios</small></h2>
+    <div class="grid" id="later"></div>
+  </section>
+
+  <section class="sec" id="make">
+    <div class="make">
+      <div>
+        <div class="kick">Built with ContentPad</div>
+        <h2 class="disp">Every game here started as a sentence.</h2>
+        <p>The characters, worlds and music come from ContentPad Studio. Claude writes the game. You describe it, approve the look, and it lands in the Arcade, playable on any screen.</p>
+        <div class="btns"><a class="btn play" href="https://app.contentpad.io/">Start in ContentPad</a></div>
+      </div>
+      <ol class="steps">
+        <li><i>1</i><div><b>Cast it</b>Make characters in Character Forge and keep them on-model with pose sheets.</div></li>
+        <li><i>2</i><div><b>Build the world</b>Backgrounds, props and obstacles from Studio, cut out cleanly in one step.</div></li>
+        <li><i>3</i><div><b>Score it</b>Original music and sound from the Song Builder and Voice Lab.</div></li>
+        <li><i>4</i><div><b>Play it</b>Claude turns it into a game that runs on desktop, phone and controller.</div></li>
+      </ol>
+    </div>
+  </section>
+</main>
+
+<footer><div class="wrap">
+  <span>© 2026 ContentPad · Original games and characters. All rights reserved.</span>
+  <span><a href="https://contentpad.io/">contentpad.io</a> · <a href="https://contentpartiesanddeals.com/">The Magazine</a></span>
+</div></footer>
+
+<script src="games.js?v=1"></script>
+<script>
+(function () {
+  'use strict';
+  var G = window.ARCADE_GAMES || [];
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function best(slug) { try { return +localStorage.getItem(slug === 'skyline-dash' ? 'skyline_best' : 'arcade_best_' + slug) || 0; } catch (e) { return 0; } }
+  function isNew(g) { return g.released && (Date.now() - new Date(g.released).getTime()) < 21 * 864e5; }
+
+  var live = G.filter(function (g) { return g.status === 'live'; });
+  var soon = G.filter(function (g) { return g.status !== 'live'; });
+  var f = live[0];
+  if (f) {
+    var b = best(f.slug);
+    document.getElementById('hero').innerHTML =
+      '<img src="' + esc(f.cover) + '" alt="">' +
+      '<div class="in"><div class="kick">Featured game</div>' +
+      '<h1 class="disp">' + esc(f.title) + '</h1><p>' + esc(f.tagline) + '</p>' +
+      '<div class="btns"><a class="btn play" href="play.html?g=' + encodeURIComponent(f.slug) + '">▶ Play now</a>' +
+      (b ? '<span class="btn ghost">Your best: ' + b + '</span>' : '<span class="btn ghost">' + esc(f.genre) + (f.controller ? ' · 🎮 controller' : '') + '</span>') + '</div></div>';
+  }
+  document.getElementById('countLive').textContent = live.length + (live.length === 1 ? ' game' : ' games');
+  document.getElementById('live').innerHTML = live.map(function (g) {
+    var b = best(g.slug);
+    return '<a class="tile" href="play.html?g=' + encodeURIComponent(g.slug) + '">' +
+      '<div class="art"><img src="' + esc(g.cover) + '" alt="" loading="lazy">' + (isNew(g) ? '<span class="badge new">New</span>' : '') + '</div>' +
+      '<div class="meta"><h3>' + esc(g.title) + '</h3><p>' + esc(g.tagline) + '</p>' +
+      '<div class="row"><span class="chip">' + esc(g.genre) + '</span>' + (g.controller ? '<span class="chip">🎮 Controller</span>' : '') + (g.mobile ? '<span class="chip">📱 Phone</span>' : '') +
+      (b ? '<span class="chip" style="color:var(--gold)">Best ' + b + '</span>' : '') + '</div></div></a>';
+  }).join('');
+  document.getElementById('later').innerHTML = soon.map(function (g) {
+    return '<div class="tile" aria-label="' + esc(g.title) + ', coming soon">' +
+      '<div class="art" style="background:radial-gradient(120% 90% at 20% 10%,' + esc(g.accent) + '55,transparent 60%),linear-gradient(135deg,#21142f,#120c1c)">' +
+      '<div class="soon disp" style="color:' + esc(g.accent) + '">' + esc(g.title) + '<em>COMING SOON</em></div></div>' +
+      '<div class="meta"><h3>' + esc(g.title) + '</h3><p>' + esc(g.tagline) + '</p>' +
+      '<div class="row">' + (g.tags || []).map(function (t) { return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div></div></div>';
+  }).join('');
+})();
+</script>
+</body>
+</html>

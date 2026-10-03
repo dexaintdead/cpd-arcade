@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Play · ContentPad Arcade</title>
+<meta name="theme-color" content="#0d0915">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="arcade.css?v=1">
+</head>
+<body>
+<header class="bar"><div class="wrap">
+  <a class="logo disp" href="./"><i>▶</i><span>ContentPad <b>Arcade</b></span></a>
+  <nav class="nav" aria-label="Arcade"><a href="./">Games</a><a href="./#soon">Coming soon</a><a href="./#make">Make a game</a></nav>
+  <a class="cta" href="https://app.contentpad.io/">Make games in ContentPad</a>
+</div></header>
+
+<main class="wrap" id="main"></main>
+
+<footer><div class="wrap">
+  <span>© 2026 ContentPad · Original games and characters. All rights reserved.</span>
+  <span><a href="./">All games</a> · <a href="https://contentpad.io/">contentpad.io</a></span>
+</div></footer>
+
+<script src="games.js?v=1"></script>
+<script>
+(function () {
+  'use strict';
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  var slug = (new URLSearchParams(location.search).get('g') || '').replace(/[^a-z0-9-]/g, '');
+  var g = (window.ARCADE_GAMES || []).filter(function (x) { return x.slug === slug && x.status === 'live'; })[0];
+  var main = document.getElementById('main');
+  if (!g) { main.innerHTML = '<section class="sec"><h2 class="disp">Game not found</h2><p style="color:var(--dim)">That game isn\'t in the Arcade (yet). <a href="./" style="color:var(--gold)">See all games</a>.</p></section>'; return; }
+  document.title = g.title + ' · ContentPad Arcade';
+  var bestKey = g.slug === 'skyline-dash' ? 'skyline_best' : 'arcade_best_' + g.slug;
+  function best() { try { return +localStorage.getItem(bestKey) || 0; } catch (e) { return 0; } }
+  var src = g.file || (encodeURIComponent(g.slug) + '.html');
+  main.innerHTML =
+    '<div class="play-wrap"><div>' +
+      '<div class="stage" id="stage"><iframe id="game" title="' + esc(g.title) + '" src="' + src + '" allow="autoplay; fullscreen; gamepad" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock"></iframe></div>' +
+      '<div class="stagebar"><h1 class="disp">' + esc(g.title) + '</h1>' +
+        '<button class="btn ghost" id="fs" type="button">⛶ Full screen</button>' +
+        '<button class="btn ghost" id="share" type="button">Share</button></div>' +
+    '</div><aside class="side">' +
+      '<div class="card score"><div><h4>Your best</h4><span style="color:var(--dim);font-size:13px">saved on this device</span></div><b id="best">' + (best() || '—') + '</b></div>' +
+      '<div class="card"><h4>About</h4><p>' + esc(g.about) + '</p></div>' +
+      (g.controls ? '<div class="card"><h4>Controls</h4><div class="keys">' + g.controls.map(function (c) { return '<div><kbd>' + esc(c[0]) + '</kbd><span>' + esc(c[1]) + '</span></div>'; }).join('') + '</div></div>' : '') +
+      '<div class="card"><h4>Credits</h4><p><b style="color:var(--tx)">' + esc(g.by) + '</b><br>' + esc(g.made || '') + '</p>' +
+        '<div class="row" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">' + (g.tags || []).map(function (t) { return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div></div>' +
+    '</aside></div>';
+  var frame = document.getElementById('game');
+  frame.addEventListener('load', function () { try { frame.contentWindow.focus(); } catch (e) {} });
+  document.getElementById('stage').addEventListener('pointerdown', function () { try { frame.contentWindow.focus(); } catch (e) {} });
+  document.getElementById('fs').addEventListener('click', function () {
+    var el = document.getElementById('stage');
+    if (el.requestFullscreen) el.requestFullscreen().catch(function () { location.href = src; });
+    else location.href = src;   // iPhone Safari: open the game on its own page
+  });
+  document.getElementById('share').addEventListener('click', function () {
+    var url = location.origin + location.pathname + '?g=' + g.slug, btn = this;
+    if (navigator.share) navigator.share({ title: g.title, text: g.tagline, url: url }).catch(function () {});
+    else if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { btn.textContent = 'Link copied'; setTimeout(function () { btn.textContent = 'Share'; }, 1800); });
+  });
+  // Scores from the game (same-origin house games only; member games will run on their own origin).
+  window.addEventListener('message', function (e) {
+    if (e.source !== frame.contentWindow) return;
+    var d = e.data || {};
+    if (d.arcade === 'over' && d.game === g.slug) { var b = best(); document.getElementById('best').textContent = b || '—'; }
+  });
+})();
+</script>
+</body>
+</html>
