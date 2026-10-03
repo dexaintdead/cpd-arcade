@@ -56,6 +56,7 @@
     },
     /* Animated scenes: the cast is painted into a looping clip; speakers get a face window. */
     cg: { brunch: u('408a83f4-4538-400e-995f-325318ef76ab', 'mp4') },
+    cgPoster: { brunch: u('eca7cdb5-63d8-406a-af7b-fc568cf8288d') },
     music: {
       theme: u('a26d0969-3969-4897-9bbf-f9c493e1c6a1', 'mp3'),
       brunch: u('8e40e9fd-7b3e-4ea6-ae23-1bd73a6e0f17', 'mp3'),

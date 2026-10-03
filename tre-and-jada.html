@@ -22,7 +22,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 #bg{position:absolute;inset:-3%;background:#120b1d center/cover no-repeat;transition:opacity .45s,filter .6s;filter:blur(1.1px) brightness(.93) saturate(1.04);animation:kb 34s ease-in-out infinite alternate}
 #bg2{position:absolute;inset:-3%;background:center/cover no-repeat;opacity:0;transition:opacity .45s;filter:blur(1.1px) brightness(.93)}
 @keyframes kb{0%{transform:scale(1.02) translate(0,0)}100%{transform:scale(1.07) translate(-1.2%,-.8%)}}
-#cg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .6s;background:#120b1d}
+#cg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .6s;background:#120b1d center/cover no-repeat}
 #scene.cgmode #cg{opacity:1}
 #scene.cgmode .spr{opacity:0!important}
 /* light wrap + floor fog so cut-out characters sit inside the painting */
@@ -194,7 +194,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   <div id="loading"></div>
 </div>
 <script src="tj-script.js?v=2"></script>
-<script src="tj-assets.js?v=2"></script>
+<script src="tj-assets.js?v=3"></script>
 <script>
 (function () {
   'use strict';
@@ -304,7 +304,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     var gr = (A.grade && A.grade[k]) || ['none', 'rgba(255,200,150,.14)'], sc = $('scene').style;
     sc.setProperty('--grade', gr[0]); sc.setProperty('--light', gr[1]); sc.setProperty('--rim', gr[1].replace(/[\d.]+\)$/, '.3)'));
     var cg = $('cg'), vid = A.cg && A.cg[k];
-    if (vid) { if (cg.getAttribute('src') !== vid) cg.src = vid; cg.muted = true; var pp = cg.play(); if (pp && pp.catch) pp.catch(function () {}); $('scene').classList.add('cgmode'); }
+    if (vid) { if (cg.getAttribute('src') !== vid) { cg.poster = (A.cgPoster && A.cgPoster[k]) || ''; cg.src = vid; } cg.muted = true; var pp = cg.play(); if (pp && pp.catch) pp.catch(function () {}); $('scene').classList.add('cgmode'); }
     else { $('scene').classList.remove('cgmode'); cg.pause(); }
   }
   function placeSprite(slot, who, expr, talking) {
