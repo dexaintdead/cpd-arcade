@@ -21,17 +21,50 @@
         sideeye: u('c70bb232-bc28-4e07-96b2-e6b66099a95c'), laugh: u('b34adbb4-7d6f-4d8d-808f-914c65104d7a'),
         flirty: u('39edcddc-c4f1-4ef1-a96e-c2f116a4d301'), dramatic: u('e47799b9-126e-46d5-b009-90bba349bb31'),
         shocked: u('960041e4-a06b-4355-9d01-0f6c70eaa31a'), happy: u('ef1c7d0c-d774-4848-bf63-c2c2b82d021c') },
+      tre_brunch: { neutral: [u('79147e2e-308c-44e3-961c-02c94c16b185'), 0.72], shocked: u('9a12c777-6a3d-4fde-98c1-4748dfc6a826'), annoyed: u('e33ebbc2-9759-4746-bf65-62f145a80d46'),
+        defeated: u('67613f99-cef7-4bfc-bf9a-1dc65384acd5'), smug: u('03684b05-e5ec-4e46-9178-6effeb3274bc'), nervous: u('6a2b1ec9-8ab1-4757-b662-a47ce643cbfa') },
+      tre_work: { neutral: [u('2e63a57a-b656-4db6-b012-05f6d58513da'), 0.72], annoyed: u('ab5db960-ee43-4621-bbf5-23b3a92a5e14'), defeated: u('b3870d3a-cdc3-4742-ab58-de0b283bda4b') },
+      tre_date: { neutral: [u('70f344c2-063f-4acc-aa80-485364d59929'), 0.72], nervous: u('dc86898a-5a4d-4390-869e-9c8b68620a97'), defeated: u('22241a3d-ce98-4ece-adcb-752f057c3311'), smug: u('29904a4e-2d2e-4d03-a8af-c24d9eab2cd3') },
+      tre_mama: { neutral: [u('1a4809a9-8a76-479d-bee4-d63646e63789'), 0.72], nervous: u('87e29ae9-6e57-452e-aad5-d8a62b5162d0'), smug: u('001003ec-63c3-4d0a-a836-1f63a04b14e1'), defeated: u('4bcadd3d-6b10-4967-9bcb-6f446dc87309') },
+      tre_cabin: { neutral: [u('a19c598b-bd9a-412c-8a9c-441da2e19be5'), 0.72], annoyed: u('b79df641-aedd-42c7-90a9-ea499cacb163') },
+      jada_brunch: { neutral: [u('130e09a6-b719-4d92-9c5a-f1277896e7bd'), 0.72], laugh: u('a3869508-2c86-4c2b-9032-3fccfaac701c'), flirty: u('f9fd67d2-09fb-4faf-96c6-0974104bc477'),
+        happy: u('acb098a2-bdf0-4bf7-a58f-a53009c777a6'), mad: u('fa838a8f-ebd4-493b-a75e-18fbb3c773bf'), sideeye: u('7822bdbc-1d87-4270-bfd8-19c9bd7aa9c5'), dramatic: u('52b08e74-09af-428d-b99a-130aa3f62576') },
+      jada_date: { neutral: [u('a0349dbc-96e1-4671-aff5-55a299d3cd1d'), 0.72], happy: u('53e2c88d-8bc9-418d-aee8-343f83c8c6db'), flirty: u('0ed25952-5b6c-4fae-9189-773e97afaeac'),
+        sideeye: u('148d34c0-2980-4dc8-af08-9a21ce4963c6'), mad: u('65cc9c45-41f5-4f82-8780-3995a6375ae9'), shocked: u('126244ee-61ee-487f-8217-8acd12990492') },
       mike: { mike: u('9764a1b8-e9c3-4ad7-b58d-547f5baf6ae7') }, brenda: { brenda: u('425f4f57-1916-4a30-9c52-b9d134d0a93b') },
       marcus: { marcus: u('a31379e7-03f2-46a8-88cf-346fc37c5bbb') }, kiki: { friends: u('b35185dd-05f6-4ee2-b987-0d744685cf75') },
       deshawn: { deshawn: u('33df7243-7228-4910-b3c5-4dbe23712e76') }
     },
+
+    /* Scenario outfits: base (full body, cropped to match) + expressions rendered from it. */
+    outfits: {
+      brunch: { tre: 'brunch', jada: 'brunch' }, work: { tre: 'work' }, restaurant: { tre: 'date', jada: 'date' },
+      stadium: { tre: 'date', jada: 'date' }, kitchen: { tre: 'mama' }, cabin: { tre: 'cabin' }
+    },
+    /* Per-location colour grade (CSS filter on the cut-outs) + the room's light colour for the rim/light wrap. */
+    grade: {
+      apartment: ['sepia(.12) saturate(1.05) brightness(.97)', 'rgba(255,190,120,.18)'],
+      brunch: ['sepia(.1) saturate(1.12) brightness(1.02)', 'rgba(255,170,140,.2)'],
+      work: ['saturate(.95) brightness(1.02) hue-rotate(-4deg)', 'rgba(200,230,255,.14)'],
+      bedroom: ['brightness(.78) saturate(.8) hue-rotate(8deg)', 'rgba(90,110,220,.28)'],
+      mall: ['brightness(1.04) saturate(1.05)', 'rgba(255,240,220,.12)'],
+      restaurant: ['brightness(.86) sepia(.25) saturate(1.1)', 'rgba(255,170,90,.24)'],
+      kitchen: ['sepia(.15) saturate(1.05)', 'rgba(255,210,140,.18)'],
+      rooftop: ['brightness(.8) saturate(.85) hue-rotate(10deg)', 'rgba(120,140,255,.25)'],
+      cabin: ['sepia(.18) saturate(.95)', 'rgba(255,200,160,.2)'],
+      stadium: ['brightness(.9) saturate(1.1) hue-rotate(-8deg)', 'rgba(255,110,190,.22)']
+    },
+    /* Animated scenes: the cast is painted into a looping clip; speakers get a face window. */
+    cg: { brunch: u('408a83f4-4538-400e-995f-325318ef76ab', 'mp4') },
     music: {
       theme: u('a26d0969-3969-4897-9bbf-f9c493e1c6a1', 'mp3'),
       brunch: u('8e40e9fd-7b3e-4ea6-ae23-1bd73a6e0f17', 'mp3'),
       work: u('d92ef65f-78e0-408a-85d9-754be1692e08', 'mp3'),
       tense: u('d2cb5ddf-b3e9-4cc1-89dc-3a9f100aec83', 'mp3'),
       mall: u('98d59d6c-b7e5-439c-9752-60dc7a10fb3f', 'mp3'),
-      date: u('f7761f90-65dd-4e0c-a955-b69f28af8ad8', 'mp3')
+      date: u('f7761f90-65dd-4e0c-a955-b69f28af8ad8', 'mp3'),
+      win: u('defe2ece-3aab-4eef-bb93-d542c045a36a', 'mp3'),
+      sad: u('f045d333-43be-482b-8002-f0205d96ab2a', 'mp3')
     },
     voice: {
       'mon_intro.1': 'https://media.cpdblackbook.com/a2a988e8-fbbd-4510-8238-b1c311f61608/d1349beb-3e6c-47ce-bb7b-9b34a5afefba.mp3',

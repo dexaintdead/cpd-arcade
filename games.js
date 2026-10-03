@@ -1,6 +1,6 @@
-/* ContentPad Arcade — the game catalog (build 2026100301-arcade).
-   Phase 1: house games live in this repo as <slug>.html at the top level and are listed here.
-   Phase 2 moves the catalog to the API (member submissions + review queue). */
+/* ContentPad Arcade — the game catalog (build 2026100305-arcade).
+   House games live in this repo as <slug>.html at the top level and are listed here.
+   Only status:'live' entries are shown. rating marks adult games (the game itself runs its own age gate). */
 window.ARCADE_GAMES = [
   {
     slug: 'skyline-dash',
@@ -20,24 +20,23 @@ window.ARCADE_GAMES = [
     status: 'live'
   },
   {
-    slug: 'trey-and-jada',
-    title: 'Trey & Jada',
+    slug: 'tre-and-jada',
+    file: 'tre-and-jada.html',
+    title: 'Tre & Jada',
+    badge: 'Episode 1 · Payday',
+    rating: '18+',
     tagline: 'Keep the relationship alive. Keep your wallet alive. Pick one.',
-    about: 'A choose-your-path relationship comedy. Every choice changes the next scene — shopping trips, surprise birthdays, the group chat, the ex who keeps liking her photos. Dozens of endings. Most of them are your fault.',
-    genre: 'Story RPG',
-    tags: ['Comedy', 'Choices matter', 'Many endings'],
+    about: 'A fully voiced, choose-your-path relationship comedy for grown folks. One week, Monday to Sunday: brunch ambushes, double shifts, the group chat, the mall, a restaurant with no prices, and her mama\'s potato salad. Every choice moves the meters. Nine endings. Most of them are your fault.',
+    genre: 'Story comedy',
+    tags: ['18+', 'Comedy', 'Choices matter', '9 endings', 'Voiced'],
+    controls: [['Click / tap / Space / (A)', 'Next line'], ['1 · 2 · 3 / ↑ ↓ / d-pad', 'Pick a choice'], ['Esc / Start', 'Pause and settings'], ['Y', 'Auto-play'], ['L / X', 'Dialogue log']],
     by: 'ContentPad Studios',
-    accent: '#f5c542',
-    status: 'soon'
-  },
-  {
-    slug: 'maze-rush',
-    title: 'Maze Rush',
-    tagline: 'An original neon maze chase. Clear the board before they clear you.',
-    genre: 'Arcade',
-    tags: ['Classic', 'Controller'],
-    by: 'ContentPad Studios',
-    accent: '#7b6cff',
-    status: 'soon'
+    made: 'Art, voices and music made in ContentPad Studio (ElevenLabs) · written and coded by Claude',
+    scoreLabel: 'Endings found',
+    cover: 'https://media.cpdblackbook.com/a2a988e8-fbbd-4510-8238-b1c311f61608/f65c9ecd-ff8b-43cf-ab89-76f862120282.png',
+    accent: '#ff4fd8',
+    released: '2026-10-03',
+    controller: true, mobile: true,
+    status: 'live'
   }
 ];

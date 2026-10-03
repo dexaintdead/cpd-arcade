@@ -4,26 +4,28 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Play · ContentPad Arcade</title>
-<meta name="theme-color" content="#0d0915">
+<meta name="theme-color" content="#02030d">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="arcade.css?v=1">
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="arcade.css?v=2">
 </head>
 <body>
+<div class="sky"></div><canvas id="dust"></canvas><div class="scan"></div>
 <header class="bar"><div class="wrap">
-  <a class="logo disp" href="./"><i>▶</i><span>ContentPad <b>Arcade</b></span></a>
-  <nav class="nav" aria-label="Arcade"><a href="./">Games</a><a href="./#soon">Coming soon</a><a href="./#make">Make a game</a></nav>
-  <a class="cta" href="https://app.contentpad.io/">Make games in ContentPad</a>
+  <a class="logo" href="./" aria-label="ContentPad Arcade home"><img src="https://contentpad.io/contentpad-logo-nav.png" alt="ContentPad"><span class="arc chrome">ARCADE</span></a>
+  <nav class="nav" aria-label="Arcade"><a class="on" href="./">Games</a></nav>
+  <span class="clock" id="clock" aria-hidden="true"></span>
 </div></header>
 
 <main class="wrap" id="main"></main>
 
 <footer><div class="wrap">
-  <span>© 2026 ContentPad · Original games and characters. All rights reserved.</span>
+  <span>© 2026 ContentPad Studios · Original games and characters. All rights reserved.</span>
   <span><a href="./">All games</a> · <a href="https://contentpad.io/">contentpad.io</a></span>
 </div></footer>
 
-<script src="games.js?v=1"></script>
+<script src="games.js?v=2"></script>
+<script src="arcade.js?v=2"></script>
 <script>
 (function () {
   'use strict';
@@ -31,7 +33,7 @@
   var slug = (new URLSearchParams(location.search).get('g') || '').replace(/[^a-z0-9-]/g, '');
   var g = (window.ARCADE_GAMES || []).filter(function (x) { return x.slug === slug && x.status === 'live'; })[0];
   var main = document.getElementById('main');
-  if (!g) { main.innerHTML = '<section class="sec"><h2 class="disp">Game not found</h2><p style="color:var(--dim)">That game isn\'t in the Arcade (yet). <a href="./" style="color:var(--gold)">See all games</a>.</p></section>'; return; }
+  if (!g) { main.innerHTML = '<section class="sec"><h2 class="disp chrome">Game not found</h2><p style="color:var(--dim)">That game isn\'t in the Arcade. <a href="./" style="color:var(--ice)">See all games</a>.</p></section>'; return; }
   document.title = g.title + ' · ContentPad Arcade';
   var bestKey = g.slug === 'skyline-dash' ? 'skyline_best' : 'arcade_best_' + g.slug;
   function best() { try { return +localStorage.getItem(bestKey) || 0; } catch (e) { return 0; } }
@@ -39,7 +41,7 @@
   main.innerHTML =
     '<div class="play-wrap"><div>' +
       '<div class="stage" id="stage"><iframe id="game" title="' + esc(g.title) + '" src="' + src + '" allow="autoplay; fullscreen; gamepad" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock"></iframe></div>' +
-      '<div class="stagebar"><h1 class="disp">' + esc(g.title) + '</h1>' +
+      '<div class="stagebar"><h1 class="disp chrome">' + esc(g.title) + '</h1>' +
         '<button class="btn ghost" id="fs" type="button">⛶ Full screen</button>' +
         '<button class="btn ghost" id="share" type="button">Share</button></div>' +
     '</div><aside class="side">' +

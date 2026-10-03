@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* Tre & Jada — Episode 1 "Payday". Build 2026100304-tj. ContentPad Studios. 18+ */
+/* Tre & Jada — Episode 1 "Payday". Build 2026100305-tj. ContentPad Studios. 18+ */
 :root{--bg:#0d0915;--panel:#161021;--panel2:#1e1530;--line:#2c2140;--tx:#f3eefb;--dim:#b3a7c9;--mute:#7d7194;--pink:#ff4fb3;--gold:#f5c542;--violet:#7b6cff;--green:#3ddc84;--red:#ff5a5a}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:#000;color:var(--tx);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none;touch-action:manipulation}
@@ -19,19 +19,32 @@ button{font:inherit;color:inherit;cursor:pointer}
 .layer{position:absolute;inset:0}
 .hide{display:none!important}
 /* scene */
-#bg{position:absolute;inset:0;background:#120b1d center/cover no-repeat;transition:opacity .45s;transform:scale(1.02)}
-#bg.dim{filter:brightness(.55) saturate(.8)}
-#bg2{position:absolute;inset:0;background:center/cover no-repeat;opacity:0;transition:opacity .45s}
-.spr{position:absolute;bottom:0;height:86%;max-width:60%;object-fit:contain;object-position:bottom;transition:filter .25s,transform .25s,opacity .3s;opacity:0;pointer-events:none;filter:drop-shadow(0 6px 18px rgba(0,0,0,.45))}
+#bg{position:absolute;inset:-3%;background:#120b1d center/cover no-repeat;transition:opacity .45s,filter .6s;filter:blur(1.1px) brightness(.93) saturate(1.04);animation:kb 34s ease-in-out infinite alternate}
+#bg2{position:absolute;inset:-3%;background:center/cover no-repeat;opacity:0;transition:opacity .45s;filter:blur(1.1px) brightness(.93)}
+@keyframes kb{0%{transform:scale(1.02) translate(0,0)}100%{transform:scale(1.07) translate(-1.2%,-.8%)}}
+#cg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .6s;background:#120b1d}
+#scene.cgmode #cg{opacity:1}
+#scene.cgmode .spr{opacity:0!important}
+/* light wrap + floor fog so cut-out characters sit inside the painting */
+#wrapL{position:absolute;inset:0;pointer-events:none;background:radial-gradient(90% 70% at 50% 20%,var(--light,rgba(255,200,150,.16)),transparent 70%);mix-blend-mode:soft-light;z-index:2}
+#fog{position:absolute;left:0;right:0;bottom:0;height:42%;pointer-events:none;z-index:2;background:linear-gradient(rgba(8,5,16,0),rgba(8,5,16,.62))}
+#scene.cgmode #fog{height:30%}
+.spr{position:absolute;bottom:0;height:86%;max-width:60%;object-fit:contain;object-position:bottom;transition:filter .35s,transform .25s,opacity .3s;opacity:0;pointer-events:none;z-index:1;filter:var(--grade,none) drop-shadow(0 0 14px var(--rim,rgba(255,190,140,.22))) drop-shadow(0 10px 22px rgba(0,0,0,.45));animation:breathe 4.2s ease-in-out infinite}
+@keyframes breathe{0%,100%{scale:1 1}50%{scale:1 1.007}}
 .spr.on{opacity:1}
 #sL{left:4%;transform-origin:bottom left}
-#sR{right:4%;transform-origin:bottom right}
-.spr.quiet{filter:brightness(.62) drop-shadow(0 6px 18px rgba(0,0,0,.45));transform:scale(.97)}
+#sR{right:4%;transform-origin:bottom right;animation-delay:-2s}
+.spr.quiet{filter:var(--grade,none) brightness(.66) saturate(.85) drop-shadow(0 10px 22px rgba(0,0,0,.45));transform:scale(.97)}
 .spr.talk{transform:scale(1.015)}
-.spr.bounce{animation:bnc .32s ease-out}
+.spr.bounce{animation:bnc .32s ease-out,breathe 4.2s ease-in-out infinite}
 @keyframes bnc{0%{transform:translateY(0) scale(1.015)}40%{transform:translateY(-2.5%) scale(1.02)}100%{transform:translateY(0) scale(1.015)}}
-#sR.flip{transform:scaleX(-1)}
 @media (orientation:portrait){.spr{height:60%;bottom:21%;max-width:72%}#sL{left:-12%}#sR{right:-12%}}
+/* face window used in animated (CG) scenes */
+#port{position:absolute;left:14px;bottom:calc(100% - 6px);width:118px;height:132px;border-radius:16px;overflow:hidden;border:2px solid var(--pc,#f5c542);background:rgba(13,9,21,.92);box-shadow:0 10px 30px rgba(0,0,0,.5);display:none}
+#port img{width:100%;height:auto;min-height:100%;object-fit:cover;object-position:50% 0;display:block;transform-origin:top center;transform:scale(1.9) translateY(-2%)}
+#scene.cgmode #port.on{display:block}
+#scene.cgmode #name{left:144px}
+@media (max-width:560px){#port{width:84px;height:94px}#scene.cgmode #name{left:108px}}
 /* hud */
 #hud{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;gap:8px;padding:max(10px,env(safe-area-inset-top)) 12px 10px;z-index:5;pointer-events:none;background:linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,0))}
 .mt{display:flex;align-items:center;gap:6px;background:rgba(13,9,21,.78);border:1px solid var(--line);border-radius:999px;padding:5px 10px 5px 7px;font-weight:800;font-size:13px;position:relative}
@@ -134,8 +147,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 <body>
 <div id="app">
   <div class="layer" id="scene">
-    <div id="bg"></div><div id="bg2"></div>
-    <img class="spr" id="sL" alt=""><img class="spr" id="sR" alt="">
+    <div id="bg"></div><div id="bg2"></div><video id="cg" muted loop playsinline preload="auto" aria-hidden="true"></video><div id="wrapL"></div>
+    <img class="spr" id="sL" alt=""><img class="spr" id="sR" alt=""><div id="fog"></div>
     <div id="hud">
       <div class="mt" id="mMood" title="Jada's mood">❤️<span class="bar"><i></i></span><b>0</b></div>
       <div class="mt money" id="mWal" title="Wallet">💵<b>$0</b></div>
@@ -145,7 +158,7 @@ button{font:inherit;color:inherit;cursor:pointer}
       <button class="hb" id="bAuto" type="button">Auto</button>
       <button class="hb" id="bMenu" type="button" aria-label="Menu">☰</button>
     </div>
-    <div id="box"><span id="name" class="disp">Tre</span><div id="text"></div><span id="next">▼</span></div>
+    <div id="box"><div id="port"><img alt=""></div><span id="name" class="disp">Tre</span><div id="text"></div><span id="next">▼</span></div>
   </div>
   <div id="choice" class="hide"><div id="cq" class="disp"></div><div id="opts" style="display:contents"></div><div id="ctime"><i></i></div></div>
   <div id="mini" class="hide"><canvas id="miniC"></canvas><div id="miniUI"></div></div>
@@ -180,8 +193,8 @@ button{font:inherit;color:inherit;cursor:pointer}
   <div id="end" class="card hide"><div class="panel" id="endP"></div></div>
   <div id="loading"></div>
 </div>
-<script src="tj-script.js?v=1"></script>
-<script src="tj-assets.js?v=1"></script>
+<script src="tj-script.js?v=2"></script>
+<script src="tj-assets.js?v=2"></script>
 <script>
 (function () {
   'use strict';
@@ -231,7 +244,10 @@ button{font:inherit;color:inherit;cursor:pointer}
   /* ---------- sprites: green-screen key through the ContentPad download proxy ---------- */
   var spriteCache = {};
   function proxied(u) { return 'https://link.contentpad.io/dl?u=' + encodeURIComponent(u); }
-  function spriteFor(who, expr) {
+  function outfitOf(who, bg) { var o = A.outfits && A.outfits[bg]; return o && o[who] && A.sprite[who + '_' + o[who]] ? o[who] : ''; }
+  function spriteFor(who, expr, bg) {
+    var of = outfitOf(who, bg === undefined ? bgKey : bg);
+    if (of) { var os = A.sprite[who + '_' + of], oe = os[expr] || os.neutral; return Array.isArray(oe) ? { url: oe[0], crop: oe[1] } : { url: oe, crop: 1 }; }
     var set = A.sprite[who]; if (!set) return null;
     var e = set[expr] || set.neutral || set[Object.keys(set)[0]];
     if (!e) e = set.smug || set.neutral;
@@ -271,7 +287,8 @@ button{font:inherit;color:inherit;cursor:pointer}
   }
   function preloadNode(id) {
     var n = S.nodes[id]; if (!n) return;
-    (n.lines || []).forEach(function (l) { if (l[0] !== 'sys') keyed(spriteFor(l[0], l[1])); });
+    (n.lines || []).forEach(function (l) { if (l[0] !== 'sys') keyed(spriteFor(l[0], l[1], n.bg)); });
+    if (A.cg && A.cg[n.bg]) { var v = document.createElement('link'); v.rel = 'preload'; v.as = 'video'; v.href = A.cg[n.bg]; document.head.appendChild(v); }
     if (n.bg && A.bg[n.bg]) { var im = new Image(); im.src = A.bg[n.bg]; }
   }
 
@@ -284,14 +301,19 @@ button{font:inherit;color:inherit;cursor:pointer}
     var url = A.bg[k]; var b2 = $('bg2');
     b2.style.backgroundImage = url ? 'url("' + url + '")' : 'none'; b2.style.opacity = 1;
     setTimeout(function () { $('bg').style.backgroundImage = b2.style.backgroundImage; b2.style.opacity = 0; }, 460);
+    var gr = (A.grade && A.grade[k]) || ['none', 'rgba(255,200,150,.14)'], sc = $('scene').style;
+    sc.setProperty('--grade', gr[0]); sc.setProperty('--light', gr[1]); sc.setProperty('--rim', gr[1].replace(/[\d.]+\)$/, '.3)'));
+    var cg = $('cg'), vid = A.cg && A.cg[k];
+    if (vid) { if (cg.getAttribute('src') !== vid) cg.src = vid; cg.muted = true; var pp = cg.play(); if (pp && pp.catch) pp.catch(function () {}); $('scene').classList.add('cgmode'); }
+    else { $('scene').classList.remove('cgmode'); cg.pause(); }
   }
   function placeSprite(slot, who, expr, talking) {
     var s = slots[slot];
     if (!who) { s.el.classList.remove('on'); s.who = null; return; }
-    var same = s.who === who && s.expr === expr;
-    s.who = who; s.expr = expr;
+    var same = s.who === who && s.expr === expr && s.of === outfitOf(who, bgKey);
+    s.who = who; s.expr = expr; s.of = outfitOf(who, bgKey);
     if (!same) {
-      var want = who + expr;
+      var want = who + expr + outfitOf(who, bgKey);
       s.want = want;
       keyed(spriteFor(who, expr)).then(function (src) {
         if (s.want !== want) return;
@@ -314,6 +336,13 @@ button{font:inherit;color:inherit;cursor:pointer}
     if (!tExpr && hasTre) tExpr = slots.L.who === 'tre' ? slots.L.expr : 'neutral';
     placeSprite('L', hasTre ? 'tre' : null, tExpr, who === 'tre');
     placeSprite('R', right, rExpr, who === right);
+    // animated (CG) scenes: the cast is in the painting, so the speaker gets a face window instead
+    var port = $('port');
+    if ($('scene').classList.contains('cgmode') && who && who !== 'sys') {
+      var want = who + cur[1] + bgKey; port.dataset.want = want;
+      port.style.setProperty('--pc', COLORS[who] || '#f5c542');
+      keyed(spriteFor(who, cur[1])).then(function (src) { if (port.dataset.want !== want) return; if (src) { port.querySelector('img').src = src; port.classList.add('on'); } else port.classList.remove('on'); });
+    } else port.classList.remove('on');
   }
 
   /* ---------- meters ---------- */
