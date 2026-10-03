@@ -193,7 +193,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   <div id="end" class="card hide"><div class="panel" id="endP"></div></div>
   <div id="loading"></div>
 </div>
-<script src="tj-script.js?v=2"></script>
+<script src="tj-script.js?v=3"></script>
 <script src="tj-assets.js?v=3"></script>
 <script>
 (function () {
@@ -378,6 +378,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     show('title', false); show('choice', false); show('mini', false);
     renderMeters();
     if (!resumed && n.fx) applyFx(n.fx);
+    curLines = (n.lines || []).filter(function (l) { return !window.TJ_COND || window.TJ_COND(l[3], st.m, st.f); });
     if (n.day) $('dayTag').textContent = n.day;
     save();
     preloadNode(n.go); if (n.choice) n.choice.opts.forEach(function (o) { preloadNode(o.go); }); if (n.mini) preloadNode(n.mini.go);
@@ -390,10 +391,12 @@ button{font:inherit;color:inherit;cursor:pointer}
     var done = false, fin = function () { if (done) return; done = true; show('day', false); cb(); };
     dayCard.skip = fin; setTimeout(fin, FAST ? 50 : 1900);
   }
-  function lineId() { return st.node + '.' + st.i; }
+  var curLines = [];
+  function hashText(t) { var h = 5381; for (var i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
+  function lineId() { var l = curLines[st.i]; return l ? st.node + ':' + hashText(l[2]) : ''; }
   function speedMs() { return FAST ? 0 : Math.round(48 - settings.txt * 44); }
   function showLine() {
-    var n = S.nodes[st.node], l = (n.lines || [])[st.i];
+    var n = S.nodes[st.node], l = curLines[st.i];
     clearTimeout(autoT); voice.pause();
     if (!l) return afterLines();
     mode = 'line'; lineDone = false; $('next').classList.remove('on');
@@ -401,7 +404,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     logPush(who, text);
     if (who === 'sys') { nm.classList.add('hide'); tEl.className = 'sys'; }
     else { nm.classList.remove('hide'); nm.textContent = NAMES[who] || who; nm.style.background = COLORS[who] || '#f5c542'; tEl.className = ''; }
-    stageFor(n, st.i);
+    stageFor({ lines: curLines }, st.i);
     var v = A.voice[lineId()];
     if (v && who !== 'sys' && settings.vo > 0) { voice.src = v; voice.volume = settings.vo; music.volume = settings.mus * 0.55; var pp = voice.play(); if (pp && pp.catch) pp.catch(function () {}); }
     else music.volume = settings.mus;
@@ -414,12 +417,12 @@ button{font:inherit;color:inherit;cursor:pointer}
   }
   function finishLine() {
     clearInterval(typing); typing = null; lineDone = true; $('next').classList.add('on');
-    var n = S.nodes[st.node], l = n.lines[st.i]; if (l) $('text').innerHTML = esc(l[2]).replace(/^\(([^)]*)\)/, '<em>($1)</em>');
+    var l = curLines[st.i]; if (l) $('text').innerHTML = esc(l[2]).replace(/^\(([^)]*)\)/, '<em>($1)</em>');
     if (settings.auto) scheduleAuto();
   }
   function scheduleAuto() {
     clearTimeout(autoT);
-    var n = S.nodes[st.node], l = n.lines[st.i]; if (!l) return;
+    var l = curLines[st.i]; if (!l) return;
     var wait = function () { autoT = setTimeout(advance, 650 + l[2].length * 28); };
     if (!voice.paused && !voice.ended && voice.src) voice.onended = function () { voice.onended = null; if (settings.auto && mode === 'line') autoT = setTimeout(advance, 450); };
     else wait();
@@ -722,7 +725,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     { t: 'bro she said "just looking" and we left with a whole damn DOG', ok: 'boys', bad: { fam: 'Ms. Brenda: Who is "she," Tre? My daughter has a NAME.', kiki: 'Kiki: 😭😭 screenshotting this for Jada' } },
     { t: 'Good morning Ms. Brenda! Tell Pastor I said God is good 🙏', ok: 'fam', bad: { boys: 'Deshawn: bro who hacked your phone', kiki: 'Kiki: why is this man saying grace in here' } },
     { t: 'I can do $40 for the cake. NOT the $300 yacht thing.', ok: 'kiki', bad: { boys: 'Deshawn: WHAT YACHT. why wasn\'t I invited', fam: 'Ms. Brenda: A YACHT? With what money, Tre?' } },
-    { t: 'bro her mama put RAISINS in the potato salad. I\'m scared as hell', ok: 'boys', bad: { fam: 'Ms. Brenda: ...I see.', kiki: 'Kiki: forwarding to Jada 🫡' } },
+    { t: 'bro her mama coming this weekend with her "famous" potato salad. I\'m scared as hell', ok: 'boys', bad: { fam: 'Ms. Brenda: Famous is right. Pray harder.', kiki: 'Kiki: forwarding to Jada 🫡' } },
     { t: 'Can\'t wait to see everybody Sunday! ❤️', ok: 'fam', bad: { boys: 'Deshawn: you good? blink twice if she\'s holding you hostage', kiki: 'Kiki: we said NO MEN, Tre.' } },
     { t: 'Surprise idea: we get Jada a cake shaped like her edges 😂', ok: 'kiki', bad: { boys: 'Deshawn: LMAOOO she gonna kill you dead', fam: 'Ms. Brenda: I\'m telling her.' } }
   ];

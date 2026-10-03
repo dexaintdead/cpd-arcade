@@ -1,8 +1,11 @@
 /* Tre & Jada — Episode 1: "Payday". 18+ adult comedy. Original characters (ContentPad).
+   v2 (3 Oct 2026): story pass for cohesion — every choice now pays off later in the week.
    Node format:
-     id: { day, bg, music, lines:[[who, expr, text]], choice:{ q, secs, def, opts:[{ t, fx, set, go }] },
-           mini:{ game, go }, go, end }
+     id: { day, bg, music, lines:[[who, expr, text, cond?]], choice:{ q, secs, def, opts:[{ t, fx, set, go }] },
+           mini:{ game, go }, go, end, fx }
    who: tre | jada | mike | brenda | marcus | kiki | deshawn | sys (on-screen caption, not voiced)
+   cond (optional): 'flag', '!flag', or a meter/flag test like 'wallet<150', 'shiftSold>=6', 'trust>=60'.
+     Several tests can be joined with '&'. A line whose cond fails is skipped.
    fx: meter deltas { mood, wallet, sanity, trust }. set: story flags. */
 window.TJ_SCRIPT = {
   title: 'Tre & Jada',
@@ -32,10 +35,13 @@ window.TJ_SCRIPT = {
     ['kiki', 'friends', 'Then bring me two.'],
     ['sys', '', 'Ninety minutes later. The bill arrives. $418.37.'],
     ['jada', 'flirty', 'Baaabe. The waiter\'s looking at you.'],
-    ['tre', 'defeated', 'Why the hell is the waiter looking at me like he\'s seen my credit score?']
+    ['tre', 'defeated', 'Why the hell is the waiter looking at me like he\'s seen my credit score?'],
+    ['kiki', 'friends', 'Oh, and Jada, Marcus said hey. He saw you at the gym Saturday.'],
+    ['tre', 'annoyed', 'Who the hell is Marcus?'],
+    ['jada', 'sideeye', 'Nobody. A gym friend. Focus, Tre. The bill.']
   ], choice: { q: 'The bill is $418.37. What does Tre do?', secs: 9, def: 2, opts: [
     { t: 'Pay for everybody like a king', fx: { mood: 15, wallet: -418, sanity: -10 }, set: { paidBrunch: 1 }, go: 'mon_pay' },
-    { t: 'Split it six ways, publicly', fx: { mood: -15, wallet: -70, trust: -5 }, go: 'mon_split' },
+    { t: 'Split it six ways, publicly', fx: { mood: -15, wallet: -70, trust: -5 }, set: { splitBrunch: 1 }, go: 'mon_split' },
     { t: 'Fake an emergency phone call', fx: { mood: -10, wallet: 0, sanity: 5, trust: -10 }, set: { fakeCall: 1 }, go: 'mon_fake' }
   ] } },
 
@@ -67,15 +73,20 @@ window.TJ_SCRIPT = {
   // ───────────────────────── TUESDAY — WORK ─────────────────────────
   tue_intro: { day: 'TUESDAY', bg: 'work', music: 'work', lines: [
     ['sys', '', 'TUESDAY · Big Mike\'s Mattress Kingdom'],
+    ['deshawn', 'deshawn', 'Bro. Kiki posted you paying for six women\'s brunch. Two hundred likes. You a legend and you broke.', 'paidBrunch'],
+    ['deshawn', 'deshawn', 'Bro. You Venmo-requested Kiki AT brunch? She made a whole story about you. Eleven slides.', 'splitBrunch'],
+    ['deshawn', 'deshawn', 'Bro. Kiki posted your shoe. Just your shoe. Caption says "he ran."', 'fakeCall'],
+    ['tre', 'defeated', 'Monday was a war, Deshawn. And I lost.'],
     ['mike', 'mike', 'TRE! My guy! My son! My favorite employee who is about to do me a favor.'],
     ['tre', 'annoyed', 'Hell no.'],
     ['mike', 'mike', 'Double shift. Tonight. Mattress Madness Midnight Sale. Time and a half and all the hot dogs you can carry.'],
     ['deshawn', 'deshawn', 'Bro, take it. Hot dogs are a currency. I\'m basically rich off hot dogs.'],
-    ['tre', 'neutral', 'Jada wanted to watch our show tonight. She said if I miss another episode it\'s "a pattern."'],
+    ['tre', 'nervous', 'After that brunch? I need this money bad.', 'paidBrunch'],
+    ['tre', 'neutral', 'But Jada wanted to watch our show tonight. She said if I miss another episode it\'s "a pattern."'],
     ['deshawn', 'deshawn', 'Women love a man with a work ethic. Trust me. I\'m single for completely unrelated reasons.']
   ], choice: { q: 'Big Mike needs a double shift tonight.', secs: 8, def: 0, opts: [
     { t: 'Take the double (play The Shift)', fx: { mood: -10, sanity: -10 }, set: { double: 1 }, go: 'tue_shift' },
-    { t: 'Call in "sick" and go home to Jada', fx: { mood: 15, wallet: -40, trust: 5 }, go: 'tue_home' }
+    { t: 'Fake-cough at Mike and go home to Jada', fx: { mood: 15, wallet: -40, trust: 5 }, set: { skipped: 1 }, go: 'tue_home' }
   ] } },
 
   tue_shift: { bg: 'work', music: 'work', lines: [
@@ -87,12 +98,15 @@ window.TJ_SCRIPT = {
   tue_after_shift: { bg: 'apartment', music: 'theme', lines: [
     ['sys', '', '1:14 AM. Tre gets home smelling like hot dogs and memory foam.'],
     ['jada', 'sideeye', 'Oh, so you DO live here.'],
+    ['tre', 'smug', 'Baby, I sold so many mattresses tonight Mike cried. Real tears. Hot dog-scented tears.', 'shiftSold>=6'],
     ['tre', 'nervous', 'Baby, I was making money. For us. For our future. For your brunches.'],
     ['jada', 'dramatic', 'I watched the season finale ALONE, Tre. Do you know who died? You don\'t. Because you were selling a Cloud Nine pillow-top to a stranger.'],
-    ['tre', 'neutral', 'I sold four, actually.']
+    ['tre', 'neutral', 'Was it the twin? Tell me it was the evil twin.'],
+    ['jada', 'mad', 'Go to sleep, Tre. On YOUR side. And take a shower first, you smell like a ballpark.']
   ], go: 'wed_intro' },
 
   tue_home: { bg: 'apartment', music: 'theme', lines: [
+    ['sys', '', 'Ten seconds earlier, at the store. Directly in front of Big Mike.'],
     ['tre', 'nervous', '(fake cough) Mike, I got the... the thing. The bubonic.'],
     ['mike', 'mike', 'You were fine thirty seconds ago!'],
     ['tre', 'smug', 'It\'s fast-acting, Mike. Gotta go. Contagious.'],
@@ -111,9 +125,9 @@ window.TJ_SCRIPT = {
     ['tre', 'nervous', 'I don\'t even remember a Tiffany. There were like nine Tiffanys. It was a whole Tiffany era.'],
     ['jada', 'dramatic', 'A whole ERA?']
   ], choice: { q: 'Jada is holding your phone like evidence.', secs: 8, def: 1, opts: [
-    { t: 'Explain calmly and show her the DMs (there are none)', fx: { mood: 5, trust: 15, sanity: -5 }, go: 'wed_explain' },
+    { t: 'Explain calmly and show her the DMs (there are none)', fx: { mood: 5, trust: 15, sanity: -5 }, set: { explained: 1 }, go: 'wed_explain' },
     { t: 'Delete Instagram right in front of her', fx: { mood: 10, trust: -5, sanity: -10 }, set: { deletedIG: 1 }, go: 'wed_delete' },
-    { t: 'Counter-accuse: "Who\'s Marcus liking YOUR stuff?"', fx: { mood: -20, trust: -15, sanity: 5 }, set: { counter: 1, marcus: 1 }, go: 'wed_counter' }
+    { t: 'Flip it: "Let\'s talk about Marcus."', fx: { mood: -20, trust: -15, sanity: 5 }, set: { counter: 1, marcus: 1 }, go: 'wed_counter' }
   ] } },
 
   wed_explain: { bg: 'bedroom', music: 'tense', lines: [
@@ -127,49 +141,53 @@ window.TJ_SCRIPT = {
     ['tre', 'smug', 'Watch this. Delete. Gone. No more Instagram. I\'m a free man.'],
     ['jada', 'shocked', 'Wait, you had pictures of ME on there! Our anniversary post had four hundred likes!'],
     ['tre', 'defeated', 'They\'re in a better place now.'],
-    ['jada', 'happy', 'Honestly? That was kind of hot. Stupid as hell. But hot. Bedroom. Now.']
+    ['jada', 'happy', 'Honestly? That was kind of hot. Stupid as hell. But hot. Come back to bed.']
   ], go: 'wed_chat' },
 
   wed_counter: { bg: 'bedroom', music: 'tense', lines: [
-    ['tre', 'smug', 'Oh, we\'re doing this? Let\'s talk about MARCUS liking your gym selfie with the fire emoji.'],
+    ['tre', 'smug', 'Oh, we\'re doing this? Let\'s talk about MARCUS. Gym Friend Marcus. Fire-emoji-on-your-gym-selfie Marcus.'],
     ['jada', 'mad', 'Marcus is a family friend!'],
-    ['tre', 'annoyed', 'Marcus is your EX, who drinks protein shakes out of a gallon jug like a damn horse.'],
-    ['jada', 'dramatic', 'Oh, so now we\'re jealous of HORSES?'],
+    ['tre', 'annoyed', 'Saturday he was a gym friend. Now he\'s a FAMILY friend? He got promoted?'],
+    ['jada', 'dramatic', 'He drinks protein out of a gallon jug, Tre! He\'s basically a horse! Are you jealous of a HORSE?'],
     ['marcus', 'marcus', '(text) hey jada, still on for leg day? 💪'],
     ['tre', 'shocked', 'LEG DAY? Whose legs, Jada?!']
   ], go: 'wed_chat' },
 
   wed_chat: { bg: 'work', music: 'work', lines: [
     ['sys', '', 'Later, on break. Three group chats explode at once.'],
+    ['mike', 'mike', 'Look who\'s back from the plague. Nice tan for a dying man, Tre.', 'skipped'],
     ['deshawn', 'deshawn', 'Bro, your phone is vibrating so hard it\'s doing a lap around the break room.'],
     ['tre', 'defeated', 'The Boys chat, Jada\'s family chat, and some chat called "Kiki\'s Birthday Planning (NO MEN)". Why am I in a no-men chat?'],
-    ['deshawn', 'deshawn', 'Whatever you do, do NOT send the wrong message in the wrong chat. That\'s how my uncle got divorced. Twice. Same wife.']
+    ['deshawn', 'deshawn', 'Because you the one paying. Whatever you do, do NOT send the wrong message in the wrong chat. That\'s how my uncle got divorced. Twice. Same wife.']
   ], mini: { game: 'chat', go: 'thu_intro' } },
 
   // ───────────────────────── THURSDAY — THE MALL ─────────────────────────
   thu_intro: { day: 'THURSDAY', bg: 'mall', music: 'mall', lines: [
     ['sys', '', 'THURSDAY · The mall. "I\'m just looking."'],
-    ['jada', 'happy', 'I\'m just looking, babe. Window shopping. It\'s cardio for the soul.'],
+    ['jada', 'happy', 'Okay, so I booked us at Gilded tomorrow night. The place from TikTok with the gold steak. And I have NOTHING to wear.'],
+    ['tre', 'shocked', 'The GOLD steak? They wrap a steak in GOLD, Jada. That\'s not food, that\'s jewelry.'],
+    ['jada', 'flirty', 'So I need a dress that matches the jewelry. I\'m just looking, babe. Window shopping. It\'s cardio for the soul.'],
     ['tre', 'annoyed', 'You said that last time and we left with a dog.'],
-    ['jada', 'flirty', 'And you LOVE Biscuit.'],
+    ['jada', 'laugh', 'And you LOVE Biscuit.'],
     ['tre', 'neutral', 'Biscuit bit me on my ass.'],
-    ['jada', 'laugh', 'Because you were acting brand new. Come on. Carry my bag. Just the one.']
+    ['jada', 'happy', 'Because you were acting brand new. Come on. Carry my bag. Just the one.'],
+    ['jada', 'mad', 'Oh, and Kiki showed me the screenshots, by the way. ALL of them. We\'ll talk.', 'chatWrong>=3']
   ], choice: { q: '"Just the one bag." How does Tre survive the mall?', secs: 8, def: 0, opts: [
-    { t: 'Carry the bags like a man (play Mall Mayhem)', fx: {}, go: 'thu_mall' },
-    { t: 'Hide in the food court with Deshawn', fx: { mood: -15, sanity: 15, wallet: -15 }, go: 'thu_hide' },
-    { t: 'Pretend you got paged for a "mattress emergency"', fx: { mood: -10, trust: -10, sanity: 10 }, go: 'thu_paged' }
+    { t: 'Carry the bags like a man (play Mall Mayhem)', fx: {}, set: { carried: 1 }, go: 'thu_mall' },
+    { t: 'Hide in the food court with Deshawn', fx: { mood: -15, sanity: 15, wallet: -15 }, set: { hidMall: 1 }, go: 'thu_hide' },
+    { t: 'Pretend you got paged for a "mattress emergency"', fx: { mood: -10, trust: -10, sanity: 10 }, set: { paged: 1 }, go: 'thu_paged' }
   ] } },
 
   thu_mall: { bg: 'mall', music: 'mall', lines: [
-    ['jada', 'happy', 'Okay, ONE stop. Then maybe Sephora. Then maybe the one with the candles. Then pretzels. Pretzels don\'t count.'],
+    ['jada', 'happy', 'Okay, ONE stop for the dress. Then maybe Sephora. Then maybe the one with the candles. Then pretzels. Pretzels don\'t count.'],
     ['tre', 'defeated', 'Lord, if you\'re listening, please let her card decline. Amen. Shit. Sorry. Amen.']
   ], mini: { game: 'mall', go: 'thu_after' } },
 
   thu_hide: { bg: 'mall', music: 'mall', lines: [
-    ['deshawn', 'deshawn', 'Welcome to the Husband Daycare. We got Wi-Fi, a charger, and a guy named Ray who\'s been here since 2022.'],
+    ['deshawn', 'deshawn', 'Welcome to the Husband Daycare. My girl\'s been in Sephora since Tuesday. We got Wi-Fi, a charger, and a guy named Ray who\'s been here since 2022.'],
     ['tre', 'laugh', 'Is Ray okay?'],
     ['deshawn', 'deshawn', 'Ray\'s wife is "just looking." Ray will never be okay.'],
-    ['jada', 'mad', '(text) WHERE THE HELL ARE YOU. I needed an opinion on two shoes that are THE SAME SHOE.']
+    ['jada', 'mad', '(text) WHERE THE HELL ARE YOU. I needed an opinion on two dresses that are THE SAME DRESS.']
   ], go: 'thu_after' },
 
   thu_paged: { bg: 'mall', music: 'mall', lines: [
@@ -181,21 +199,23 @@ window.TJ_SCRIPT = {
 
   thu_after: { bg: 'apartment', music: 'theme', lines: [
     ['sys', '', 'Thursday night. Tre checks his bank app with one eye closed.'],
-    ['tre', 'defeated', 'I have... money. Some money. A number. It\'s a smaller number than before.'],
-    ['jada', 'flirty', 'Tomorrow\'s date night, baby. I booked us at Gilded. You know, the one from TikTok with the gold steak.'],
-    ['tre', 'shocked', 'The GOLD steak? They wrap a steak in GOLD, Jada. That\'s not food, that\'s jewelry.']
+    ['tre', 'defeated', 'I have... money. Some money. A number. It\'s a smaller number than before.', 'wallet>=150'],
+    ['tre', 'shocked', 'The bank app just asked me if I\'m okay. The APP is worried about me.', 'wallet<150'],
+    ['jada', 'happy', 'Okay, the dress is perfect. Burgundy. Satin. You\'re gonna lose your mind.'],
+    ['jada', 'sideeye', 'Even though SOMEBODY dropped half my bags in front of the whole mall.', 'bagsDropped>=4'],
+    ['tre', 'nervous', 'I already lost my mind, Jada. And my money. The dress can have whatever\'s left.']
   ], go: 'fri_intro' },
 
   // ───────────────────────── FRIDAY — DATE NIGHT ─────────────────────────
   fri_intro: { day: 'FRIDAY', bg: 'restaurant', music: 'date', lines: [
     ['sys', '', 'FRIDAY · Gilded. A waiter in a velvet blazer hands Tre a menu with no prices on it.'],
-    ['tre', 'nervous', 'Why are there no prices? Babe, why are there no prices? That\'s a threat. That\'s a menu making a threat. This menu is pressing me.'],
+    ['tre', 'nervous', 'Why are there no prices? Babe, why are there no prices? That\'s a menu making a threat. This menu is pressing me.'],
     ['jada', 'happy', 'Because if you have to ask, you can\'t afford it!'],
     ['tre', 'defeated', 'I\'m ASKING, Jada! I\'m asking with my whole broke ass!'],
     ['jada', 'flirty', 'Look at you in a button-up. Mm. You clean up nice. Order something fun, and maybe dessert is at home.']
   ], choice: { q: 'The menu has no prices. What does Tre order?', secs: 8, def: 0, opts: [
-    { t: 'Survive the bill (play Date Night)', fx: {}, go: 'fri_date' },
-    { t: '"I\'m not hungry, I ate earlier."', fx: { mood: -10, wallet: -90, sanity: -5 }, go: 'fri_nothungry' }
+    { t: 'Survive the bill (play Date Night)', fx: {}, set: { dateNight: 1 }, go: 'fri_date' },
+    { t: '"I\'m not hungry, I ate earlier."', fx: { mood: -10, wallet: -90, sanity: -5 }, set: { notHungry: 1 }, go: 'fri_nothungry' }
   ] } },
 
   fri_date: { bg: 'restaurant', music: 'date', lines: [
@@ -213,23 +233,29 @@ window.TJ_SCRIPT = {
 
   fri_after: { bg: 'apartment', music: 'theme', lines: [
     ['sys', '', 'Friday, 11:48 PM. Jada\'s phone buzzes.'],
-    ['jada', 'shocked', 'Oh no. My mama\'s coming for Sunday dinner. Tomorrow. She said, quote, "I want to meet this Tre properly."'],
+    ['jada', 'shocked', 'Oh no. My mama\'s coming over tomorrow. For dinner. She said, quote, "I want to meet this Tre properly."'],
     ['tre', 'shocked', 'PROPERLY? I met her at your cousin\'s cookout! She called me "the one in the hoodie" for two hours!'],
-    ['jada', 'laugh', 'That was a compliment, babe. She called my last boyfriend "the problem."']
+    ['jada', 'laugh', 'That was a compliment, babe. She called my last boyfriend "the problem."'],
+    ['tre', 'nervous', 'Wait. Is your last boyfriend... Marcus?', 'marcus'],
+    ['jada', 'sideeye', 'Go to sleep, Tre.', 'marcus'],
+    ['jada', 'flirty', 'Wear something with a collar. She respects a collar.']
   ], go: 'sat_intro' },
 
   // ───────────────────────── SATURDAY — HER MAMA ─────────────────────────
   sat_intro: { day: 'SATURDAY', bg: 'kitchen', music: 'theme', lines: [
     ['sys', '', 'SATURDAY · Ms. Brenda has arrived. She brought her own casserole. And her own chair.'],
-    ['brenda', 'brenda', 'So. You\'re the Tre.'],
+    ['brenda', 'brenda', 'So. You\'re the Tre. Nice collar.'],
     ['tre', 'nervous', 'Yes ma\'am. The one and only. Well, there\'s a Tre at my job, but he\'s in sales, so.'],
+    ['brenda', 'brenda', 'Kiki told me you paid for six grown women\'s brunch. You rich, or you just slow?', 'paidBrunch'],
+    ['brenda', 'brenda', 'Kiki told me you sent her a bill at brunch. In public. Bold. Stupid, but bold.', 'splitBrunch'],
+    ['brenda', 'brenda', 'Kiki told me you ran out of a restaurant and left a shoe. You find it?', 'fakeCall'],
     ['brenda', 'brenda', 'And what are your intentions with my baby? Besides eating all her groceries.'],
     ['jada', 'laugh', 'Mama!'],
-    ['brenda', 'brenda', 'I\'m asking a question. Now taste this potato salad and tell me the truth. My pastor\'s wife says it needs more relish. That heifer. I want to know if I need to pray for her.']
+    ['brenda', 'brenda', 'I\'m asking a question. Now taste my famous potato salad and tell me the truth. My pastor\'s wife says it needs more relish. That heifer.']
   ], choice: { q: 'Ms. Brenda\'s potato salad has raisins in it.', secs: 9, def: 0, opts: [
     { t: 'Lie with your whole chest: "Best I ever had"', fx: { mood: 10, trust: 5, sanity: -10 }, set: { mamaLove: 1 }, go: 'sat_lie' },
-    { t: 'Be honest: "Ma\'am... are those raisins?"', fx: { mood: -15, trust: 10 }, go: 'sat_honest' },
-    { t: 'Hide in the bathroom until she leaves', fx: { mood: -20, sanity: 10, trust: -5 }, go: 'sat_hide' }
+    { t: 'Be honest: "Ma\'am... are those raisins?"', fx: { mood: -15, trust: 10 }, set: { honest: 1 }, go: 'sat_honest' },
+    { t: 'Hide in the bathroom until she leaves', fx: { mood: -20, sanity: 10, trust: -5 }, set: { hidMama: 1 }, go: 'sat_hide' }
   ] } },
 
   sat_lie: { bg: 'kitchen', music: 'theme', lines: [
@@ -260,12 +286,32 @@ window.TJ_SCRIPT = {
     ['sys', '', 'SUNDAY · 9:00 PM. Jada turns off the TV. That\'s never good.'],
     ['jada', 'neutral', 'Babe. Can we talk?'],
     ['tre', 'shocked', 'Oh shit. Every man in America just felt that. Somewhere, Deshawn felt that.'],
-    ['jada', 'neutral', 'I\'ve been thinking about us. About this week. About everything.']
+    ['jada', 'neutral', 'I\'ve been thinking about this week. All of it. I made a list.'],
+    ['tre', 'nervous', 'A LIST?'],
+    ['jada', 'happy', 'Monday you paid for the whole brunch. Kiki still talks about it.', 'paidBrunch'],
+    ['jada', 'mad', 'Monday you sent my best friend a Venmo request at brunch.', 'splitBrunch'],
+    ['jada', 'sideeye', 'Monday you faked a call from your dead grandma and left a shoe.', 'fakeCall'],
+    ['jada', 'sideeye', 'Tuesday you chose mattresses over me. Which, fine. Somebody has to pay for brunch.', 'double'],
+    ['jada', 'flirty', 'Tuesday you came home. You gave the bubonic plague to Big Mike for me. That was sweet.', 'skipped'],
+    ['jada', 'happy', 'Wednesday you showed me your DMs. No drama. I noticed that.', 'explained'],
+    ['jada', 'laugh', 'Wednesday you deleted Instagram for me. Dumb. But I noticed.', 'deletedIG'],
+    ['jada', 'mad', 'And Wednesday you made Marcus a whole thing.', 'counter'],
+    ['jada', 'mad', 'And Kiki has screenshots of your group chats. Plural.', 'chatWrong>=3'],
+    ['jada', 'happy', 'Thursday you carried every bag in that mall. Like a pack mule. A sexy pack mule.', 'carried'],
+    ['jada', 'mad', 'Thursday you hid in a food court with Deshawn while I tried on dresses alone.', 'hidMall'],
+    ['jada', 'sideeye', 'Thursday you got "paged." For a mattress emergency. Which isn\'t real.', 'paged'],
+    ['jada', 'happy', 'Friday you didn\'t even blink at the bill.', 'dateNight&wallet>=100&declined<1'],
+    ['jada', 'dramatic', 'Friday your card got declined in front of a violinist. He stopped PLAYING, Tre.', 'declined>=1'],
+    ['jada', 'sideeye', 'Friday you ate my fries with your eyes.', 'notHungry'],
+    ['jada', 'happy', 'And yesterday you lied to my mama\'s face about raisins. For me. That\'s love.', 'mamaLove'],
+    ['jada', 'neutral', 'And yesterday you told my mama the truth. She respects you now. It\'s terrifying.', 'honest'],
+    ['jada', 'mad', 'And yesterday you hid in the bathroom for forty-five minutes.', 'hidMama'],
+    ['tre', 'defeated', 'So... what\'s the verdict?']
   ], go: 'ENDING' },
 
   // ───────────────────────── ENDINGS ─────────────────────────
   end_wifed: { bg: 'stadium', music: 'win', end: { title: 'WIFED UP', rank: 'S', blurb: 'Kiss Cam. Jumbotron. One knee. Twenty thousand people watching.' }, lines: [
-    ['jada', 'happy', 'This week? You showed up. You paid, you worked, you lied to my mama about raisins. That\'s love.'],
+    ['jada', 'happy', 'The verdict? You showed up. All week. That\'s the whole list.'],
     ['tre', 'smug', 'Funny you say that.'],
     ['sys', '', 'One week later. The arena. The Kiss Cam lands on them. Tre gets down on one knee.'],
     ['jada', 'shocked', 'TRE! On the JUMBOTRON?'],
@@ -281,10 +327,12 @@ window.TJ_SCRIPT = {
     ['tre', 'laugh', 'Ninety cents. The coleslaw coupon came through.']
   ] },
 
-  end_speedrun: { bg: 'apartment', music: 'sad', end: { title: 'SUGAR DADDY SPEEDRUN', rank: 'D', blurb: 'Bankrupt in four days. A new personal record.' }, lines: [
+  end_speedrun: { bg: 'apartment', music: 'sad', end: { title: 'SUGAR DADDY SPEEDRUN', rank: 'D', blurb: 'Bankrupt in under a week. A new personal record.' }, lines: [
     ['tre', 'defeated', 'Babe. I gotta be honest. My bank account is negative. The app sent me a sad face emoji.'],
     ['jada', 'shocked', 'Negative? How the fuck do you spend money you DON\'T HAVE?'],
-    ['tre', 'annoyed', 'Brunch, Jada. Brunch, the mall, and a steak wrapped in jewelry.'],
+    ['tre', 'annoyed', 'Brunch, Jada. Six women and a lobster waffle.', 'paidBrunch'],
+    ['tre', 'annoyed', 'The mall, Jada. You were "just looking" at four stores.', 'carried|paged'],
+    ['tre', 'annoyed', 'And a steak wrapped in jewelry.', 'dateNight'],
     ['jada', 'sideeye', 'So... is this a bad time to tell you Kiki\'s birthday is next weekend? In Miami?']
   ] },
 
@@ -292,11 +340,11 @@ window.TJ_SCRIPT = {
     ['tre', 'annoyed', 'Jada. I love you. But I\'m tired. I\'m tired as shit, Jada.'],
     ['sys', '', 'Three weeks later. A cabin. No Wi-Fi. A lake.'],
     ['tre', 'neutral', 'Me and the fish have an understanding. The fish don\'t want a lobster waffle. The fish just want a worm.'],
-    ['deshawn', 'deshawn', '(on a crackling phone) Bro, Jada says come home, she misses you. Also you left the stove on.']
+    ['deshawn', 'deshawn', '(on a crackling phone) Bro, Jada says come home, she misses you. Also Big Mike wants his hot dogs back.']
   ] },
 
   end_couch: { bg: 'apartment', music: 'sad', end: { title: 'THE COUCH', rank: 'C', blurb: 'You live on the couch now. The couch is your relationship.' }, lines: [
-    ['jada', 'mad', 'This week was a hot-ass MESS, Tre. You were a mess. I was a little bit of a mess. But mostly you.'],
+    ['jada', 'mad', 'The verdict? This week was a hot-ass MESS, Tre. You were a mess. I was a little bit of a mess. But mostly you.'],
     ['tre', 'nervous', 'So... are we breaking up?'],
     ['jada', 'sideeye', 'No. But you\'re sleeping out here until you remember my love language.'],
     ['tre', 'defeated', 'Is it acts of service?'],
@@ -304,35 +352,49 @@ window.TJ_SCRIPT = {
   ] },
 
   end_read: { bg: 'bedroom', music: 'sad', end: { title: 'LEFT ON READ', rank: 'D', blurb: 'She moved on. So did her group chat. And her mama.' }, lines: [
-    ['jada', 'neutral', 'I don\'t trust you, Tre. And without trust, what are we even doing?'],
+    ['jada', 'neutral', 'The verdict? I don\'t trust you, Tre. And without trust, what are we even doing?'],
     ['tre', 'shocked', 'Watching our show? Eating snacks? Building a life?'],
     ['sys', '', 'Monday morning. Tre texts "good morning beautiful." Read 7:02 AM.'],
     ['tre', 'defeated', 'Read at 7:02. No reply. The silence is so loud I can hear it in my teeth.']
   ] },
 
-  end_marcus: { bg: 'apartment', music: 'sad', end: { title: 'HER EX WINS', rank: 'F', blurb: 'Marcus was always in the picture. Literally. In the background of her gym selfies.' }, lines: [
-    ['jada', 'neutral', 'You accused me, you lied to me, and honestly? Marcus never made me split a brunch.'],
-    ['tre', 'shocked', 'MARCUS? Leg Day Marcus?'],
+  end_marcus: { bg: 'apartment', music: 'sad', end: { title: 'HER EX WINS', rank: 'F', blurb: 'The gym friend. The family friend. The ex. Same guy. Leg day, every day.' }, lines: [
+    ['jada', 'neutral', 'You want the truth? Marcus is my ex. And you know what? He never once accused me of anything.'],
+    ['tre', 'shocked', 'MARCUS? Gym Friend Marcus? FAMILY Friend Marcus?'],
     ['marcus', 'marcus', '(at the door, holding a gallon of protein shake) Ready, babe?'],
     ['tre', 'annoyed', 'Bro, you\'re drinking out of a jug like a damn horse.'],
     ['marcus', 'marcus', 'And she loves it. Leg day. Every day.']
   ] },
 
   end_twist: { bg: 'apartment', music: 'sad', end: { title: 'PLOT TWIST', rank: 'B', blurb: 'It was you. You were the problem the whole time.' }, lines: [
-    ['jada', 'neutral', 'Tre. Pull up your screen time.'],
+    ['jada', 'neutral', 'The verdict? Pull up your screen time.'],
     ['tre', 'nervous', 'Why?'],
-    ['jada', 'mad', 'Eleven hours on Instagram. You accused ME about Marcus while YOU watched three hundred reels of women doing yoga.'],
+    ['jada', 'mad', 'Eleven hours on Instagram. You came for ME about Marcus while YOU watched three hundred reels of women doing yoga.'],
     ['tre', 'defeated', '...They were teaching me balance, Jada.']
   ] },
 
   end_barely: { bg: 'apartment', music: 'theme', end: { title: 'STILL TOGETHER (BARELY)', rank: 'B', blurb: 'You survived the week. Next week has a birthday trip to Miami. To be continued...' }, lines: [
-    ['jada', 'neutral', 'This week was a lot. But you\'re still here, and I\'m still here, so.'],
+    ['jada', 'neutral', 'The verdict? This week was a lot. But you\'re still here, and I\'m still here, so.'],
     ['tre', 'neutral', 'So we good?'],
     ['jada', 'flirty', 'We\'re good. Come here. Turn the TV back on. Bonus episode.'],
     ['tre', 'laugh', 'The bonus episode! I\'ve been waiting all week!'],
     ['jada', 'sideeye', 'Also Kiki\'s birthday is in Miami next weekend and you\'re paying for the Airbnb.']
   ] }
   }
+};
+
+/* Line conditions: 'flag', '!flag', 'meter<n', 'flag>=n', joined with '&' (all) or '|' (any). */
+window.TJ_COND = function (cond, m, f) {
+  if (!cond) return true;
+  function one(c) {
+    c = c.trim(); var neg = c[0] === '!'; if (neg) c = c.slice(1);
+    var mt = c.match(/^(\w+)\s*(>=|<=|>|<|==)\s*(-?\d+)$/), r;
+    if (mt) { var v = (mt[1] in m ? m[mt[1]] : f[mt[1]]) || 0, n = +mt[3]; r = mt[2] === '>=' ? v >= n : mt[2] === '<=' ? v <= n : mt[2] === '>' ? v > n : mt[2] === '<' ? v < n : v === n; }
+    else r = !!f[c];
+    return neg ? !r : r;
+  }
+  if (cond.indexOf('|') >= 0) return cond.split('|').some(one);
+  return cond.split('&').every(one);
 };
 
 /* Which ending Sunday lands on. Order matters — first match wins. */
