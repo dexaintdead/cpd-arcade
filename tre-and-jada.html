@@ -178,7 +178,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 #mini{position:absolute;inset:0;z-index:10;background:#0d0915}
 #miniC{position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 #miniUI{position:absolute;inset:0;pointer-events:none}
-#miniUI .top{position:absolute;top:max(10px,env(safe-area-inset-top));left:12px;right:12px;display:flex;justify-content:space-between;align-items:center;font-weight:900;font-size:clamp(14px,2vw,18px);text-shadow:0 2px 6px #000}
+#miniUI .top{position:absolute;z-index:3;pointer-events:none;top:max(10px,env(safe-area-inset-top));left:12px;right:12px;display:flex;justify-content:space-between;align-items:center;font-weight:900;font-size:clamp(14px,2vw,18px);text-shadow:0 2px 6px #000}
 .chatw{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:60px 16px 20px;pointer-events:auto;background:radial-gradient(circle at 50% 30%,#241837,#0d0915 70%)}
 .phone{width:min(420px,100%);background:#0b0812;border:2px solid #2c2140;border-radius:28px;padding:18px;box-shadow:0 30px 70px rgba(0,0,0,.6)}
 .draft{background:#2b7bff;color:#fff;border-radius:18px 18px 4px 18px;padding:12px 14px;font-weight:700;font-size:16px;line-height:1.35;margin:4px 0 14px auto;max-width:92%}
@@ -441,7 +441,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     var m = st.m;
     $('mMood').querySelector('i').style.width = clamp(m.mood, 0, 100) + '%'; $('mMood').querySelector('b').textContent = Math.round(m.mood);
     $('mSan').querySelector('i').style.width = clamp(m.sanity, 0, 100) + '%'; $('mSan').querySelector('b').textContent = Math.round(m.sanity);
-    $('mWal').querySelector('b').textContent = (m.wallet < 0 ? '-$' : '$') + Math.abs(Math.round(m.wallet));
+    $('mWal').querySelector('b').textContent = (m.wallet < 0 ? '-' : '') + money(Math.abs(m.wallet));
     $('mWal').classList.toggle('neg', m.wallet <= 0);
   }
   function pop(el, txt, up) { var p = document.createElement('span'); p.className = 'pop ' + (up ? 'up' : 'dn'); p.textContent = txt; $(el).appendChild(p); setTimeout(function () { p.remove(); }, 1700); }
@@ -545,7 +545,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     var kind = it[0], what = it[1], txt = esc(it[2] || '');
     var img = { brunch: (A.cgPoster && A.cgPoster.brunch) || A.bg.brunch, dumbo: A.bg.dumbo, bridge: A.bg.dumbo }[what];
     if (kind === 'story' || kind === 'post') return '<div class="it story" style="' + (img ? 'background-image:url(&quot;' + img + '&quot;)' : 'background:#1e1530') + '">' + (what === 'shoe' ? '<em>👟</em>' : '') + (what === 'dumbo' ? '<span class="hand" style="position:absolute;right:8%;bottom:24%;font-size:54px;background:none;padding:0">🤚🏾</span>' : '') + '<span>' + txt + '</span></div>';
-    if (kind === 'comment') return '<div class="it cm"><b>' + esc(NAMES[what] || what) + '</b> ' + txt + '</div>';
+    if (kind === 'comment') return '<div class="it cm"><b>' + esc({ kiki: 'kikiiii', tre: 'tre.bk', jada: 'jadaaa' }[what] || what) + '</b> ' + txt + '</div>';
     if (kind === 'text') return '<div class="it tx"><small>' + esc(what === 'landlord' ? 'Landlord' : what) + '</small>' + txt + '</div>';
     if (kind === 'bank') return '<div class="it bank"><b>' + txt + '</b><span>Balance: ' + (st.m.wallet < 0 ? '−' : '') + money(Math.abs(st.m.wallet)) + '</span></div>';
     return '<div class="it meta">' + txt + '</div>';
@@ -1113,13 +1113,13 @@ button{font:inherit;color:inherit;cursor:pointer}
     var g = { i: 0, items: 0, vetoes: 0, rides: 0, mood: 0, sanity: 0, focus: 0, lock: false };
     var ctl = { paused: false, dead: false, input: function () {} };
     function tab() { return Math.round((BASE_BRUNCH + g.items) * TAX_TIP); }
-    function who(w) { return w === 'girls' ? 'The girls' : NAMES[w] || w; }
+    function who(w) { return w === 'girls' ? 'The girls' : w === 'kiki' ? 'Kiki' : NAMES[w] || w; }
     function round() {
       if (g.i >= TICKETS.length) return finish();
       var t = TICKETS[g.i];
       cardRound(ctl, g, {
         top: '<div class="top"><span>BOTTOMLESS · VELVET MIMOSA</span><span>Tab ≈ ' + money(tab()) + ' · ' + (g.i + 1) + '/' + TICKETS.length + '</span></div>',
-        body: '<div class="typing" style="margin-bottom:6px"><span>🧾 ' + esc(who(t[0])) + ' is ordering…</span></div><div class="draft" style="background:#2a1d3d;border-radius:18px;margin:0 0 6px;max-width:100%">“' + esc(t[1]) + '”<br><b style="color:var(--gold);font-size:20px">$' + t[2] + '</b></div>'
+        body: '<div class="typing" style="margin-bottom:6px"><span>🧾 ' + esc(who(t[0])) + (t[0] === 'girls' ? ' are' : ' is') + ' ordering…</span></div><div class="draft" style="background:#2a1d3d;border-radius:18px;margin:0 0 6px;max-width:100%">“' + esc(t[1]) + '”<br><b style="color:var(--gold);font-size:20px">$' + t[2] + '</b></div>'
       }, [['Let it ride ✅', 'Add $' + t[2] + ' to the tab'], ['Hold up ✋', t[5] ? 'Veto JADA? In front of everybody?' : 'Veto it. Risk the side-eye.'], ['Counter-offer 🔀', 'Suggest ' + t[3] + ' ($' + t[4] + ')']], FAST ? 0.3 : 11, function (k) {
         if (k === -1) { k = 0; say2('bad', '⏱ Tre froze. The waiter took that as a yes. '); }
         if (k === 0) { g.items += t[2]; g.rides++; g.sanity -= 1; sfx('cash'); say2('good', ($('reply').textContent || '') + ['"Okaaay, Tre!"', '"See? He gets it."', '"Put it on Tre\'s card!"'][g.i % 3]); }
@@ -1156,7 +1156,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     function meter(n, max, col) { return '<span style="display:inline-block;width:90px;height:8px;border-radius:9px;background:#2a2038;vertical-align:middle;overflow:hidden"><i style="display:block;height:100%;width:' + Math.min(100, n / max * 100) + '%;background:' + col + '"></i></span>'; }
     function round() {
       if (g.i >= TAKES.length) return finish();
-      var t = TAKES[g.i], speaker = t[0] === 'girls' ? 'The girls' : NAMES[t[0]];
+      var t = TAKES[g.i], speaker = t[0] === 'girls' ? 'The girls' : t[0] === 'kiki' ? 'Kiki' : NAMES[t[0]];
       cardRound(ctl, g, {
         top: '<div class="top"><span>HOT TAKES · ' + (g.i + 1) + '/' + TAKES.length + '</span><span style="font-size:13px">😂 Table ' + meter(g.laughs, 10, 'var(--gold)') + '</span></div>',
         body: '<div class="typing" style="margin-bottom:6px"><span>🔥 ' + esc(speaker) + ' said:</span></div><div class="draft" style="background:' + (COLORS.kiki) + ';color:#1a0b22;border-radius:18px 18px 18px 4px;margin:0 0 4px;max-width:100%">' + esc(t[1]) + '</div><div class="typing" style="margin:10px 0 0"><span>Tre fires back with…</span></div>'
