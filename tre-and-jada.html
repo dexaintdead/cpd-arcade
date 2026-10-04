@@ -1285,6 +1285,14 @@ button{font:inherit;color:inherit;cursor:pointer}
     });
   }
 
+  /* ---------- Arcade bridge: keys the Arcade page forwards (after Full screen), and a way home when opened directly ---------- */
+  window.addEventListener('message', function (e) {
+    var d = e.data || {}; if (e.source !== window.parent || d.arcade !== 'key' || !/^key(down|up)$/.test(d.type)) return;
+    document.dispatchEvent(new KeyboardEvent(d.type, { key: String(d.key || ''), code: String(d.code || ''), repeat: !!d.repeat, bubbles: true, cancelable: true }));
+  });
+  if (window.top === window) { var hb2 = document.createElement('a'); hb2.href = './'; hb2.className = 'btn'; hb2.style.cssText = 'text-decoration:none;margin-top:10px'; hb2.textContent = '← Back to the Arcade'; $('title').querySelector('.in').appendChild(hb2); }
+  else { var qb = document.createElement('button'); qb.className = 'btn'; qb.type = 'button'; qb.id = 'mQuit'; qb.textContent = 'Quit to the Arcade'; $('menu').querySelector('.panel').appendChild(qb); qb.addEventListener('click', function () { try { parent.postMessage({ arcade: 'exit', game: SLUG }, '*'); } catch (x) {} }); }
+
   /* ---------- test hooks + boot ---------- */
   window.__tj = { st: function () { return st; }, mode: function () { return mode; }, go: function (id) { goNode(id); }, pick: pick, advance: advance, action: onAction, setAuto: function (v) { settings.auto = v; },
     finishMini: function () { if (miniCtl && miniCtl.dead === false) {} } };

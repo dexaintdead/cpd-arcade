@@ -8,6 +8,16 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="arcade.css?v=3">
+<style>
+/* full screen: the game fills the screen and gets an exit bar */
+.stage:fullscreen{border:0;border-radius:0;aspect-ratio:auto;width:100vw;height:100vh;box-shadow:none}
+.stage:-webkit-full-screen{border:0;border-radius:0;aspect-ratio:auto;width:100vw;height:100vh}
+.fsbar{position:absolute;left:max(12px,env(safe-area-inset-left));top:max(12px,env(safe-area-inset-top));z-index:5;display:none;gap:8px;transition:opacity .4s}
+.stage:fullscreen .fsbar,.stage:-webkit-full-screen .fsbar{display:flex}
+.fsbar.dim{opacity:.28}.fsbar:hover{opacity:1}
+.fsbar button,.fsbar a{font:800 13px Inter,system-ui,sans-serif;color:#fff;background:rgba(8,6,20,.72);border:1px solid rgba(255,255,255,.3);border-radius:10px;padding:8px 12px;cursor:pointer;text-decoration:none;backdrop-filter:blur(6px)}
+.fsbar button:hover,.fsbar a:hover{border-color:#f5c542}
+</style>
 </head>
 <body>
 <div class="sky"></div><canvas id="dust"></canvas><div class="scan"></div>
@@ -24,7 +34,7 @@
   <span><a href="./">All games</a> · <a href="https://contentpad.io/">contentpad.io</a></span>
 </div></footer>
 
-<script src="games.js?v=4"></script>
+<script src="games.js?v=5"></script>
 <script src="arcade.js?v=2"></script>
 <script>
 (function () {
@@ -40,7 +50,7 @@
   var src = g.file || (encodeURIComponent(g.slug) + '.html');
   main.innerHTML =
     '<div class="play-wrap"><div>' +
-      '<div class="stage" id="stage"><iframe id="game" title="' + esc(g.title) + '" src="' + src + '" allow="autoplay; fullscreen; gamepad" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock"></iframe></div>' +
+      '<div class="stage" id="stage"><div class="fsbar" id="fsbar"><button type="button" id="fsExit">✕ Exit full screen</button><a href="./" id="fsHome">☰ All games</a></div><iframe id="game" title="' + esc(g.title) + '" src="' + src + '" allow="autoplay; fullscreen; gamepad" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock"></iframe></div>' +
       '<div class="stagebar"><h1 class="disp chrome">' + esc(g.title) + '</h1>' +
         '<button class="btn ghost" id="fs" type="button">⛶ Full screen</button>' +
         '<button class="btn ghost" id="share" type="button">Share</button></div>' +
@@ -54,10 +64,33 @@
   var frame = document.getElementById('game');
   frame.addEventListener('load', function () { try { frame.contentWindow.focus(); } catch (e) {} });
   document.getElementById('stage').addEventListener('pointerdown', function () { try { frame.contentWindow.focus(); } catch (e) {} });
+  var stage = document.getElementById('stage');
+  function focusGame() { try { if (document.activeElement && document.activeElement !== frame) document.activeElement.blur(); frame.focus(); frame.contentWindow.focus(); } catch (e) {} }
   document.getElementById('fs').addEventListener('click', function () {
-    var el = document.getElementById('stage');
-    if (el.requestFullscreen) el.requestFullscreen().catch(function () { location.href = src; });
-    else location.href = src;   // iPhone Safari: open the game on its own page
+    this.blur();
+    var req = stage.requestFullscreen || stage.webkitRequestFullscreen;
+    if (req) { var p = req.call(stage); if (p && p.then) p.then(focusGame).catch(function () { location.href = src; }); else setTimeout(focusGame, 60); }
+    else location.href = src;   // iPhone Safari: open the game on its own page (it has its own way back)
+  });
+  function fsEl() { return document.fullscreenElement || document.webkitFullscreenElement; }
+  function exitFs() { var x = document.exitFullscreen || document.webkitExitFullscreen; if (x && fsEl()) x.call(document); }
+  document.getElementById('fsExit').addEventListener('click', function (e) { e.stopPropagation(); exitFs(); });
+  // the exit bar fades back after a few seconds; any movement brings it back
+  var fsbar = document.getElementById('fsbar'), dimT = 0;
+  function wake() { fsbar.classList.remove('dim'); clearTimeout(dimT); dimT = setTimeout(function () { fsbar.classList.add('dim'); }, 2600); }
+  ['fullscreenchange', 'webkitfullscreenchange'].forEach(function (ev) { document.addEventListener(ev, function () { if (fsEl()) wake(); setTimeout(focusGame, 50); }); });
+  stage.addEventListener('pointermove', wake);
+  // Keys pressed while the page (not the game) has focus — e.g. right after clicking Full screen — are passed to the game.
+  var GAME_KEYS = /^( |Enter|Escape|Backspace|Arrow(Up|Down|Left|Right)|[wasdpmlyWASDPMLY1-5])$/;
+  ['keydown', 'keyup'].forEach(function (type) {
+    document.addEventListener(type, function (e) {
+      if (!GAME_KEYS.test(e.key) || document.activeElement === frame) return;
+      var t = e.target; if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) return;
+      if (e.key === ' ' || e.key === 'Enter' || /^Arrow/.test(e.key)) e.preventDefault();
+      if (type === 'keydown' && e.key === 'Escape' && fsEl()) return;   // the browser uses Esc to leave full screen
+      try { frame.contentWindow.postMessage({ arcade: 'key', type: type, key: e.key, code: e.code, repeat: e.repeat }, location.origin); } catch (x) {}
+      if (type === 'keydown') focusGame();
+    });
   });
   document.getElementById('share').addEventListener('click', function () {
     var url = location.origin + location.pathname + '?g=' + g.slug, btn = this;
@@ -69,7 +102,7 @@
     if (e.source !== frame.contentWindow) return;
     var d = e.data || {};
     if (d.arcade === 'over' && d.game === g.slug) { var b = best(); document.getElementById('best').textContent = b || '—'; }
-    if (d.arcade === 'exit' && d.game === g.slug) location.href = './';
+    if (d.arcade === 'exit' && d.game === g.slug) { exitFs(); location.href = './'; }
   });
 })();
 </script>

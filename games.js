@@ -1,4 +1,4 @@
-/* ContentPad Arcade — the game catalog (build 2026100401-arcade).
+/* ContentPad Arcade — the game catalog (build 2026100402-arcade).
    House games live in this repo as <slug>.html at the top level and are listed here.
    Only status:'live' entries are shown. rating marks adult games (the game itself runs its own age gate). */
 window.ARCADE_GAMES = [
@@ -6,18 +6,18 @@ window.ARCADE_GAMES = [
     slug: 'skyline-dash',
     file: 'skyline-dash.html',
     title: 'Maverick: Skyline Dash',
-    badge: 'Rooftop skate · 5 levels',
-    tagline: 'Skate the rooftops. Grind the rails. Grab the gold.',
-    about: 'Maverick took his board to the roofs. Ollie the gaps, land on rails and bars to grind across them, kickflip for points and scoop up every coin. Five levels, from sunset to a lightning storm, each with checkpoints, three lives and up to three stars. Clear a level to unlock the next.',
+    badge: 'Rooftop skate · 8 levels + Endless',
+    tagline: 'Skate the rooftops. Chain the tricks. Bank the combo.',
+    about: 'Maverick took his board to the roofs. Ollie the gaps, kickflip and shove-it in the air, land on rails to grind and boardslide, launch off ramps and time the window-washer lifts. Chain tricks into a combo and land clean to bank it — bail and it\'s gone. Grab S-K-A-T-E, hit the score goal and collect power-ups (magnet, double points, shield, boost). Eight levels from sunset to the top of the Spire, each with three stars — then see how far you get in Endless.',
     genre: 'Skate',
-    tags: ['Skateboarding', '5 levels', 'Grinds', 'Controller'],
-    controls: [['Space / tap / (A)', 'Ollie — hold for height'], ['Again in the air', 'Kickflip'], ['Land on a rail', 'Grind it (bonus + coins)'], ['← → / d-pad', 'Pick a level'], ['P / Esc / Start', 'Pause'], ['M', 'Mute']],
+    tags: ['Skateboarding', '8 levels', 'Endless', 'Combos', 'Controller'],
+    controls: [['Space / tap / (A)', 'Ollie — hold for height'], ['Again in the air', 'Kickflip'], ['↓ / swipe down / TRICK / (X)', 'Shove-it · boardslide on a rail'], ['Land on a rail', 'Grind it'], ['Land clean', 'Bank your combo'], ['P / Esc / Start', 'Pause menu'], ['M', 'Mute']],
     by: 'ContentPad Studios',
     made: 'Art and music made in ContentPad Studio · code by Claude',
     scoreLabel: 'Best total',
     cover: 'https://media.cpdblackbook.com/a2a988e8-fbbd-4510-8238-b1c311f61608/6402676d-dc77-4014-9ccd-39cd14f81267.png',
     accent: '#ff4fb3',
-    released: '2026-10-03',
+    released: '2026-10-04',
     controller: true, mobile: true,
     status: 'live'
   },
