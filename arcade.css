@@ -26,8 +26,16 @@ img{display:block;max-width:100%}
 .clock{margin-left:auto;font-family:Michroma,monospace;font-size:12px;letter-spacing:.14em;color:var(--ice);text-shadow:0 0 8px rgba(143,208,255,.7)}
 @media (max-width:560px){.logo img{height:24px}.logo .arc{font-size:13px;letter-spacing:.16em}.clock{display:none}.nav{margin-left:auto}}
 /* boot */
-#boot{position:fixed;inset:0;z-index:100;background:#000;display:grid;place-items:center;cursor:pointer;transition:opacity .7s}
+#boot{position:fixed;inset:0;z-index:100;background:#000;display:grid;place-items:center;cursor:pointer;transition:opacity .7s;outline:none}
 #boot.out{opacity:0;pointer-events:none}
+#boot .mark small.press{margin-top:26px;color:#dfe8ff;font-size:12px;font-weight:800;letter-spacing:.42em;text-shadow:0 0 12px rgba(120,170,255,.9);animation:press 1.4s ease-in-out 2.2s infinite both}
+#boot .mark small.press:before,#boot .mark small.press:after{content:"—";margin:0 .9em;opacity:.5}
+#boot.go .mark small.press{animation:flash .09s linear 4 both}
+#boot.go .mark{animation:zoomgo .9s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes zoomgo{0%{opacity:1;transform:none;filter:none}100%{opacity:1;transform:scale(1.18);filter:brightness(1.7) blur(1px)}}
+#boot.go .glow{animation:none;opacity:1;transform:scale(1.6);transition:transform .9s ease-out,opacity .9s}
+@keyframes press{0%,100%{opacity:.25}50%{opacity:1}}
+@keyframes flash{0%{opacity:1}50%{opacity:0}100%{opacity:1}}
 #boot .glow{position:absolute;width:140vmax;height:140vmax;border-radius:50%;background:radial-gradient(circle,rgba(40,90,255,.55),rgba(10,20,120,.25) 30%,transparent 60%);transform:scale(.2);opacity:0;animation:bloom 2.2s ease-out .15s forwards}
 #boot .mark{position:relative;text-align:center;opacity:0;animation:rise 1.6s ease-out .55s forwards}
 #boot .mark img{height:58px;margin:0 auto 18px;border-radius:12px;box-shadow:0 0 40px rgba(80,130,255,.8)}

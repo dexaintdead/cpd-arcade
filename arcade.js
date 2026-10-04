@@ -25,15 +25,39 @@
     })(0);
   }
 
-  /* boot screen: once per browser session */
+  /* boot screen: once per browser session. It waits for the visitor — any key,
+     click, tap or controller button — then plays a start chime and opens the Arcade. */
   var boot = document.getElementById('boot');
   if (boot) {
     var seen = false; try { seen = sessionStorage.getItem('arcade_boot') === '1'; } catch (e) {}
     if (seen || reduce) boot.remove();
     else {
-      var done = function () { boot.classList.add('out'); try { sessionStorage.setItem('arcade_boot', '1'); } catch (e) {} setTimeout(function () { boot.remove(); }, 800); };
-      boot.addEventListener('click', done); addEventListener('keydown', function k() { removeEventListener('keydown', k); done(); });
-      setTimeout(done, 2800);
+      var gone = false;
+      var chime = function () {
+        try {
+          var a = new (window.AudioContext || window.webkitAudioContext)(), t = a.currentTime;
+          [523.25, 783.99, 1046.5].forEach(function (f, i) {
+            var o = a.createOscillator(), g = a.createGain(), s0 = t + i * 0.09;
+            o.type = 'triangle'; o.frequency.setValueAtTime(f, s0);
+            g.gain.setValueAtTime(0.0001, s0); g.gain.exponentialRampToValueAtTime(0.06, s0 + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, s0 + 0.5);
+            o.connect(g); g.connect(a.destination); o.start(s0); o.stop(s0 + 0.55);
+          });
+        } catch (e) {}
+      };
+      var done = function (e) {
+        if (gone) return; gone = true;
+        if (e && e.preventDefault && e.type === 'keydown') e.preventDefault();
+        chime();
+        boot.classList.add('go');
+        try { sessionStorage.setItem('arcade_boot', '1'); } catch (x) {}
+        setTimeout(function () { boot.classList.add('out'); }, 380);
+        setTimeout(function () { boot.remove(); document.dispatchEvent(new Event('arcade:booted')); }, 1150);
+        removeEventListener('keydown', done, true);
+      };
+      boot.addEventListener('click', done);
+      addEventListener('keydown', done, true);   // capture, so the key opens the Arcade and doesn't also move the menu
+      window.arcadeBootDone = done;               // the menu's controller loop calls this on any pad button
+      try { boot.focus({ preventScroll: true }); } catch (e) {}
     }
   }
 

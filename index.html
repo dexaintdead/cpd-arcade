@@ -11,12 +11,12 @@
 <meta name="theme-color" content="#02030d">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="arcade.css?v=3">
+<link rel="stylesheet" href="arcade.css?v=4">
 <style>.lbgrid{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}.lbgrid .card h4 small{color:var(--mute);letter-spacing:.1em}</style>
 </head>
 <body>
 <div class="sky"></div><canvas id="dust"></canvas><div class="scan"></div>
-<div id="boot" aria-hidden="true"><div class="glow"></div><div class="mark"><img src="https://contentpad.io/contentpad-logo-nav.png" alt=""><b class="chrome">ARCADE</b><small>press any button</small></div></div>
+<div id="boot" role="button" tabindex="0" aria-label="Press any button to enter the ContentPad Arcade"><div class="glow"></div><div class="mark"><img src="https://contentpad.io/contentpad-logo-nav.png" alt=""><b class="chrome">ARCADE</b><small class="press">press any button</small></div></div>
 
 <header class="bar"><div class="wrap">
   <a class="logo" href="./" aria-label="ContentPad Arcade home"><img src="https://contentpad.io/contentpad-logo-nav.png" alt="ContentPad"><span class="arc chrome">ARCADE</span></a>
@@ -52,7 +52,7 @@
 </div></footer>
 
 <script src="games.js?v=5"></script>
-<script src="arcade.js?v=2"></script>
+<script src="arcade.js?v=3"></script>
 <script src="account.js?v=2"></script>
 <script>
 (function () {
@@ -134,7 +134,8 @@
     for (var i = 0; i < ps.length; i++) if (ps[i]) { gp = ps[i]; break; }
     if (gp) {
       var now = { r: (gp.buttons[15] && gp.buttons[15].pressed) || gp.axes[0] > 0.6, l: (gp.buttons[14] && gp.buttons[14].pressed) || gp.axes[0] < -0.6, a: gp.buttons[0] && gp.buttons[0].pressed };
-      var bt = document.getElementById('boot'); if (bt && (now.a || now.r || now.l)) bt.click();
+      var bt = document.getElementById('boot'); var anyBtn = gp.buttons.some(function (b) { return b && b.pressed; });
+      if (bt) { if (anyBtn && window.arcadeBootDone) window.arcadeBootDone(); }
       else { if (now.r && !prev.r) show(sel + 1, true); if (now.l && !prev.l) show(sel - 1, true); if (now.a && !prev.a) location.href = href(G[sel]); }
       prev = now;
     }
