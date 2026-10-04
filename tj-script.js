@@ -72,19 +72,19 @@ window.TJ_SCRIPT = {
   mon_brunch: { bg: 'brunch', music: 'brunch', loc: ['Velvet Mimosa', 'Fort Greene · 11:30 AM · 90-minute wait'], lines: [
     ['sys', '', 'Velvet Mimosa · Fort Greene · 11:30 AM'],
     ['tre', 'neutral', 'Okay, this is nice. Table for two, right?'],
-    ['kiki', 'friends', 'SURPRIIIISE! Jada said you were treating!'],
+    ['kiki', 'friends', 'SURPRIIIISE! Jada said you were treating!', '', { shot: 'b_surprise' }],
     ['tre', 'shocked', 'I\'m sorry, Jada said the FUCK?'],
     ['jada', 'laugh', 'I said you were treating ME. They heard what they wanted to hear.'],
-    ['kiki', 'friends', 'Six bottomless, and nobody eat yet. Content first. The light in here is giving.'],
+    ['kiki', 'friends', 'Six bottomless, and nobody eat yet. Content first. The light in here is giving.', '', { shot: 'b_content' }],
     ['tre', 'annoyed', 'Kiki, it\'s forty-five dollars a person for bottomless. In this economy?'],
-    ['kiki', 'friends', 'In THIS economy, babe, mimosas are a human right. Waiter! We\'re ready!']
+    ['kiki', 'friends', 'In THIS economy, babe, mimosas are a human right. Waiter! We\'re ready!', '', { shot: '-' }]
   ], mini: { game: 'bottomless', go: 'mon_bill' } },
 
   mon_bill: { bg: 'brunch', music: 'brunch', lines: [
-    ['sys', '', 'Ninety minutes later. The bill lands in front of Tre. Not the middle. In front of TRE. {tab}.'],
+    ['sys', '', 'Ninety minutes later. The bill lands in front of Tre. Not the middle. In front of TRE. {tab}.', '', { shot: 'b_bill' }],
     ['tre', 'defeated', 'Why the hell is the waiter looking at me like he\'s seen my credit score?'],
     ['jada', 'flirty', 'Baaabe. The waiter\'s looking at you.'],
-    ['kiki', 'friends', 'Oh, and Jada, Marcus said hey. He saw you at the gym Saturday.'],
+    ['kiki', 'friends', 'Oh, and Jada, Marcus said hey. He saw you at the gym Saturday.', '', { shot: '-' }],
     ['tre', 'annoyed', 'Who the hell is Marcus?'],
     ['jada', 'sideeye', 'Nobody. A gym friend. Focus, Tre. The bill.'],
     ['kiki', 'friends', 'I mean, it\'s 2026. A real man pays for everything. Rent, brunch, my lashes. That\'s just biblical.'],
@@ -93,11 +93,11 @@ window.TJ_SCRIPT = {
   ], mini: { game: 'takes', go: 'mon_decide' } },
 
   mon_decide: { bg: 'brunch', music: 'brunch', lines: [
-    ['kiki', 'friends', 'Okay, okay. He funny. Y\'all, we\'ll cover the bottles. Don\'t say I never did nothing for you, Tre.', 'takesWon'],
+    ['kiki', 'friends', 'Okay, okay. He funny. Y\'all, we\'ll cover the bottles. Don\'t say I never did nothing for you, Tre.', 'takesWon', { shot: 'b_nod' }],
     ['jada', 'happy', 'See? That\'s why I keep him. He can talk his way out of a parking ticket.', 'takesWon'],
-    ['kiki', 'friends', 'Mm-hm. Anyway. Somebody still gotta pay this bill. And it ain\'t gonna be my bottomless.', '!takesWon'],
+    ['kiki', 'friends', 'Mm-hm. Anyway. Somebody still gotta pay this bill. And it ain\'t gonna be my bottomless.', '!takesWon', { shot: 'b_smug' }],
     ['jada', 'sideeye', 'You just got bodied by Kiki in front of the whole brunch, babe. Pay something.', 'takesFolds>=3'],
-    ['sys', '', 'The bill: {tab}. Six women are looking at Tre. So is the waiter. So is God.']
+    ['sys', '', 'The bill: {tab}. Six women are looking at Tre. So is the waiter. So is God.', '', { shot: 'b_bill' }]
   ], choice: { q: 'The bill is {tab}. What does Tre do?', secs: 14, def: 2, opts: [
     { t: 'Pay for everybody like a king', fx: { mood: 15, wallet: '-tab', sanity: -10 }, set: { paidBrunch: 1 }, go: 'mon_pay' },
     { t: 'Split it six ways, publicly ({split} each)', fx: { mood: -15, wallet: '-split', trust: -5 }, set: { splitBrunch: 1 }, go: 'mon_split' },
@@ -105,10 +105,10 @@ window.TJ_SCRIPT = {
   ] } },
 
   mon_pay: { bg: 'brunch', music: 'brunch', lines: [
-    ['tre', 'smug', 'Put it all on me. Every waffle. Every candle.'],
+    ['tre', 'smug', 'Put it all on me. Every waffle. Every candle.', '', { shot: 'b_cheer' }],
     ['kiki', 'friends', 'Okaaay, Tre! Jada, he a real one. Keep him.'],
     ['jada', 'happy', 'See? THAT\'S my man. Y\'all hate to see it.'],
-    ['sys', '', 'The card machine asks for a tip. It starts at 25 percent. There is no "no".'],
+    ['sys', '', 'The card machine asks for a tip. It starts at 25 percent. There is no "no".', '', { shot: '-' }],
     ['tre', 'defeated', '(whispering) There goes my MetroCard. There goes my dignity. There goes my whole damn will to live.'],
     ['jada', 'flirty', 'Baby, you are getting SO taken care of tonight. Like... thoroughly.'],
     ['tre', 'neutral', '...Okay. Worth it. I\'ma need a receipt for tonight too.']
@@ -116,9 +116,9 @@ window.TJ_SCRIPT = {
 
   mon_split: { bg: 'brunch', music: 'brunch', lines: [
     ['tre', 'neutral', 'So it\'s six ways, even. And Kiki, you owe an extra nine for the candles.'],
-    ['kiki', 'friends', 'A Venmo request? At BRUNCH? In front of GOD and these damn mimosas?'],
+    ['kiki', 'friends', 'A Venmo request? At BRUNCH? In front of GOD and these damn mimosas?', '', { shot: 'b_gasp' }],
     ['tre', 'annoyed', 'You said a real man pays for everything. A real man also does MATH, Kiki.'],
-    ['jada', 'mad', 'Tre. You just embarrassed the shit out of me in front of the whole group chat. They\'re typing about it RIGHT NOW.'],
+    ['jada', 'mad', 'Tre. You just embarrassed the shit out of me in front of the whole group chat. They\'re typing about it RIGHT NOW.', '', { shot: '-' }],
     ['tre', 'annoyed', 'Good. Tell them the lobster waffle wasn\'t free either.'],
     ['jada', 'sideeye', 'Oh, you can sleep on the couch with that math. And keep your hands to yourself, \'cause tonight I damn sure am.']
   ], go: 'mon_story' },
@@ -127,7 +127,7 @@ window.TJ_SCRIPT = {
     ['tre', 'shocked', '(into phone) Hello? Grandma? You fell WHERE? Into the WHAT?'],
     ['jada', 'sideeye', 'Your grandma died in 2019, Tre.'],
     ['tre', 'nervous', '(still on phone) ...and she\'s STILL falling, that\'s how serious this is.'],
-    ['kiki', 'friends', 'He ran. Girl, he RAN. Down Fulton Street. That motherfucker left a shoe.'],
+    ['kiki', 'friends', 'He ran. Girl, he RAN. Down Fulton Street. That motherfucker left a shoe.', '', { shot: 'b_shoe' }],
     ['jada', 'dramatic', 'I\'m paying for brunch with my emergency lash money. I\'ll never forget this.']
   ], go: 'mon_story' },
 
@@ -139,17 +139,17 @@ window.TJ_SCRIPT = {
   // ───────────────────────── TUESDAY — WORK ─────────────────────────
   tue_intro: { day: 'TUESDAY', bg: 'work', music: 'work', cut: 'subway', loc: ['Big Mike\'s Mattress Kingdom', 'Flatbush Ave · "We will NOT be undersold"'], lines: [
     ['sys', '', 'TUESDAY · Big Mike\'s Mattress Kingdom · Flatbush Ave'],
-    ['deshawn', 'deshawn', 'Bro. Kiki posted you paying for six women\'s brunch. Two hundred likes. You a legend and you broke.', 'paidBrunch'],
-    ['deshawn', 'deshawn', 'Bro. You Venmo-requested Kiki AT brunch? She made a whole story about you. Eleven slides.', 'splitBrunch'],
-    ['deshawn', 'deshawn', 'Bro. Kiki posted your shoe. Just your shoe. Caption says "he ran."', 'fakeCall'],
+    ['deshawn', 'deshawn', 'Bro. Kiki posted you paying for six women\'s brunch. Two hundred likes. You a legend and you broke.', 'paidBrunch', { shot: 'w_phone' }],
+    ['deshawn', 'deshawn', 'Bro. You Venmo-requested Kiki AT brunch? She made a whole story about you. Eleven slides.', 'splitBrunch', { shot: 'w_phone' }],
+    ['deshawn', 'deshawn', 'Bro. Kiki posted your shoe. Just your shoe. Caption says "he ran."', 'fakeCall', { shot: 'w_phone' }],
     ['deshawn', 'deshawn', 'And I heard you went toe to toe with the girls on that "man pays for everything" stuff. Respect. Stupid. But respect.', 'takesWon'],
     ['tre', 'defeated', 'Monday was a war, Deshawn. And I lost.'],
-    ['mike', 'mike', 'TRE! My guy! My son! My favorite employee who is about to do me a favor.'],
+    ['mike', 'mike', 'TRE! My guy! My son! My favorite employee who is about to do me a favor.', '', { shot: 'w_mike' }],
     ['tre', 'annoyed', 'Hell no.'],
     ['mike', 'mike', 'Double shift. Tonight. Mattress Madness Midnight Sale. Eighty-five dollars commission a mattress and all the hot dogs you can carry.'],
-    ['deshawn', 'deshawn', 'Bro, take it. Hot dogs are a currency. I\'m basically rich off hot dogs.'],
+    ['deshawn', 'deshawn', 'Bro, take it. Hot dogs are a currency. I\'m basically rich off hot dogs.', '', { shot: 'w_hotdogs' }],
     ['tre', 'nervous', 'After that brunch? I need this money bad.', 'paidBrunch'],
-    ['tre', 'neutral', 'But Jada wanted to watch our show tonight. She said if I miss another episode it\'s "a pattern."'],
+    ['tre', 'neutral', 'But Jada wanted to watch our show tonight. She said if I miss another episode it\'s "a pattern."', '', { shot: '-' }],
     ['deshawn', 'deshawn', 'Women love a man with a work ethic. Trust me. I\'m single for completely unrelated reasons.']
   ], choice: { q: 'Big Mike needs a double shift tonight.', secs: 14, def: 0, opts: [
     { t: 'Take the double (play The Shift)', fx: { mood: -10, sanity: -10 }, set: { double: 1 }, go: 'tue_shift' },
@@ -184,7 +184,7 @@ window.TJ_SCRIPT = {
   ], go: 'wed_intro' },
 
   // ───────────────────────── WEDNESDAY — THE LIKE ─────────────────────────
-  wed_intro: { day: 'WEDNESDAY', bg: 'bedroom', music: 'tense', loc: ['The Bedroom', 'Bed-Stuy · 7:12 AM'], lines: [
+  wed_intro: { day: 'WEDNESDAY', bg: 'bed', music: 'tense', loc: ['The Bedroom', 'Bed-Stuy · 7:12 AM'], lines: [
     ['sys', '', 'WEDNESDAY · 7:12 AM. Tre\'s phone lights up on the nightstand.'],
     ['jada', 'sideeye', 'Who is "Tiffany High School"?'],
     ['tre', 'shocked', 'Who is WHAT?'],
@@ -199,21 +199,21 @@ window.TJ_SCRIPT = {
     { t: 'Flip it: "Let\'s talk about Marcus."', fx: { mood: -20, trust: -15, sanity: 5 }, set: { counter: 1, marcus: 1 }, go: 'wed_counter' }
   ] } },
 
-  wed_explain: { bg: 'bedroom', music: 'tense', lines: [
+  wed_explain: { bg: 'bed', music: 'tense', lines: [
     ['tre', 'neutral', 'Look. Open the DMs. Nothing. Just a guy from my old job asking if I still have his drill.'],
     ['jada', 'sideeye', '...Do you still have his drill?'],
     ['tre', 'nervous', 'That\'s a separate investigation.'],
     ['jada', 'laugh', 'Okay. Fine. But if Tiffany likes ONE more thing, I\'m commenting "who the fuck is this" with my whole chest.']
   ], go: 'wed_chat' },
 
-  wed_delete: { bg: 'bedroom', music: 'tense', lines: [
+  wed_delete: { bg: 'bed', music: 'tense', lines: [
     ['tre', 'smug', 'Watch this. Delete. Gone. No more Instagram. I\'m a free man.'],
     ['jada', 'shocked', 'Wait, you had pictures of ME on there! Our anniversary post had four hundred likes!'],
     ['tre', 'defeated', 'They\'re in a better place now.'],
     ['jada', 'happy', 'Honestly? That was kind of hot. Stupid as hell. But hot. Come back to bed.']
   ], go: 'wed_chat' },
 
-  wed_counter: { bg: 'bedroom', music: 'tense', lines: [
+  wed_counter: { bg: 'bed', music: 'tense', lines: [
     ['tre', 'smug', 'Oh, we\'re doing this? Let\'s talk about MARCUS. Gym Friend Marcus. Fire-emoji-on-your-gym-selfie Marcus.'],
     ['jada', 'mad', 'Marcus is a family friend!'],
     ['tre', 'annoyed', 'Saturday he was a gym friend. Now he\'s a FAMILY friend? He got promoted?'],
@@ -225,9 +225,9 @@ window.TJ_SCRIPT = {
   wed_chat: { bg: 'work', music: 'work', loc: ['Big Mike\'s Mattress Kingdom', 'Flatbush Ave · the break room'], lines: [
     ['sys', '', 'Later, on break. Three group chats explode at once.'],
     ['mike', 'mike', 'Look who\'s back from the plague. Nice tan for a dying man, Tre.', 'skipped'],
-    ['deshawn', 'deshawn', 'Bro, your phone is vibrating so hard it\'s doing a lap around the break room.'],
+    ['deshawn', 'deshawn', 'Bro, your phone is vibrating so hard it\'s doing a lap around the break room.', '', { shot: 'w_buzz' }],
     ['tre', 'defeated', 'The Boys chat, Jada\'s family chat, and some chat called "Kiki\'s Birthday Planning (NO MEN)". Why am I in a no-men chat?'],
-    ['deshawn', 'deshawn', 'Because you the one paying. Whatever you do, do NOT send the wrong message in the wrong chat. That\'s how my uncle got divorced. Twice. Same wife.']
+    ['deshawn', 'deshawn', 'Because you the one paying. Whatever you do, do NOT send the wrong message in the wrong chat. That\'s how my uncle got divorced. Twice. Same wife.', '', { shot: '-' }]
   ], mini: { game: 'chat', go: 'thu_intro' } },
 
   // ───────────────────────── THURSDAY — FOR THE GRAM, THEN THE MALL ─────────────────────────
@@ -266,7 +266,7 @@ window.TJ_SCRIPT = {
 
   thu_mall: { bg: 'mall', music: 'mall', lines: [
     ['jada', 'happy', 'Okay, ONE stop for the dress. Then maybe the makeup place. Then maybe the one with the candles. Then pretzels. Pretzels don\'t count.'],
-    ['tre', 'defeated', 'Lord, if you\'re listening, please let her card decline. Amen. Shit. Sorry. Amen.']
+    ['tre', 'defeated', 'Lord, if you\'re listening, please let her card decline. Amen. Shit. Sorry. Amen.', '', { shot: 'm_bags' }]
   ], mini: { game: 'mall', go: 'thu_after' } },
 
   thu_hide: { bg: 'mall', music: 'mall', lines: [
@@ -295,10 +295,10 @@ window.TJ_SCRIPT = {
   // ───────────────────────── FRIDAY — DATE NIGHT ─────────────────────────
   fri_intro: { day: 'FRIDAY', bg: 'restaurant', music: 'date', loc: ['Gilded', 'Williamsburg · no prices on the menu'], lines: [
     ['sys', '', 'FRIDAY · Gilded, Williamsburg. A waiter in a velvet blazer hands Tre a menu with no prices on it.'],
-    ['tre', 'nervous', 'Why are there no prices? Babe, why are there no prices? That\'s a menu making a threat. This menu is pressing me.'],
+    ['tre', 'nervous', 'Why are there no prices? Babe, why are there no prices? That\'s a menu making a threat. This menu is pressing me.', '', { shot: 'r_menu' }],
     ['jada', 'happy', 'Because if you have to ask, you can\'t afford it!'],
     ['tre', 'defeated', 'I\'m ASKING, Jada! I\'m asking with my whole broke ass!'],
-    ['jada', 'flirty', 'Look at you in a button-up. Mm. You clean up nice. Order something fun, and maybe dessert is at home.']
+    ['jada', 'flirty', 'Look at you in a button-up. Mm. You clean up nice. Order something fun, and maybe dessert is at home.', '', { shot: '-' }]
   ], choice: { q: 'The menu has no prices. What does Tre order?', secs: 14, def: 0, opts: [
     { t: 'Survive the bill (play Date Night)', fx: {}, set: { dateNight: 1 }, go: 'fri_date' },
     { t: '"I\'m not hungry, I ate earlier."', fx: { mood: -10, wallet: -175, sanity: -5 }, set: { notHungry: 1 }, go: 'fri_nothungry' }
@@ -338,7 +338,7 @@ window.TJ_SCRIPT = {
     ['brenda', 'brenda', 'And I saw the picture. My daughter dating a HAND now? Where\'s your face, baby? Is it in witness protection?'],
     ['brenda', 'brenda', 'And what are your intentions with my baby? Besides eating all her groceries.'],
     ['jada', 'laugh', 'Mama!'],
-    ['brenda', 'brenda', 'I\'m asking a question. Now taste my famous potato salad and tell me the truth. My pastor\'s wife says it needs more relish. That heifer.']
+    ['brenda', 'brenda', 'I\'m asking a question. Now taste my famous potato salad and tell me the truth. My pastor\'s wife says it needs more relish. That heifer.', '', { shot: 'k_raisins' }]
   ], choice: { q: 'Ms. Brenda\'s potato salad has raisins in it.', secs: 14, def: 0, opts: [
     { t: 'Lie with your whole chest: "Best I ever had"', fx: { mood: 10, trust: 5, sanity: -10 }, set: { mamaLove: 1 }, go: 'sat_lie' },
     { t: 'Be honest: "Ma\'am... are those raisins?"', fx: { mood: -15, trust: 10 }, set: { honest: 1 }, go: 'sat_honest' },

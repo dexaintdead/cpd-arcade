@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* Tre & Jada — Episode 1 "Payday". Build 2026100401-tj (v3 Brooklyn). ContentPad Studios. 18+ */
+/* Tre & Jada — Episode 1 "Payday". Build 2026100402-tj (v3.1 reactions). ContentPad Studios. 18+ */
 :root{--bg:#0d0915;--panel:#161021;--panel2:#1e1530;--line:#2c2140;--tx:#f3eefb;--dim:#b3a7c9;--mute:#7d7194;--pink:#ff4fb3;--gold:#f5c542;--violet:#7b6cff;--green:#3ddc84;--red:#ff5a5a}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:#000;color:var(--tx);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none;touch-action:manipulation}
@@ -29,6 +29,12 @@ button{font:inherit;color:inherit;cursor:pointer}
 #wrapL{position:absolute;inset:0;pointer-events:none;background:radial-gradient(90% 70% at 50% 20%,var(--light,rgba(255,200,150,.16)),transparent 70%);mix-blend-mode:soft-light;z-index:2}
 #fog{position:absolute;left:0;right:0;bottom:0;height:42%;pointer-events:none;z-index:2;background:linear-gradient(rgba(8,5,16,0),rgba(8,5,16,.62))}
 #scene.cgmode #fog{height:30%}
+#shot{position:absolute;inset:0;z-index:3;pointer-events:none;opacity:0;transition:opacity .35s;overflow:hidden}
+#shot i{position:absolute;inset:-2%;background:#000 center/cover no-repeat;animation:kb2 9s ease-out forwards}
+#scene.shotmode #shot{opacity:1}
+#scene.shotmode .spr,#scene.shotmode #port{opacity:0!important}
+#shot.pop i{animation:shotin .45s cubic-bezier(.2,1.3,.4,1),kb2 9s ease-out .45s forwards}
+@keyframes shotin{0%{transform:scale(1.12);filter:brightness(1.6)}100%{transform:scale(1.02);filter:none}}
 .spr{position:absolute;bottom:0;height:86%;max-width:60%;object-fit:contain;object-position:bottom;transition:filter .35s,transform .25s,opacity .3s;opacity:0;pointer-events:none;z-index:1;filter:var(--grade,none) drop-shadow(0 0 14px var(--rim,rgba(255,190,140,.22))) drop-shadow(0 10px 22px rgba(0,0,0,.45));animation:breathe 4.2s ease-in-out infinite}
 @keyframes breathe{0%,100%{scale:1 1}50%{scale:1 1.007}}
 .spr.on{opacity:1}
@@ -46,14 +52,15 @@ button{font:inherit;color:inherit;cursor:pointer}
 #scene.cgmode #name{left:144px}
 @media (max-width:560px){#port{width:84px;height:94px}#scene.cgmode #name{left:108px}}
 /* speaker portrait bubble (every scene; the CG face window takes over in animated scenes) */
-#face{position:absolute;left:12px;top:-40px;width:74px;height:74px;border-radius:50%;overflow:hidden;border:3px solid var(--pc,#f5c542);background:radial-gradient(circle at 50% 35%,#3a2a55,#140d22);box-shadow:0 8px 22px rgba(0,0,0,.55);display:none;z-index:2}
-#face i{position:absolute;inset:0;background:center top/250% auto no-repeat;background-position:50% 4%}
+#face{position:absolute;left:12px;top:-66px;width:76px;height:76px;border-radius:50%;overflow:hidden;border:3px solid var(--pc,#f5c542);background:radial-gradient(circle at 50% 35%,#3a2a55,#140d22);box-shadow:0 8px 22px rgba(0,0,0,.55);display:none;z-index:2}
+#face i{position:absolute;inset:0;background:center top/var(--fs,230%) auto no-repeat;background-position:50% var(--fy,9%)}
 #face.on{display:block;animation:facein .28s cubic-bezier(.2,1.5,.4,1)}
 @keyframes facein{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
-#box.hasface #name{left:96px}
-#scene.cgmode #face{display:none!important}
+#box.hasface #name{left:98px}
+#scene.cgmode:not(.shotmode) #face{display:none!important}
+#scene.cgmode.shotmode #box.hasface #name{left:98px}
 #scene.cgmode #box.hasface #name{left:144px}
-@media (max-width:560px){#face{width:58px;height:58px;top:-32px}#box.hasface #name{left:78px}#scene.cgmode #box.hasface #name{left:108px}}
+@media (max-width:560px){#face{width:58px;height:58px;top:-52px}#box.hasface #name{left:78px}#scene.cgmode #box.hasface #name{left:108px}#scene.cgmode.shotmode #box.hasface #name{left:78px}}
 /* scene change: a train wipes across, then a station-sign title card */
 #trans{position:absolute;inset:0;z-index:13;pointer-events:none;overflow:hidden;display:none}
 #trans.on{display:block}
@@ -206,7 +213,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 <div id="app">
   <div class="layer" id="scene">
     <div id="bg"></div><div id="bg2"></div><video id="cg" muted loop playsinline preload="auto" aria-hidden="true"></video><div id="wrapL"></div>
-    <img class="spr" id="sL" alt=""><img class="spr" id="sR" alt=""><div id="fog"></div>
+    <img class="spr" id="sL" alt=""><img class="spr" id="sR" alt=""><div id="fog"></div><div id="shot" aria-hidden="true"><i></i></div>
     <div id="hud">
       <div class="mt" id="mMood" title="Jada's mood">❤️<span class="bar"><i></i></span><b>0</b></div>
       <div class="mt money" id="mWal" title="Wallet">💵<b>$0</b></div>
@@ -254,8 +261,8 @@ button{font:inherit;color:inherit;cursor:pointer}
   <div id="end" class="card hide"><div class="panel" id="endP"></div></div>
   <div id="loading"></div>
 </div>
-<script src="tj-script.js?v=4"></script>
-<script src="tj-assets.js?v=4"></script>
+<script src="tj-script.js?v=5"></script>
+<script src="tj-assets.js?v=5"></script>
 <script>
 (function () {
   'use strict';
@@ -266,6 +273,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
   var NAMES = { tre: 'Tre', jada: 'Jada', mike: 'Big Mike', brenda: 'Ms. Brenda', marcus: 'Marcus', kiki: 'Kiki & the girls', deshawn: 'Deshawn' };
+  var FACE = { _: 0.085, jada: 0.12, kiki: 0.08, brenda: 0.1, mike: 0.08 };   // face centre below the top of the hair, as a fraction of sprite height
   var COLORS = { tre: '#f5c542', jada: '#ff4fb3', mike: '#7fd3ff', brenda: '#c9a7ff', marcus: '#ff8a5b', kiki: '#ffb4e1', deshawn: '#8ef0b0' };
   var END_ORDER = ['end_wifed', 'end_broke_happy', 'end_barely', 'end_twist', 'end_couch', 'end_snapped', 'end_speedrun', 'end_read', 'end_marcus'];
   var settings = Object.assign({ mus: 0.45, vo: 1, txt: 0.6, auto: false, timers: true }, store('tj_settings') || {});
@@ -316,7 +324,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   }
 
   /* ---------- sprites: green-screen key through the ContentPad download proxy ---------- */
-  var spriteCache = {};
+  var spriteCache = {}, spriteMeta = {};
   function proxied(u) { return 'https://link.contentpad.io/dl?u=' + encodeURIComponent(u); }
   function outfitOf(who, bg) { var o = A.outfits && A.outfits[bg]; return o && o[who] && A.sprite[who + '_' + o[who]] ? o[who] : ''; }
   function spriteFor(who, expr, bg) {
@@ -351,7 +359,11 @@ button{font:inherit;color:inherit;cursor:pointer}
           var th = Math.round((maxY - minY + 1) * spec.crop), tw = maxX - minX + 1;
           var o = document.createElement('canvas'); o.width = tw; o.height = th;
           o.getContext('2d').drawImage(c, minX, minY, tw, th, 0, 0, tw, th);
-          o.toBlob(function (bl) { res(bl ? URL.createObjectURL(bl) : o.toDataURL()); });
+          // where is the head? the opaque pixels in the top band of the cut-out
+          var hb = o.getContext('2d').getImageData(0, 0, tw, Math.max(1, Math.round(th * 0.22))).data, sx = 0, n = 0, top = -1;
+          for (var q = 3; q < hb.length; q += 4) if (hb[q] > 120) { var qx = (q >> 2) % tw, qy = (q >> 2) / tw | 0; if (top < 0) top = qy; if (qy - top < th * 0.16) { sx += qx; n++; } }
+          var meta = { cx: n ? sx / n / tw : 0.5, top: top < 0 ? 0 : top / th, ar: tw / th };
+          o.toBlob(function (bl) { var u = bl ? URL.createObjectURL(bl) : o.toDataURL(); spriteMeta[u] = meta; res(u); });
         } catch (e) { res(spec.url); }
       };
       img.onerror = function () { res(spec.url); };
@@ -364,6 +376,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     (n.lines || []).forEach(function (l) { if (l[0] !== 'sys') keyed(spriteFor(l[0], l[1], n.bg)); });
     if (A.cg && A.cg[n.bg]) { var v = document.createElement('link'); v.rel = 'preload'; v.as = 'video'; v.href = A.cg[n.bg]; document.head.appendChild(v); }
     if (n.bg && A.bg[n.bg]) { var im = new Image(); im.src = A.bg[n.bg]; }
+    (n.lines || []).forEach(function (l) { var k = l[4] && l[4].shot; if (k && A.shot && A.shot[k]) { var im3 = new Image(); im3.src = A.shot[k]; } });
     var cu = n.cut && S.cuts && S.cuts[n.cut], ca = cu && cu.clip && A.cut && A.cut[cu.clip];
     if (ca) { if (ca.still) { var im2 = new Image(); im2.src = ca.still; } if (ca.video) { var lv = document.createElement('link'); lv.rel = 'preload'; lv.as = 'video'; lv.href = ca.video; document.head.appendChild(lv); } }
   }
@@ -382,6 +395,15 @@ button{font:inherit;color:inherit;cursor:pointer}
     var cg = $('cg'), vid = A.cg && A.cg[k];
     if (vid) { if (cg.getAttribute('src') !== vid) { cg.poster = (A.cgPoster && A.cgPoster[k]) || ''; cg.src = vid; } cg.muted = true; var pp = cg.play(); if (pp && pp.catch) pp.catch(function () {}); $('scene').classList.add('cgmode'); }
     else { $('scene').classList.remove('cgmode'); cg.pause(); }
+  }
+  var shotKey = null;
+  function setShot(k) {
+    if (k === '-') k = null;
+    var url = k && A.shot && A.shot[k], sc = $('scene'), el = $('shot');
+    if (k === shotKey) return; shotKey = url ? k : null;
+    if (!url) { sc.classList.remove('shotmode'); return; }
+    var i = el.querySelector('i'); i.style.backgroundImage = 'url("' + url + '")';
+    el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); sc.classList.add('shotmode'); sfx('pick');
   }
   function placeSprite(slot, who, expr, talking) {
     var s = slots[slot];
@@ -429,7 +451,16 @@ button{font:inherit;color:inherit;cursor:pointer}
         face.dataset.want = fw; face.classList.remove('on');
         keyed(spriteFor(who, cur[1])).then(function (src) {
           if (face.dataset.want !== fw) return;
-          if (src) { face.querySelector('i').style.backgroundImage = 'url("' + src + '")'; void face.offsetWidth; face.classList.add('on'); }
+          if (src) {
+            var mt = spriteMeta[src], fi = face.querySelector('i'); fi.style.backgroundImage = 'url("' + src + '")';
+            if (mt) { // centre the bubble on the face. Image shown at S x the circle width; head ≈ 0.16 of the cut-out height.
+              var yc = mt.top + (FACE[who] || FACE._), S = Math.max(2.2, Math.min(5.5, 0.8 * mt.ar / 0.16));
+              var px = (0.5 - mt.cx * S) / (1 - S), py = (0.5 - yc * S / mt.ar) / (1 - S / mt.ar);
+              fi.style.backgroundSize = (S * 100).toFixed(1) + '% auto';
+              fi.style.backgroundPosition = (Math.max(0, Math.min(1, px)) * 100).toFixed(1) + '% ' + (Math.max(0, Math.min(1, py)) * 100).toFixed(1) + '%';
+            } else { fi.style.backgroundSize = ''; fi.style.backgroundPosition = ''; }
+            void face.offsetWidth; face.classList.add('on');
+          }
           else { face.classList.remove('on'); box.classList.remove('hasface'); }
         });
       }
@@ -482,14 +513,14 @@ button{font:inherit;color:inherit;cursor:pointer}
     save();
     preloadNode(n.go); if (n.choice) n.choice.opts.forEach(function (o) { preloadNode(o.go); }); if (n.mini) preloadNode(n.mini.go);
     var moving = n.bg !== bgKey, wasBg = bgKey;
-    var start = function () { setBg(n.bg); setMusic(n.music); if (n.loc && (moving || n.day)) locCard(n.loc); showLine(); };
+    var start = function () { setBg(n.bg); setShot(n.shot || null); setMusic(n.music); if (n.loc && (moving || n.day)) locCard(n.loc); showLine(); };
     // day card → cutscene → (train across the screen if we changed places) → the scene
     var arrive = function () { if (moving && !n.day && wasBg && !resumed) travel(!!n.loc, start); else start(); };
     var afterDay = function () { if (n.cut && !resumed && S.cuts && S.cuts[n.cut]) playCut(n.cut, arrive); else arrive(); };
     if (n.day && !resumed) dayCard(n.day, n.lines && n.lines[0] && n.lines[0][0] === 'sys' ? n.lines[0][2].split('·').slice(1).join('·').trim() : '', afterDay);
     else afterDay();
   }
-  var LINE_COLORS = { apartment: '#f5c542', bedroom: '#7b6cff', kitchen: '#f5c542', brunch: '#ff8a5b', work: '#ff5a5a', dumbo: '#3ddc84', mall: '#ff4fb3', restaurant: '#c9a7ff', stadium: '#7fd3ff', rooftop: '#7b6cff', cabin: '#8ef0b0' };
+  var LINE_COLORS = { apartment: '#f5c542', bedroom: '#7b6cff', bed: '#7b6cff', kitchen: '#f5c542', brunch: '#ff8a5b', work: '#ff5a5a', dumbo: '#3ddc84', mall: '#ff4fb3', restaurant: '#c9a7ff', stadium: '#7fd3ff', rooftop: '#7b6cff', cabin: '#8ef0b0' };
   function travel(withTrain, cb) {
     var tr = $('trans'); mode = 'trans';
     var done = false, fin = function () { if (done) return; done = true; tr.className = ''; cb(); };
@@ -568,6 +599,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     logPush(who, text);
     if (who === 'sys') { nm.classList.add('hide'); tEl.className = 'sys'; }
     else { nm.classList.remove('hide'); nm.textContent = NAMES[who] || who; nm.style.background = COLORS[who] || '#f5c542'; tEl.className = ''; }
+    if (l[4] && l[4].shot !== undefined) setShot(l[4].shot);
     stageFor({ lines: curLines }, st.i);
     var v = A.voice[lineId()];
     if (v && who !== 'sys' && settings.vo > 0) { voice.src = v; voice.volume = settings.vo; music.volume = settings.mus * 0.55; var pp = voice.play(); if (pp && pp.catch) pp.catch(function () {}); }
@@ -1095,6 +1127,7 @@ button{font:inherit;color:inherit;cursor:pointer}
       else if (a === 'A') pickIt(g.focus); else if (/^[1-3]$/.test(a)) pickIt(+a - 1); else if (a === 'start') openMenu();
     };
   }
+  function reactPic(k) { var u = A.shot && A.shot[k], ph = document.querySelector('#miniUI .phone'); if (!u || !ph) return; ph.insertAdjacentHTML('afterbegin', '<div style="border-radius:16px;overflow:hidden;margin:-4px -4px 12px;aspect-ratio:16/9;background:#000 center/cover no-repeat url(&quot;' + u + '&quot;);animation:capin .35s ease"></div>'); var ch = ph.querySelector('.chats'); if (ch) ch.style.display = 'none'; }
   function say2(cls, txt) { var r = $('reply'); if (r) { r.className = 'reply ' + cls; r.textContent = txt; } }
 
   /* --- 5. BOTTOMLESS: the table orders, Tre decides. Let it ride, hold up, or counter-offer. --- */
@@ -1162,10 +1195,11 @@ button{font:inherit;color:inherit;cursor:pointer}
         body: '<div class="typing" style="margin-bottom:6px"><span>🔥 ' + esc(speaker) + ' said:</span></div><div class="draft" style="background:' + (COLORS.kiki) + ';color:#1a0b22;border-radius:18px 18px 18px 4px;margin:0 0 4px;max-width:100%">' + esc(t[1]) + '</div><div class="typing" style="margin:10px 0 0"><span>Tre fires back with…</span></div>'
       }, [[t[2][0], '😂 Clap back'], [t[2][1], '😎 Keep it smooth'], [t[2][2], '🏳️ Fold']], FAST ? 0.3 : 13, function (k) {
         if (k === -1) { k = 2; say2('bad', '⏱ Tre took too long. Silence is a fold. '); }
+        reactPic(k === 0 ? 'b_roar' : k === 1 ? 'b_nod' : 'b_smug');
         if (k === 0) { g.laughs += 3; g.claps++; g.mood -= 3; sfx('good'); say2('good', ['The whole table screams. Jada is hiding behind the menu, laughing.', '"OHHHH!" The next table is clapping. Kiki is typing furiously.', 'Somebody\'s filming. Jada mouths "stop" but she\'s grinning.'][g.i % 3]); }
         else if (k === 1) { g.laughs += 2; g.mood += 2; sfx('good'); say2('good', ['"Mmm." The table respects it. Jada squeezes your hand.', 'Kiki rolls her eyes, but she\'s smiling. Point, Tre.', 'Jada: "See? Calm. That\'s my man."'][g.i % 3]); }
         else { g.folds++; g.sanity -= 4; g.mood -= 1; st.f.tab = (st.f.tab || 0) + 45; sfx('bad'); say2('bad', 'Kiki: "Since you AGREE… WAITER! Another round!" (+$45 on the tab)'); }
-        g.i++; setTimeout(round, FAST ? 30 : 1900);
+        g.i++; setTimeout(round, FAST ? 30 : 3000);
       });
     }
     function finish() {

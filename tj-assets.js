@@ -10,7 +10,26 @@
       mall: u('c63ecdf0-d12f-4937-8e79-f1af5c5cdee1'), restaurant: u('4503d861-ba83-49f9-9671-a8daa93b86b8'),
       kitchen: u('fd2e81d9-0cd1-4cd5-9e8a-4f52217e1d8d'), rooftop: u('a5c0f411-2d8a-44fa-a2b5-ae96cd72ca71'),
       cabin: u('a0335734-b5e4-4a61-bae7-5850276cbed3'), stadium: u('0afdb923-49b8-4d82-bccb-3cc2e6d18d8c'),
-      dumbo: u('95b52450-fc5d-4bc9-b497-cb7d95231f87'), stoop: u('54bf7b4a-0754-40de-aefa-adb303cf89b1'), subway: u('d4c1ebd1-cb2f-4bb8-a52a-43e9f69b2413')
+      dumbo: u('95b52450-fc5d-4bc9-b497-cb7d95231f87'), bed: u('64290c7e-38de-43d7-a6ac-7de6cc17091f'), stoop: u('54bf7b4a-0754-40de-aefa-adb303cf89b1'), subway: u('d4c1ebd1-cb2f-4bb8-a52a-43e9f69b2413')
+    },
+    /* Reaction shots: full-frame stills a script line can cut to ({ shot: key }); '-' cuts back to the scene. */
+    shot: {
+      b_surprise: u('c2fe2dce-c730-4e80-b25f-7bca2f18a906'),
+      b_content: u('cb99c5eb-0c89-49f3-923f-e68b40f8f406'),
+      b_bill: u('0a2ca162-9017-4275-befd-43a00a95fb2b'),
+      b_roar: u('bcb4bc1b-1491-450c-a94b-ede57b4c92a3'),
+      b_gasp: u('058f9476-c870-4b1a-b1a6-e3c94962a4bc'),
+      b_cheer: u('0ca8d4e5-d378-4d23-b55f-78b1d05cc844'),
+      b_shoe: u('30d66b64-baf7-4e24-acdb-cd053e240310'),
+      b_nod: u('44af464b-ad1d-4587-8981-f2f17c97b0b1'),
+      b_smug: u('d6375fa7-704d-401f-b60c-484f78e52622'),
+      w_phone: u('61873e89-629b-426b-82a4-03ce6cec86e9'),
+      w_hotdogs: u('01c7a4da-a285-4da5-a7e2-a1c57d5b88a8'),
+      w_mike: u('8af96404-64ea-47c2-b1c2-6dfb3abb03c1'),
+      w_buzz: u('4faed4d7-93c3-4ef5-9080-e0f20b878488'),
+      k_raisins: u('70f14e00-b305-42c1-a53b-666e219fe565'),
+      r_menu: u('00749b54-22bc-4fdb-a79e-bac2cfd42e50'),
+      m_bags: u('a88a4de6-41ae-4685-bbfe-9bdc250ca2b6')
     },
     /* Cutscene clips (Kling 3.0 Pro i2v from a still; the still shows first with a slow push-in). */
     cut: {
@@ -60,11 +79,12 @@
       rooftop: ['brightness(.8) saturate(.85) hue-rotate(10deg)', 'rgba(120,140,255,.25)'],
       cabin: ['sepia(.18) saturate(.95)', 'rgba(255,200,160,.2)'],
       stadium: ['brightness(.9) saturate(1.1) hue-rotate(-8deg)', 'rgba(255,110,190,.22)'],
-      dumbo: ['sepia(.12) saturate(1.1) brightness(1.02)', 'rgba(255,170,90,.26)']
+      dumbo: ['sepia(.12) saturate(1.1) brightness(1.02)', 'rgba(255,170,90,.26)'],
+      bed: ['brightness(.78) saturate(.8) hue-rotate(8deg)', 'rgba(90,110,220,.28)']
     },
     /* Animated scenes: the cast is painted into a looping clip; speakers get a face window. */
-    cg: { brunch: u('408a83f4-4538-400e-995f-325318ef76ab', 'mp4') },
-    cgPoster: { brunch: u('eca7cdb5-63d8-406a-af7b-fc568cf8288d') },
+    cg: { brunch: u('408a83f4-4538-400e-995f-325318ef76ab', 'mp4'), bed: u('530de89d-3591-4823-8554-4b120ceca551', 'mp4') },
+    cgPoster: { brunch: u('eca7cdb5-63d8-406a-af7b-fc568cf8288d'), bed: u('64290c7e-38de-43d7-a6ac-7de6cc17091f') },
     music: {
       theme: u('a26d0969-3969-4897-9bbf-f9c493e1c6a1', 'mp3'),
       brunch: u('8e40e9fd-7b3e-4ea6-ae23-1bd73a6e0f17', 'mp3'),
