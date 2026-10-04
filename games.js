@@ -1,4 +1,4 @@
-/* ContentPad Arcade — the game catalog (build 2026100305-arcade).
+/* ContentPad Arcade — the game catalog (build 2026100401-arcade).
    House games live in this repo as <slug>.html at the top level and are listed here.
    Only status:'live' entries are shown. rating marks adult games (the game itself runs its own age gate). */
 window.ARCADE_GAMES = [
@@ -28,9 +28,9 @@ window.ARCADE_GAMES = [
     badge: 'Episode 1 · Payday',
     rating: '18+',
     tagline: 'Keep the relationship alive. Keep your wallet alive. Pick one.',
-    about: 'A fully voiced, choose-your-path relationship comedy for grown folks. One week, Monday to Sunday: brunch ambushes, double shifts, the group chat, the mall, a restaurant with no prices, and her mama\'s potato salad. Every choice moves the meters. Nine endings. Most of them are your fault.',
+    about: 'A fully voiced, choose-your-path relationship comedy for grown folks, set in Brooklyn. One week, payday to rent day: a brunch ambush and a "man pays for everything" table debate, a double shift on Flatbush, the group chat, a DUMBO photo shoot for the gram, the mall, a Williamsburg restaurant with no prices, and her mama\'s potato salad. Seven mini-games, animated cutscenes, nine endings. Most of them are your fault.',
     genre: 'Story comedy',
-    tags: ['18+', 'Comedy', 'Choices matter', '9 endings', 'Voiced'],
+    tags: ['18+', 'Comedy', 'Brooklyn', '7 mini-games', '9 endings', 'Voiced'],
     controls: [['Click / tap / Space / (A)', 'Next line'], ['1 · 2 · 3 / ↑ ↓ / d-pad', 'Pick a choice'], ['Esc / Start', 'Pause and settings'], ['Y', 'Auto-play'], ['L / X', 'Dialogue log']],
     by: 'ContentPad Studios',
     made: 'Art, voices and music made in ContentPad Studio (ElevenLabs) · written and coded by Claude',

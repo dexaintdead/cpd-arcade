@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-/* Tre & Jada — Episode 1 "Payday". Build 2026100305-tj. ContentPad Studios. 18+ */
+/* Tre & Jada — Episode 1 "Payday". Build 2026100401-tj (v3 Brooklyn). ContentPad Studios. 18+ */
 :root{--bg:#0d0915;--panel:#161021;--panel2:#1e1530;--line:#2c2140;--tx:#f3eefb;--dim:#b3a7c9;--mute:#7d7194;--pink:#ff4fb3;--gold:#f5c542;--violet:#7b6cff;--green:#3ddc84;--red:#ff5a5a}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:#000;color:var(--tx);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;user-select:none;-webkit-user-select:none;touch-action:manipulation}
@@ -45,6 +45,64 @@ button{font:inherit;color:inherit;cursor:pointer}
 #scene.cgmode #port.on{display:block}
 #scene.cgmode #name{left:144px}
 @media (max-width:560px){#port{width:84px;height:94px}#scene.cgmode #name{left:108px}}
+/* speaker portrait bubble (every scene; the CG face window takes over in animated scenes) */
+#face{position:absolute;left:12px;top:-40px;width:74px;height:74px;border-radius:50%;overflow:hidden;border:3px solid var(--pc,#f5c542);background:radial-gradient(circle at 50% 35%,#3a2a55,#140d22);box-shadow:0 8px 22px rgba(0,0,0,.55);display:none;z-index:2}
+#face i{position:absolute;inset:0;background:center top/250% auto no-repeat;background-position:50% 4%}
+#face.on{display:block;animation:facein .28s cubic-bezier(.2,1.5,.4,1)}
+@keyframes facein{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
+#box.hasface #name{left:96px}
+#scene.cgmode #face{display:none!important}
+#scene.cgmode #box.hasface #name{left:144px}
+@media (max-width:560px){#face{width:58px;height:58px;top:-32px}#box.hasface #name{left:78px}#scene.cgmode #box.hasface #name{left:108px}}
+/* scene change: a train wipes across, then a station-sign title card */
+#trans{position:absolute;inset:0;z-index:13;pointer-events:none;overflow:hidden;display:none}
+#trans.on{display:block}
+#trans .car{position:absolute;top:0;bottom:0;left:0;width:170%;transform:translateX(-102%);background:
+  linear-gradient(180deg,transparent 0 10%,#5c6470 10% 11%,transparent 11% 89%,#5c6470 89% 90%,transparent 90%),
+  linear-gradient(180deg,transparent 0 62%,var(--tl,#ff4fb3) 62% 66%,transparent 66%),
+  repeating-linear-gradient(90deg,#c9ced6 0 4%,#aab1bb 4% 4.4%,#d7dbe1 4.4% 6%,#cfd4db 6% 6.6%),
+  #c9ced6;filter:blur(.6px)}
+#trans .car:before{content:"";position:absolute;left:0;right:0;top:24%;height:24%;background:repeating-linear-gradient(90deg,transparent 0 3%,#1b2433 3% 11%,#2f3d55 11% 12%,transparent 12% 16%);box-shadow:inset 0 0 40px rgba(0,0,0,.4)}
+#trans .car:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.07) 0 2px,transparent 2px 9px)}
+#trans.go .car{animation:train 1.15s cubic-bezier(.55,.05,.45,.95) forwards}
+@keyframes train{0%{transform:translateX(-102%)}100%{transform:translateX(62%)}}
+#trans.fade{display:block;background:#000;animation:dip .7s ease-in-out forwards}
+@keyframes dip{0%,100%{opacity:0}45%,55%{opacity:1}}
+#locCard{position:absolute;left:14px;top:calc(max(10px,env(safe-area-inset-top)) + 46px);z-index:7;pointer-events:none;background:#111;color:#fff;border-radius:6px;padding:8px 14px 9px 12px;box-shadow:0 10px 30px rgba(0,0,0,.5);display:none;max-width:calc(100% - 28px);border-top:5px solid var(--tl,#ff4fb3)}
+#locCard.on{display:flex;align-items:center;gap:10px;animation:locin 3.2s ease forwards}
+#locCard b{font-family:"Archivo Black",sans-serif;font-size:clamp(15px,2.1vw,20px);letter-spacing:.02em;display:block;line-height:1.1}
+#locCard small{display:block;font-size:12px;color:#c9c9c9;font-weight:700;margin-top:2px}
+#locCard .dot{flex:none;width:26px;height:26px;border-radius:50%;background:var(--tl,#ff4fb3);display:grid;place-items:center;font-weight:900;font-size:13px;color:#111}
+@keyframes locin{0%{opacity:0;transform:translateX(-20px)}8%,82%{opacity:1;transform:none}100%{opacity:0}}
+/* cutscenes */
+#cut{position:absolute;inset:0;z-index:14;background:#000;display:none;overflow:hidden}
+#cut.on{display:block}
+#cut video,#cut .still{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000 center/cover no-repeat}
+#cut .still{animation:kb2 9s ease-out forwards}
+@keyframes kb2{0%{transform:scale(1.02)}100%{transform:scale(1.12) translate(-1%,-1%)}}
+#cut .bars:before,#cut .bars:after{content:"";position:absolute;left:0;right:0;height:7%;background:#000;z-index:2}
+#cut .bars:before{top:0}#cut .bars:after{bottom:0}
+#cut .cap{position:absolute;left:50%;bottom:11%;transform:translateX(-50%);z-index:3;width:min(860px,92%);text-align:center;font-weight:800;font-size:clamp(16px,2.4vw,24px);text-shadow:0 2px 10px #000,0 0 3px #000;animation:capin .35s ease}
+#cut .note{position:absolute;left:50%;top:10%;transform:translateX(-50%);z-index:3;width:min(440px,90%);background:rgba(245,245,250,.96);color:#111;border-radius:16px;padding:12px 14px;font-weight:800;font-size:clamp(14px,1.9vw,17px);box-shadow:0 14px 40px rgba(0,0,0,.5);animation:notein .4s cubic-bezier(.2,1.4,.4,1)}
+#cut .note.bad{top:calc(10% + 64px);color:#b3001b}
+#cut .skip{position:absolute;right:14px;top:max(12px,env(safe-area-inset-top));z-index:4;font-size:12px;font-weight:800;color:rgba(255,255,255,.7);background:rgba(0,0,0,.4);padding:5px 10px;border-radius:9px}
+@keyframes capin{0%{opacity:0;transform:translate(-50%,8px)}100%{opacity:1;transform:translate(-50%,0)}}
+@keyframes notein{0%{opacity:0;transform:translate(-50%,-30px)}100%{opacity:1;transform:translate(-50%,0)}}
+#cut .ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 30%,#2a1c40,#07050c 70%)}
+#cut .scr{width:min(360px,86vw);height:min(640px,86vh);background:#0b0812;border:3px solid #2c2140;border-radius:34px;padding:16px 14px;display:flex;flex-direction:column;gap:9px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.7)}
+#cut .scr h5{margin:2px 0 4px;text-align:center;font-size:13px;letter-spacing:.08em;color:var(--dim);text-transform:uppercase}
+#cut .it{animation:capin .35s ease;opacity:1}
+#cut .story{position:relative;border-radius:16px;overflow:hidden;aspect-ratio:4/5;background:#222 center/cover no-repeat;flex:none;max-height:58%}
+#cut .story span{position:absolute;left:8px;right:8px;bottom:10px;background:rgba(0,0,0,.62);border-radius:10px;padding:8px 10px;font-weight:800;font-size:14px;text-align:center}
+#cut .story em{position:absolute;inset:0;display:grid;place-items:center;font-size:90px;font-style:normal}
+#cut .story .hand{position:absolute;right:8%;bottom:22%;font-size:54px;transform:rotate(-12deg)}
+#cut .cm{font-size:14px;font-weight:600;line-height:1.35}#cut .cm b{color:var(--gold)}
+#cut .meta{font-size:12px;color:var(--mute);font-weight:700}
+#cut .tx{align-self:flex-start;background:#26203a;border-radius:16px 16px 16px 4px;padding:10px 13px;font-weight:700;font-size:15px;max-width:88%}
+#cut .tx small{display:block;color:var(--mute);font-size:11px;margin-bottom:2px}
+#cut .bank{margin-top:auto;background:#140d22;border:1px solid #3a2b55;border-radius:16px;padding:14px;text-align:center}
+#cut .bank b{display:block;color:var(--red);font-size:22px;font-weight:900}
+#cut .bank span{display:block;color:var(--dim);font-size:13px;font-weight:700;margin-top:4px}
 /* hud */
 #hud{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;gap:8px;padding:max(10px,env(safe-area-inset-top)) 12px 10px;z-index:5;pointer-events:none;background:linear-gradient(rgba(0,0,0,.55),rgba(0,0,0,0))}
 .mt{display:flex;align-items:center;gap:6px;background:rgba(13,9,21,.78);border:1px solid var(--line);border-radius:999px;padding:5px 10px 5px 7px;font-weight:800;font-size:13px;position:relative}
@@ -158,8 +216,11 @@ button{font:inherit;color:inherit;cursor:pointer}
       <button class="hb" id="bAuto" type="button">Auto</button>
       <button class="hb" id="bMenu" type="button" aria-label="Menu">☰</button>
     </div>
-    <div id="box"><div id="port"><img alt=""></div><span id="name" class="disp">Tre</span><div id="text"></div><span id="next">▼</span></div>
+    <div id="box"><div id="port"><img alt=""></div><div id="face" aria-hidden="true"><i></i></div><span id="name" class="disp">Tre</span><div id="text"></div><span id="next">▼</span></div>
+    <div id="locCard" aria-live="polite"><span class="dot"></span><div><b></b><small></small></div></div>
   </div>
+  <div id="trans"><div class="car"></div></div>
+  <div id="cut"></div>
   <div id="choice" class="hide"><div id="cq" class="disp"></div><div id="opts" style="display:contents"></div><div id="ctime"><i></i></div></div>
   <div id="mini" class="hide"><canvas id="miniC"></canvas><div id="miniUI"></div></div>
   <div id="day" class="hide"><p>Tre &amp; Jada · Episode 1</p><h1 class="disp" id="dayH"></h1><p id="dayP"></p></div>
@@ -193,8 +254,8 @@ button{font:inherit;color:inherit;cursor:pointer}
   <div id="end" class="card hide"><div class="panel" id="endP"></div></div>
   <div id="loading"></div>
 </div>
-<script src="tj-script.js?v=3"></script>
-<script src="tj-assets.js?v=3"></script>
+<script src="tj-script.js?v=4"></script>
+<script src="tj-assets.js?v=4"></script>
 <script>
 (function () {
   'use strict';
@@ -239,6 +300,19 @@ button{font:inherit;color:inherit;cursor:pointer}
     else if (n === 'tick') beep(1200, .03, 'square', .03);
     else if (n === 'pick') beep(520, .06, 'triangle', .08);
     else if (n === 'cash') { beep(1320, .05); setTimeout(function () { beep(1760, .1); }, 60); }
+    else if (n === 'chime') { beep(784, .22, 'sine', .07); setTimeout(function () { beep(622, .32, 'sine', .07); }, 230); }
+    else if (n === 'whoosh' || n === 'shutter') noise(n === 'whoosh' ? 1.0 : 0.12, n === 'whoosh' ? 900 : 3200, n === 'whoosh' ? .09 : .12);
+  }
+  function noise(d, freq, vol) {
+    try {
+      sfxCtx = sfxCtx || new (window.AudioContext || window.webkitAudioContext)();
+      var t = sfxCtx.currentTime, len = Math.floor(sfxCtx.sampleRate * d), buf = sfxCtx.createBuffer(1, len, sfxCtx.sampleRate), ch = buf.getChannelData(0);
+      for (var i = 0; i < len; i++) ch[i] = Math.random() * 2 - 1;
+      var src = sfxCtx.createBufferSource(), f = sfxCtx.createBiquadFilter(), g = sfxCtx.createGain();
+      src.buffer = buf; f.type = 'bandpass'; f.frequency.setValueAtTime(freq * 0.4, t); f.frequency.linearRampToValueAtTime(freq, t + d * 0.5); f.frequency.linearRampToValueAtTime(freq * 0.3, t + d);
+      var v = vol * (settings.mus > 0 ? 1 : 0.6); g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(v, t + d * 0.45); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      src.connect(f); f.connect(g); g.connect(sfxCtx.destination); src.start(t); src.stop(t + d);
+    } catch (e) {}
   }
 
   /* ---------- sprites: green-screen key through the ContentPad download proxy ---------- */
@@ -290,6 +364,8 @@ button{font:inherit;color:inherit;cursor:pointer}
     (n.lines || []).forEach(function (l) { if (l[0] !== 'sys') keyed(spriteFor(l[0], l[1], n.bg)); });
     if (A.cg && A.cg[n.bg]) { var v = document.createElement('link'); v.rel = 'preload'; v.as = 'video'; v.href = A.cg[n.bg]; document.head.appendChild(v); }
     if (n.bg && A.bg[n.bg]) { var im = new Image(); im.src = A.bg[n.bg]; }
+    var cu = n.cut && S.cuts && S.cuts[n.cut], ca = cu && cu.clip && A.cut && A.cut[cu.clip];
+    if (ca) { if (ca.still) { var im2 = new Image(); im2.src = ca.still; } if (ca.video) { var lv = document.createElement('link'); lv.rel = 'preload'; lv.as = 'video'; lv.href = ca.video; document.head.appendChild(lv); } }
   }
 
   /* ---------- scene ---------- */
@@ -343,6 +419,21 @@ button{font:inherit;color:inherit;cursor:pointer}
       port.style.setProperty('--pc', COLORS[who] || '#f5c542');
       keyed(spriteFor(who, cur[1])).then(function (src) { if (port.dataset.want !== want) return; if (src) { port.querySelector('img').src = src; port.classList.add('on'); } else port.classList.remove('on'); });
     } else port.classList.remove('on');
+    // portrait bubble beside the name, for whoever is talking
+    var face = $('face'), box = $('box');
+    if (who && who !== 'sys') {
+      var fw = who + cur[1] + bgKey;
+      face.style.setProperty('--pc', COLORS[who] || '#f5c542');
+      box.classList.add('hasface');
+      if (face.dataset.want !== fw) {
+        face.dataset.want = fw; face.classList.remove('on');
+        keyed(spriteFor(who, cur[1])).then(function (src) {
+          if (face.dataset.want !== fw) return;
+          if (src) { face.querySelector('i').style.backgroundImage = 'url("' + src + '")'; void face.offsetWidth; face.classList.add('on'); }
+          else { face.classList.remove('on'); box.classList.remove('hasface'); }
+        });
+      }
+    } else { face.classList.remove('on'); face.dataset.want = ''; box.classList.remove('hasface'); }
   }
 
   /* ---------- meters ---------- */
@@ -354,8 +445,16 @@ button{font:inherit;color:inherit;cursor:pointer}
     $('mWal').classList.toggle('neg', m.wallet <= 0);
   }
   function pop(el, txt, up) { var p = document.createElement('span'); p.className = 'pop ' + (up ? 'up' : 'dn'); p.textContent = txt; $(el).appendChild(p); setTimeout(function () { p.remove(); }, 1700); }
+  /* '-tab' / '-split' in a script fx = the brunch bill that the Bottomless + Hot Takes mini-games produced */
+  function money(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
+  function tpl(t) {
+    if (!t || t.indexOf('{') < 0) return t;
+    var f = (st && st.f) || {};
+    return t.replace(/\{tab\}/g, money(f.tab || 0)).replace(/\{split\}/g, money(f.split || 0)).replace(/\{rent\}/g, money(S.rent || 0));
+  }
   function applyFx(fx) {
     if (!fx) return;
+    if (typeof fx.wallet === 'string') { var key = fx.wallet.replace(/^-/, ''), neg = fx.wallet[0] === '-'; fx = Object.assign({}, fx, { wallet: (neg ? -1 : 1) * Math.round((st.f && st.f[key]) || 0) }); }
     var m = st.m;
     if (fx.mood) { m.mood = clamp(m.mood + fx.mood, 0, 100); pop('mMood', (fx.mood > 0 ? '+' : '') + fx.mood, fx.mood > 0); }
     if (fx.sanity) { m.sanity = clamp(m.sanity + fx.sanity, 0, 100); pop('mSan', (fx.sanity > 0 ? '+' : '') + fx.sanity, fx.sanity > 0); }
@@ -382,9 +481,74 @@ button{font:inherit;color:inherit;cursor:pointer}
     if (n.day) $('dayTag').textContent = n.day;
     save();
     preloadNode(n.go); if (n.choice) n.choice.opts.forEach(function (o) { preloadNode(o.go); }); if (n.mini) preloadNode(n.mini.go);
-    var start = function () { setBg(n.bg); setMusic(n.music); showLine(); };
-    if (n.day && !resumed) dayCard(n.day, n.lines && n.lines[0] && n.lines[0][0] === 'sys' ? n.lines[0][2].split('·').slice(1).join('·').trim() : '', start);
-    else start();
+    var moving = n.bg !== bgKey, wasBg = bgKey;
+    var start = function () { setBg(n.bg); setMusic(n.music); if (n.loc && (moving || n.day)) locCard(n.loc); showLine(); };
+    // day card → cutscene → (train across the screen if we changed places) → the scene
+    var arrive = function () { if (moving && !n.day && wasBg && !resumed) travel(!!n.loc, start); else start(); };
+    var afterDay = function () { if (n.cut && !resumed && S.cuts && S.cuts[n.cut]) playCut(n.cut, arrive); else arrive(); };
+    if (n.day && !resumed) dayCard(n.day, n.lines && n.lines[0] && n.lines[0][0] === 'sys' ? n.lines[0][2].split('·').slice(1).join('·').trim() : '', afterDay);
+    else afterDay();
+  }
+  var LINE_COLORS = { apartment: '#f5c542', bedroom: '#7b6cff', kitchen: '#f5c542', brunch: '#ff8a5b', work: '#ff5a5a', dumbo: '#3ddc84', mall: '#ff4fb3', restaurant: '#c9a7ff', stadium: '#7fd3ff', rooftop: '#7b6cff', cabin: '#8ef0b0' };
+  function travel(withTrain, cb) {
+    var tr = $('trans'); mode = 'trans';
+    var done = false, fin = function () { if (done) return; done = true; tr.className = ''; cb(); };
+    if (FAST) { setTimeout(fin, 20); return; }
+    if (!withTrain) { tr.className = 'on fade'; setTimeout(cb && function () { done = true; cb(); }, 330); setTimeout(function () { tr.className = ''; }, 720); return; }
+    tr.style.setProperty('--tl', LINE_COLORS[S.nodes[st.node].bg] || '#ff4fb3');
+    tr.className = 'on'; void tr.offsetWidth; tr.className = 'on go';
+    sfx('whoosh');
+    setTimeout(function () { done = true; cb(); }, 560);   // swap the scene while the car covers the screen
+    setTimeout(function () { tr.className = ''; }, 1180);
+  }
+  function locCard(loc) {
+    var c = $('locCard'); c.style.setProperty('--tl', LINE_COLORS[S.nodes[st.node].bg] || '#ff4fb3');
+    c.querySelector('b').textContent = loc[0]; c.querySelector('small').textContent = loc[1] || '';
+    c.querySelector('.dot').textContent = ($('dayTag').textContent || '·').slice(0, 1);
+    c.classList.remove('on'); void c.offsetWidth; c.classList.add('on'); sfx('chime');
+  }
+
+  /* ---------- cutscenes ---------- */
+  function playCut(key, cb) {
+    var C = S.cuts[key], el = $('cut'), timers = [], over = false, t0 = Date.now();
+    mode = 'cut'; voice.pause();
+    var finish = function () { if (over) return; over = true; timers.forEach(clearTimeout); el.classList.remove('on'); el.innerHTML = ''; playCut.skip = null; cb(); };
+    playCut.skip = function () { if (Date.now() - t0 > (FAST ? 0 : 700)) finish(); };
+    var later = function (fn, ms) { timers.push(setTimeout(fn, FAST ? 5 : ms)); };
+    el.innerHTML = '<span class="skip">tap to skip ▸</span>'; el.classList.add('on');
+    if (C.kind === 'clip') {
+      var a = (A.cut && A.cut[C.clip]) || {};
+      if (a.still) el.insertAdjacentHTML('beforeend', '<div class="still" style="background-image:url(&quot;' + a.still + '&quot;)"></div>');
+      if (a.video) {
+        var v = document.createElement('video'); v.muted = true; v.playsInline = true; v.setAttribute('playsinline', ''); v.preload = 'auto'; v.poster = a.still || ''; v.src = a.video;
+        v.style.opacity = 0; v.oncanplay = function () { v.style.transition = 'opacity .3s'; v.style.opacity = 1; };
+        el.appendChild(v); var p = v.play(); if (p && p.catch) p.catch(function () {});
+      }
+      el.insertAdjacentHTML('beforeend', '<div class="bars"></div>');
+      (C.caps || []).forEach(function (c) {
+        later(function () {
+          if (c[2]) { var n = document.createElement('div'); n.className = c[2]; n.textContent = c[1]; el.appendChild(n); sfx(/bad/.test(c[2]) ? 'bad' : 'cash'); }
+          else { var old = el.querySelector('.cap'); if (old) old.remove(); var d = document.createElement('div'); d.className = 'cap'; d.textContent = c[1]; el.appendChild(d); }
+        }, c[0] * 1000);
+      });
+    } else {
+      var items = (C.items || []).filter(function (it) { return !it[3] || window.TJ_COND(it[3], st.m, st.f); });
+      el.insertAdjacentHTML('beforeend', '<div class="ph"><div class="scr"><h5>' + esc(C.title || '') + '</h5></div></div>');
+      var scr = el.querySelector('.scr');
+      items.forEach(function (it, i) {
+        later(function () { scr.insertAdjacentHTML('beforeend', phoneItem(it)); sfx(it[0] === 'bank' ? 'bad' : 'tick'); }, 350 + i * 950);
+      });
+    }
+    later(finish, (C.secs || 6) * 1000);
+  }
+  function phoneItem(it) {
+    var kind = it[0], what = it[1], txt = esc(it[2] || '');
+    var img = { brunch: (A.cgPoster && A.cgPoster.brunch) || A.bg.brunch, dumbo: A.bg.dumbo, bridge: A.bg.dumbo }[what];
+    if (kind === 'story' || kind === 'post') return '<div class="it story" style="' + (img ? 'background-image:url(&quot;' + img + '&quot;)' : 'background:#1e1530') + '">' + (what === 'shoe' ? '<em>👟</em>' : '') + (what === 'dumbo' ? '<span class="hand" style="position:absolute;right:8%;bottom:24%;font-size:54px;background:none;padding:0">🤚🏾</span>' : '') + '<span>' + txt + '</span></div>';
+    if (kind === 'comment') return '<div class="it cm"><b>' + esc(NAMES[what] || what) + '</b> ' + txt + '</div>';
+    if (kind === 'text') return '<div class="it tx"><small>' + esc(what === 'landlord' ? 'Landlord' : what) + '</small>' + txt + '</div>';
+    if (kind === 'bank') return '<div class="it bank"><b>' + txt + '</b><span>Balance: ' + (st.m.wallet < 0 ? '−' : '') + money(Math.abs(st.m.wallet)) + '</span></div>';
+    return '<div class="it meta">' + txt + '</div>';
   }
   function dayCard(day, sub, cb) {
     mode = 'day'; $('dayH').textContent = day; $('dayP').textContent = sub || ''; show('day', true);
@@ -400,7 +564,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     clearTimeout(autoT); voice.pause();
     if (!l) return afterLines();
     mode = 'line'; lineDone = false; $('next').classList.remove('on');
-    var who = l[0], text = l[2], tEl = $('text'), nm = $('name');
+    var who = l[0], text = tpl(l[2]), tEl = $('text'), nm = $('name');
     logPush(who, text);
     if (who === 'sys') { nm.classList.add('hide'); tEl.className = 'sys'; }
     else { nm.classList.remove('hide'); nm.textContent = NAMES[who] || who; nm.style.background = COLORS[who] || '#f5c542'; tEl.className = ''; }
@@ -417,7 +581,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   }
   function finishLine() {
     clearInterval(typing); typing = null; lineDone = true; $('next').classList.add('on');
-    var l = curLines[st.i]; if (l) $('text').innerHTML = esc(l[2]).replace(/^\(([^)]*)\)/, '<em>($1)</em>');
+    var l = curLines[st.i]; if (l) $('text').innerHTML = esc(tpl(l[2])).replace(/^\(([^)]*)\)/, '<em>($1)</em>');
     if (settings.auto) scheduleAuto();
   }
   function scheduleAuto() {
@@ -445,8 +609,8 @@ button{font:inherit;color:inherit;cursor:pointer}
   var cFocus = 0, cTimer = null, cOpts = [];
   function showChoice(c) {
     mode = 'choice'; cOpts = c.opts; cFocus = 0;
-    $('cq').textContent = c.q;
-    $('opts').innerHTML = c.opts.map(function (o, i) { return '<button class="opt" type="button" data-i="' + i + '" data-k="' + (i + 1) + '">' + esc(o.t) + '</button>'; }).join('');
+    $('cq').textContent = tpl(c.q);
+    $('opts').innerHTML = c.opts.map(function (o, i) { return '<button class="opt" type="button" data-i="' + i + '" data-k="' + (i + 1) + '">' + esc(tpl(o.t)) + '</button>'; }).join('');
     [].forEach.call($('opts').children, function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); pick(+b.dataset.i); }); });
     focusOpt(0); show('choice', true);
     var bar = $('ctime').querySelector('i'), secs = c.secs || 8;
@@ -569,6 +733,8 @@ button{font:inherit;color:inherit;cursor:pointer}
     unlockAudio();
     if (mode === 'mini') { if (miniCtl && miniCtl.input) miniCtl.input(a); return; }
     if (mode === 'day') { if (a === 'A' && dayCard.skip) dayCard.skip(); return; }
+    if (mode === 'cut') { if ((a === 'A' || a === 'B') && playCut.skip) playCut.skip(); else if (a === 'start') {} return; }
+    if (mode === 'trans') return;
     if (mode === 'line') {
       if (a === 'A') advance(); else if (a === 'start') openMenu(); else if (a === 'Y') $('bAuto').click(); else if (a === 'X' ) openLog();
       return;
@@ -597,6 +763,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   });
   $('scene').addEventListener('click', function (e) { if (e.target.closest('.hb')) return; onAction('A'); });
   $('day').addEventListener('click', function () { onAction('A'); });
+  $('cut').addEventListener('click', function () { onAction('A'); });
   // gamepad
   var gpPrev = {};
   var GP = { 0: 'A', 1: 'B', 2: 'X', 3: 'Y', 9: 'start', 12: 'up', 13: 'down', 14: 'left', 15: 'right' };
@@ -649,6 +816,9 @@ button{font:inherit;color:inherit;cursor:pointer}
     if (game === 'chat') return miniChat(done);
     if (game === 'mall') return miniMall(C, x, done);
     if (game === 'date') return miniDate(done);
+    if (game === 'bottomless') return miniBottomless(done);
+    if (game === 'takes') return miniTakes(done);
+    if (game === 'gram') return miniGram(C, x, done);
     done();
   }
   function fitCanvas(C) { var dpr = Math.min(2, window.devicePixelRatio || 1); var w = C.clientWidth, h = C.clientHeight; C.width = w * dpr; C.height = h * dpr; C.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0); return { w: w, h: h }; }
@@ -663,16 +833,16 @@ button{font:inherit;color:inherit;cursor:pointer}
     var ctl = { paused: false, dead: false, input: function (a) { if (a === 'A') press(); if (a === 'start') openMenu(); } };
     function nextRound() {
       g.round++; if (g.round > g.total) return finish();
-      g.zone = Math.max(0.09, 0.24 - g.round * 0.017); g.zc = 0.2 + Math.random() * 0.6; g.speed = 0.75 + g.round * 0.09; g.pos = Math.random() < .5 ? 0 : 1; g.dir = g.pos ? -1 : 1;
-      g.mike = g.round > 1 && Math.random() < 0.38; g.mikeT = g.mike ? (FAST ? 0.05 : 1.4 + Math.random() * 0.6) : 0;
+      g.zone = Math.max(0.12, 0.27 - g.round * 0.015); g.zc = 0.2 + Math.random() * 0.6; g.speed = 0.4 + g.round * 0.045; g.pos = Math.random() < .5 ? 0 : 1; g.dir = g.pos ? -1 : 1;
+      g.mike = g.round > 1 && Math.random() < 0.38; g.mikeT = g.mike ? (FAST ? 0.05 : 1.6 + Math.random() * 0.6) : 0;
     }
     function say(m) { g.msg = m; g.msgT = 1.3; }
     function press() {
       if (ctl.paused || g.lock > 0 || g.round > g.total) return;
       if (g.mike && g.mikeT > 0) { g.mikeCaught++; sfx('bad'); say('MIKE: "Did I say you could TALK?"'); g.lock = 0.6; return; }
       var d = Math.abs(g.pos - g.zc);
-      if (d <= g.zone / 2) { g.sold++; g.cash += 45; sfx('cash'); say(['SOLD! Pillow-top, baby!', 'SOLD! He didn\'t even lie down!', 'SOLD! Memory foam, memory made!', 'SOLD! Tre is HIM.'][g.round % 4]); }
-      else if (d <= g.zone) { g.cash += 15; sfx('good'); say('Sold a pillow. A PILLOW. Okay.'); }
+      if (d <= g.zone / 2) { g.sold++; g.cash += 85; sfx('cash'); say(['SOLD! Pillow-top, baby!', 'SOLD! He didn\'t even lie down!', 'SOLD! Memory foam, memory made!', 'SOLD! Tre is HIM.'][g.round % 4]); }
+      else if (d <= g.zone) { g.cash += 20; sfx('good'); say('Sold a pillow. A PILLOW. Okay.'); }
       else { g.flubs++; sfx('bad'); say(['"I\'ll think about it." They won\'t.', 'Customer left. Took a hot dog.', 'Bro said "just looking." Damn it.'][g.round % 3]); }
       g.lock = FAST ? 0 : 0.75; setTimeout(nextRound, FAST ? 30 : 700);
     }
@@ -684,7 +854,7 @@ button{font:inherit;color:inherit;cursor:pointer}
       st.f.shiftSold = g.sold;
       miniResult('The Shift', lines, fx, done);
     }
-    miniIntro('The Shift', 'Big Mike\'s Mattress Kingdom. Tap (or Space / A) when the needle hits the <b style="color:var(--green)">green</b> to close the sale.<br><br>When <b style="color:var(--red)">Big Mike is watching</b>, don\'t touch anything until he leaves.', ctl, function () {
+    miniIntro('The Shift', 'Big Mike\'s Mattress Kingdom, Flatbush Ave. $85 commission a mattress, $20 for a pillow. Tap (or Space / A) when the needle hits the <b style="color:var(--green)">green</b> to close the sale.<br><br>When <b style="color:var(--red)">Big Mike is watching</b>, don\'t touch anything until he leaves.', ctl, function () {
       var S2 = fitCanvas(C); nextRound(); var last = performance.now();
       (function loop(t) {
         if (ctl.dead) return;
@@ -705,7 +875,7 @@ button{font:inherit;color:inherit;cursor:pointer}
         var nx = bx + g.pos * bw; x.fillStyle = '#fff'; x.fillRect(nx - 3, by - 14, 6, bh + 28);
         x.fillStyle = '#f3eefb'; x.font = '900 ' + Math.round(Math.min(28, W / 18)) + 'px "Archivo Black",sans-serif'; x.textAlign = 'center';
         x.fillText('CUSTOMER ' + Math.min(g.round, g.total) + ' / ' + g.total, W / 2, by - 40);
-        x.font = '800 16px Inter,sans-serif'; x.fillStyle = '#f5c542'; x.fillText('$' + g.cash + ' earned', W / 2, by + bh + 44);
+        x.font = '800 16px Inter,sans-serif'; x.fillStyle = '#f5c542'; x.fillText('$' + g.cash + ' commission', W / 2, by + bh + 44);
         if (g.mikeT > 0) {
           var mh = H * 0.42;
           if (mikeI) { var mw = mikeI.width * mh / mikeI.height; x.drawImage(mikeI, W - mw - 10, H - mh, mw, mh); }
@@ -740,7 +910,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     var deadline = 0, raf = 0;
     function round() {
       if (g.i >= MSGS.length) return finish();
-      var m = MSGS[g.i], secs = Math.max(2.6, 5.2 - g.i * 0.45);
+      var m = MSGS[g.i], secs = FAST ? 0.3 : Math.max(5.5, 9 - g.i * 0.5);
       ui.innerHTML = '<div class="top"><span>GROUP CHAT</span><span>' + (g.i + 1) + ' / ' + MSGS.length + '</span></div>' +
         '<div class="chatw"><div class="phone"><div class="draft">' + esc(m.t) + '</div>' +
         '<div class="typing"><i></i><i></i><i></i> <span>Your thumb is about to hit send…</span></div>' +
@@ -778,7 +948,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     loadImg(A.bg.mall).then(function (i) { bgI = i; });
     keyed(spriteFor('tre', 'defeated')).then(loadImg).then(function (i) { treI = i; });
     keyed(spriteFor('jada', 'happy')).then(loadImg).then(function (i) { jadaI = i; });
-    var g = { t: FAST ? 3 : 32, x: 0.5, jx: 0.5, jd: 1, items: [], caught: 0, dropped: 0, pretz: 0, spent: 0, spawn: 0.6, msg: '', msgT: 0, drag: null };
+    var g = { t: FAST ? 3 : 35, x: 0.5, jx: 0.5, jd: 1, items: [], caught: 0, dropped: 0, pretz: 0, spent: 0, spawn: 0.6, msg: '', msgT: 0, drag: null };
     var ctl = { paused: false, dead: false, input: function (a) { if (a === 'start') openMenu(); } };
     C.onpointerdown = function (e) { e.preventDefault(); g.drag = e.clientX / C.clientWidth; };
     C.onpointermove = function (e) { if (g.drag != null || e.pointerType === 'mouse') g.drag = e.clientX / C.clientWidth; };
@@ -808,8 +978,8 @@ button{font:inherit;color:inherit;cursor:pointer}
           g.spawn -= dt;
           if (g.spawn <= 0) {
             var pz = Math.random() < 0.16;
-            g.items.push({ x: clamp(g.jx + (Math.random() - .5) * 0.12, 0.05, 0.95), y: 0.2, vy: 0.22 + (32 - g.t) * 0.011 + Math.random() * 0.08, kind: pz ? 'pretzel' : 'bag', e: pz ? '🥨' : ['🛍️', '👜', '👠', '🛍️', '💄', '🕯️'][Math.random() * 6 | 0] });
-            g.spawn = Math.max(0.38, 0.95 - (32 - g.t) * 0.018);
+            g.items.push({ x: clamp(g.jx + (Math.random() - .5) * 0.12, 0.05, 0.95), y: 0.2, vy: 0.14 + (35 - g.t) * 0.006 + Math.random() * 0.05, kind: pz ? 'pretzel' : 'bag', e: pz ? '🥨' : ['🛍️', '👜', '👠', '🛍️', '💄', '🕯️'][Math.random() * 6 | 0] });
+            g.spawn = Math.max(0.62, 1.25 - (35 - g.t) * 0.018);
           }
           for (var i = g.items.length - 1; i >= 0; i--) {
             var it = g.items[i]; it.y += it.vy * dt;
@@ -817,7 +987,7 @@ button{font:inherit;color:inherit;cursor:pointer}
             if (it.y >= catchY && it.y < catchY + 0.06 && Math.abs(it.x - g.x) < 0.085) {
               g.items.splice(i, 1);
               if (it.kind === 'pretzel') { g.pretz++; sfx('good'); say('Pretzel. Inner peace.'); }
-              else { g.caught++; var cost = [18, 25, 32, 40][Math.random() * 4 | 0]; g.spent += cost; sfx('cash'); say('-$' + cost + ' · "Thank you, babyyy"'); }
+              else { g.caught++; var cost = [35, 48, 60, 75][Math.random() * 4 | 0]; g.spent += cost; sfx('cash'); say('-$' + cost + ' · "Thank you, babyyy"'); }
             } else if (it.y > 1.02) { g.items.splice(i, 1); if (it.kind === 'bag') { g.dropped++; sfx('bad'); say(['"THAT WAS SILK!"', '"Pick. It. Up."', '"Are you TRYING to embarrass me?"'][g.dropped % 3]); } }
           }
           if (g.msgT > 0) g.msgT -= dt;
@@ -841,14 +1011,14 @@ button{font:inherit;color:inherit;cursor:pointer}
 
   /* --- 4. DATE NIGHT: three reels, three courses; stop each reel — luck, timing and regret --- */
   var SYMS = [
-    { e: '🥩', n: 'Gold-leaf steak', fx: { wallet: -95, mood: 3 } },
-    { e: '🍟', n: 'Truffle fries', fx: { wallet: -28, mood: 2 } },
-    { e: '🎆', n: 'Sparkler bottle service', fx: { wallet: -120, mood: 6 } },
-    { e: '💧', n: '$14 glacier water', fx: { wallet: -14 } },
-    { e: '🎻', n: 'Violinist at the table (tip)', fx: { wallet: -20, mood: 4 } },
+    { e: '🥩', n: 'Gold-leaf wagyu ($165)', fx: { wallet: -165, mood: 3 } },
+    { e: '🍟', n: 'Truffle fries ($38)', fx: { wallet: -38, mood: 2 } },
+    { e: '🎆', n: 'Sparkler bottle service ($240)', fx: { wallet: -240, mood: 6 } },
+    { e: '💧', n: '$16 glacier water', fx: { wallet: -16 } },
+    { e: '🎻', n: 'Violinist at the table ($40 tip)', fx: { wallet: -40, mood: 4 } },
     { e: '💳', n: 'Card declined. Out loud.', fx: { sanity: -12, mood: -5 } },
     { e: '💋', n: 'She\'s feeling you tonight', fx: { mood: 8 } },
-    { e: '🧾', n: 'She grabbed the check?!', fx: { wallet: 40, mood: -1 } }
+    { e: '🧾', n: 'She grabbed the check?! (+$80)', fx: { wallet: 80, mood: -1 } }
   ];
   function miniDate(done) {
     var ui = $('miniUI');
@@ -858,7 +1028,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     function course() {
       if (g.c >= COURSES.length) return finish();
       g.reel = 0; g.stopped = [false, false, false];
-      ui.innerHTML = '<div class="top"><span>DATE NIGHT · GILDED</span><span>' + (g.c + 1) + ' / 3</span></div>' +
+      ui.innerHTML = '<div class="top"><span>DATE NIGHT · GILDED · WILLIAMSBURG</span><span>' + (g.c + 1) + ' / 3</span></div>' +
         '<div class="chatw"><div class="disp" style="font-size:clamp(20px,3vw,28px);color:var(--gold)">' + COURSES[g.c] + '</div>' +
         '<div class="slots">' + [0, 1, 2].map(function (k) { return '<div class="reel" id="r' + k + '">❔</div>'; }).join('') + '</div>' +
         '<div class="slotlbl" id="slbl">Tap / Space / A to stop each reel</div><button class="btn pri" id="sBtn" type="button" style="width:min(320px,100%)">STOP</button></div>';
@@ -868,7 +1038,7 @@ button{font:inherit;color:inherit;cursor:pointer}
       var last = 0;
       (function spin(t) {
         if (ctl.dead || g.reel > 2) return;
-        if (!ctl.paused && t - last > 85 - g.c * 12) { last = t; for (var k = 0; k < 3; k++) if (!g.stopped[k]) { g.idx[k] = (g.idx[k] + 1 + k) % SYMS.length; var r = $('r' + k); if (r) r.textContent = SYMS[g.idx[k]].e; } }
+        if (!ctl.paused && t - last > 175 - g.c * 20) { last = t; for (var k = 0; k < 3; k++) if (!g.stopped[k]) { g.idx[k] = (g.idx[k] + 1 + k) % SYMS.length; var r = $('r' + k); if (r) r.textContent = SYMS[g.idx[k]].e; } }
         requestAnimationFrame(spin);
       })(0);
     }
@@ -896,6 +1066,184 @@ button{font:inherit;color:inherit;cursor:pointer}
       miniResult('Date Night', ['The night, in order: ' + g.hist.map(function (s) { return s.e; }).join(' '), worst ? 'Your card got declined ' + worst + ' time' + (worst > 1 ? 's' : '') + '. The violinist stopped playing.' : 'Your card survived. Your bank app sent a prayer emoji.'], fx, done);
     }
     miniIntro('Date Night', 'Gilded has no prices on the menu. Three courses, three reels each. Stop the reels and live with what you ordered.<br><br>Tap STOP, Space, or A.', ctl, course);
+  }
+
+  /* shared: a timed three-button card (Bottomless, Hot Takes). Buttons are .chatb so 1-3 / d-pad / A all work. */
+  function cardRound(ctl, g, html, opts, secs, onPick) {
+    var ui = $('miniUI');
+    ui.innerHTML = html.top + '<div class="chatw"><div class="phone" style="width:min(520px,100%)">' + html.body +
+      '<div id="ctime" style="width:100%;margin:10px 0 12px"><i id="cBar" style="transform-origin:left"></i></div>' +
+      '<div class="chats">' + opts.map(function (o, k) { return '<button class="chatb" type="button" data-k="' + k + '">' + (k + 1) + '. ' + esc(o[0]) + (o[1] ? '<small>' + esc(o[1]) + '</small>' : '') + '</button>'; }).join('') + '</div></div>' +
+      '<div class="reply" id="reply"></div></div>';
+    [].forEach.call(ui.querySelectorAll('.chatb'), function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); pickIt(+b.dataset.k); }); });
+    g.focus = 0; g.lock = false; markOpt();
+    var bar = $('cBar'); bar.style.transition = 'none'; bar.style.transform = 'scaleX(1)'; void bar.offsetWidth;
+    bar.style.transition = 'transform ' + secs + 's linear'; bar.style.transform = 'scaleX(0)';
+    var deadline = performance.now() + secs * 1000, pausedAt = 0;
+    (function tick() {
+      if (ctl.dead || g.lock) return;
+      if (ctl.paused) { if (!pausedAt) { pausedAt = performance.now(); var r = bar.getBoundingClientRect().width / bar.parentNode.getBoundingClientRect().width; bar.style.transition = 'none'; bar.style.transform = 'scaleX(' + r + ')'; } }
+      else if (pausedAt) { var rem = deadline - pausedAt; deadline = performance.now() + rem; pausedAt = 0; bar.style.transition = 'transform ' + (rem / 1000) + 's linear'; bar.style.transform = 'scaleX(0)'; }
+      if (!ctl.paused && performance.now() >= deadline) return pickIt(-1);
+      requestAnimationFrame(tick);
+    })();
+    function markOpt() { [].forEach.call(ui.querySelectorAll('.chatb'), function (b, k) { b.classList.toggle('f', k === g.focus); }); }
+    function pickIt(k) { if (g.lock || ctl.dead) return; g.lock = true; onPick(k); }
+    ctl.input = function (a) {
+      if (a === 'left' || a === 'up') { g.focus = (g.focus + opts.length - 1) % opts.length; markOpt(); }
+      else if (a === 'right' || a === 'down') { g.focus = (g.focus + 1) % opts.length; markOpt(); }
+      else if (a === 'A') pickIt(g.focus); else if (/^[1-3]$/.test(a)) pickIt(+a - 1); else if (a === 'start') openMenu();
+    };
+  }
+  function say2(cls, txt) { var r = $('reply'); if (r) { r.className = 'reply ' + cls; r.textContent = txt; } }
+
+  /* --- 5. BOTTOMLESS: the table orders, Tre decides. Let it ride, hold up, or counter-offer. --- */
+  var TICKETS = [
+    ['kiki', 'Lobster waffle. With the gold flakes.', 42, 'the regular waffle', 18],
+    ['girls', 'A bottle of rosé for the table. For the PICTURE.', 95, 'a pitcher of house sangria', 38],
+    ['jada', 'Chicken and waffles, babe. You know I don\'t play.', 29, 'a half order', 15, 1],
+    ['kiki', 'The seafood tower. Two tiers. I need the height for the video.', 120, 'a shrimp cocktail', 24],
+    ['girls', 'Truffle fries for the table. Nobody\'s eating them. They\'re for the flat lay.', 22, 'regular fries', 9],
+    ['kiki', 'Another bottomless for my cousin. She\'s "ten minutes away."', 45, 'one mimosa for when she gets here', 16],
+    ['girls', 'Whatever\'s on fire at that other table.', 36, 'a candle in a muffin', 7],
+    ['jada', 'A mimosa tower. Babe. A TOWER. For the story.', 85, 'two regular mimosas', 28, 1]
+  ];
+  var BASE_BRUNCH = 6 * 45 + 28, TAX_TIP = 1.31;   // six bottomless + Tre's eggs; NYC tax 8.875% + a 22% tip
+  function miniBottomless(done) {
+    var g = { i: 0, items: 0, vetoes: 0, rides: 0, mood: 0, sanity: 0, focus: 0, lock: false };
+    var ctl = { paused: false, dead: false, input: function () {} };
+    function tab() { return Math.round((BASE_BRUNCH + g.items) * TAX_TIP); }
+    function who(w) { return w === 'girls' ? 'The girls' : NAMES[w] || w; }
+    function round() {
+      if (g.i >= TICKETS.length) return finish();
+      var t = TICKETS[g.i];
+      cardRound(ctl, g, {
+        top: '<div class="top"><span>BOTTOMLESS · VELVET MIMOSA</span><span>Tab ≈ ' + money(tab()) + ' · ' + (g.i + 1) + '/' + TICKETS.length + '</span></div>',
+        body: '<div class="typing" style="margin-bottom:6px"><span>🧾 ' + esc(who(t[0])) + ' is ordering…</span></div><div class="draft" style="background:#2a1d3d;border-radius:18px;margin:0 0 6px;max-width:100%">“' + esc(t[1]) + '”<br><b style="color:var(--gold);font-size:20px">$' + t[2] + '</b></div>'
+      }, [['Let it ride ✅', 'Add $' + t[2] + ' to the tab'], ['Hold up ✋', t[5] ? 'Veto JADA? In front of everybody?' : 'Veto it. Risk the side-eye.'], ['Counter-offer 🔀', 'Suggest ' + t[3] + ' ($' + t[4] + ')']], FAST ? 0.3 : 11, function (k) {
+        if (k === -1) { k = 0; say2('bad', '⏱ Tre froze. The waiter took that as a yes. '); }
+        if (k === 0) { g.items += t[2]; g.rides++; g.sanity -= 1; sfx('cash'); say2('good', ($('reply').textContent || '') + ['"Okaaay, Tre!"', '"See? He gets it."', '"Put it on Tre\'s card!"'][g.i % 3]); }
+        else if (k === 1) { g.vetoes++; g.mood -= t[5] ? 10 : 3; sfx('bad'); say2('bad', t[5] ? 'Jada: "...Wow. Okay. In front of my friends? Okay."' : ['Kiki: "Cheap."', 'The girls: "Ew."', 'Kiki: "Not the coupon energy."'][g.i % 3]); }
+        else { if (Math.random() < 0.6) { g.items += t[4]; sfx('good'); say2('good', who(t[0]) + ': "...Fine. ' + t[3].replace(/^./, function (c) { return c.toUpperCase(); }) + '. But I\'m posting it like it\'s the real thing."'); } else { g.items += t[2]; g.mood -= 2; sfx('bad'); say2('bad', who(t[0]) + ': "Did he just counter-offer my FOOD? Waiter, the big one."'); } }
+        g.i++; setTimeout(round, FAST ? 30 : 1700);
+      });
+    }
+    function finish() {
+      ctl.dead = true;
+      st.f.tab = tab(); st.f.split = Math.round(st.f.tab / 6); st.f.vetoes = g.vetoes;
+      var fx = {}; if (g.mood) fx.mood = g.mood; if (g.sanity) fx.sanity = g.sanity;
+      miniResult('Bottomless', ['The tab, with NYC tax and a 22% tip: ' + money(st.f.tab) + '.', g.vetoes === 0 ? 'You vetoed nothing. The table loves you. Your bank does not.' : g.vetoes >= 4 ? 'You vetoed ' + g.vetoes + ' orders. The girls are calling you "Coupon Tre" now.' : 'You held the line ' + g.vetoes + ' time' + (g.vetoes > 1 ? 's' : '') + '. Respectfully.'], fx, done);
+    }
+    miniIntro('Bottomless', 'Six bottomless mimosas are already on the tab ($45 each, Brooklyn prices). Now the table is ordering. For each order: <b>let it ride</b>, <b>hold up</b> and veto it, or <b>counter-offer</b> something cheaper.<br><br>Every veto costs you with the table. Vetoing Jada costs you with Jada. You have time — pick with 1–3, tap, or the d-pad and A.', ctl, round);
+  }
+
+  /* --- 6. HOT TAKES: the brunch-table argument. Clap back, keep it smooth, or fold. --- */
+  var TAKES = [
+    ['kiki', 'It\'s 2026. A real man pays for EVERYTHING. Rent, brunch, my lashes. It\'s biblical.',
+      ['Show me the verse, Kiki. Chapter and VENMO.', 'A real man pays for HIS woman. Y\'all got men. Somewhere. Allegedly.', '...You\'re right. My bad. Order another round.']],
+    ['girls', 'If he wanted to, he would.',
+      ['He WANTED to. His bank account said "let\'s circle back."', 'I do want to. I also want to make rent in Brooklyn. Both things are true.', '...He would. He would. I\'m him. I\'ll do it.']],
+    ['kiki', '(holding up a ring light) Nobody touch the food. Content first. Tre, get my left side.',
+      ['Are we here to hang out or are we here for the gram? \'Cause the gram ain\'t splitting this bill.', 'Take the picture. Just tag me on the receipt.', '...Can I at least be in it? Just my hand?']],
+    ['kiki', 'And you\'re not even hard launched, Tre. Jada posts your HAND.',
+      ['My hand got more likes than your whole summer, Kiki.', 'The hand is the trailer. The movie\'s coming.', '...It\'s a nice hand, though. Right? Y\'all like the hand?']],
+    ['girls', 'Fifty-fifty is for roommates. Are you her ROOMMATE?',
+      ['I\'m on the LEASE, Kiki. I literally AM her roommate. Rent is due SUNDAY.', 'We split rent, we split the remote, and she eats my fries. That\'s love.', 'No ma\'am. I\'m her ATM. Beep boop.']]
+  ];
+  function miniTakes(done) {
+    var g = { i: 0, laughs: 0, mood: 0, sanity: 0, folds: 0, claps: 0, focus: 0, lock: false };
+    var ctl = { paused: false, dead: false, input: function () {} };
+    function meter(n, max, col) { return '<span style="display:inline-block;width:90px;height:8px;border-radius:9px;background:#2a2038;vertical-align:middle;overflow:hidden"><i style="display:block;height:100%;width:' + Math.min(100, n / max * 100) + '%;background:' + col + '"></i></span>'; }
+    function round() {
+      if (g.i >= TAKES.length) return finish();
+      var t = TAKES[g.i], speaker = t[0] === 'girls' ? 'The girls' : NAMES[t[0]];
+      cardRound(ctl, g, {
+        top: '<div class="top"><span>HOT TAKES · ' + (g.i + 1) + '/' + TAKES.length + '</span><span style="font-size:13px">😂 Table ' + meter(g.laughs, 10, 'var(--gold)') + '</span></div>',
+        body: '<div class="typing" style="margin-bottom:6px"><span>🔥 ' + esc(speaker) + ' said:</span></div><div class="draft" style="background:' + (COLORS.kiki) + ';color:#1a0b22;border-radius:18px 18px 18px 4px;margin:0 0 4px;max-width:100%">' + esc(t[1]) + '</div><div class="typing" style="margin:10px 0 0"><span>Tre fires back with…</span></div>'
+      }, [[t[2][0], '😂 Clap back'], [t[2][1], '😎 Keep it smooth'], [t[2][2], '🏳️ Fold']], FAST ? 0.3 : 13, function (k) {
+        if (k === -1) { k = 2; say2('bad', '⏱ Tre took too long. Silence is a fold. '); }
+        if (k === 0) { g.laughs += 3; g.claps++; g.mood -= 3; sfx('good'); say2('good', ['The whole table screams. Jada is hiding behind the menu, laughing.', '"OHHHH!" The next table is clapping. Kiki is typing furiously.', 'Somebody\'s filming. Jada mouths "stop" but she\'s grinning.'][g.i % 3]); }
+        else if (k === 1) { g.laughs += 2; g.mood += 2; sfx('good'); say2('good', ['"Mmm." The table respects it. Jada squeezes your hand.', 'Kiki rolls her eyes, but she\'s smiling. Point, Tre.', 'Jada: "See? Calm. That\'s my man."'][g.i % 3]); }
+        else { g.folds++; g.sanity -= 4; g.mood -= 1; st.f.tab = (st.f.tab || 0) + 45; sfx('bad'); say2('bad', 'Kiki: "Since you AGREE… WAITER! Another round!" (+$45 on the tab)'); }
+        g.i++; setTimeout(round, FAST ? 30 : 1900);
+      });
+    }
+    function finish() {
+      ctl.dead = true;
+      var won = g.laughs >= 10;
+      st.f.takesWon = won ? 1 : 0; st.f.takesFolds = g.folds;
+      if (won) st.f.tab = Math.round((st.f.tab || 0) * 0.75);
+      st.f.split = Math.round((st.f.tab || 0) / 6);
+      var fx = {}; if (g.mood) fx.mood = g.mood; fx.sanity = g.sanity + (won ? 8 : -4);
+      miniResult('Hot Takes', [won ? 'You won the table. Kiki: "Okay. He funny. We\'ll cover the bottles." (bill −25%)' : g.folds >= 3 ? 'You folded ' + g.folds + ' times. The table ordered a round for every fold.' : 'Close. The table is split. So is your dignity.', 'The bill is now ' + money(st.f.tab) + '.'], fx, done);
+    }
+    miniIntro('Hot Takes', 'The bill is on the table and so is the debate. Kiki and the girls throw hot takes; Tre answers.<br><br><b>😂 Clap back</b> gets the biggest laughs but embarrasses Jada. <b>😎 Smooth</b> keeps Jada happy. <b>🏳️ Fold</b> and they order another round on you. Win the table and the girls chip in.<br><br>Take your time — pick with 1–3, tap, or the d-pad and A.', ctl, round);
+  }
+
+  /* --- 7. FOR THE GRAM: Tre is the photographer. Shoot when Jada hits the pose and the frame is clear. --- */
+  function miniGram(C, x, done) {
+    var bgI = null, poses = {}, PN = ['happy', 'flirty', 'laugh', 'dramatic'];
+    loadImg(A.bg.dumbo || A.bg.mall).then(function (i) { bgI = i; });
+    PN.forEach(function (p) { keyed(spriteFor('jada', p, 'dumbo')).then(loadImg).then(function (i) { poses[p] = i; }); });
+    var BOMBERS = [['🛴', 'Scooter guy', 0.55], ['🕊️', 'A pigeon', 0.3], ['🚴', 'A cyclist', 0.6], ['👨‍👩‍👧‍👦', 'Tourists', 0.12], ['👰', 'A wedding shoot', 0.1], ['🧍', 'A man on FaceTime', 0.14]];
+    var g = { t: FAST ? 3 : 34, cyc: 0, pose: 'happy', posed: false, bombs: [], spawn: 2.2, good: 0, bad: 0, shots: 0, cool: 0, flash: 0, msg: '', msgT: 0 };
+    var ctl = { paused: false, dead: false, input: function (a) { if (a === 'A') shoot(); if (a === 'start') openMenu(); } };
+    C.onpointerdown = function (e) { e.preventDefault(); shoot(); };
+    function say(m) { g.msg = m; g.msgT = 1.6; }
+    function blocked() { return g.bombs.some(function (b) { return b.x > 0.28 && b.x < 0.72; }); }
+    function shoot() {
+      if (ctl.paused || ctl.dead || g.cool > 0) return;
+      g.cool = FAST ? 0 : 0.6; g.flash = 0.18; g.shots++; sfx('shutter');
+      var bl = g.bombs.filter(function (b) { return b.x > 0.28 && b.x < 0.72; })[0];
+      if (g.posed && !bl) { g.good++; sfx('good'); say(['"YES. That\'s the one."', '"Oh I\'m posting THAT."', '"See? You CAN take a picture."', '"Okay, photographer!"'][g.good % 4]); }
+      else if (bl) { g.bad++; sfx('bad'); say('"Is that ' + bl.n.toUpperCase() + '?? Delete it."'); }
+      else { g.bad++; sfx('bad'); say(['"My eyes were CLOSED, Tre."', '"I wasn\'t READY."', '"You got my chin. Both of them."'][g.bad % 3]); }
+    }
+    function finish() {
+      ctl.dead = true; st.f.gramShots = g.good;
+      var fx = { mood: g.good * 3 - g.bad * 2, sanity: -g.bad };
+      if (!fx.mood) delete fx.mood; if (!fx.sanity) delete fx.sanity;
+      miniResult('For the Gram', ['Keepers: ' + g.good + '. Deleted: ' + g.bad + '.', g.good >= 6 ? 'Jada: "You\'re my photographer forever. This is a curse, by the way."' : g.good >= 4 ? 'Jada: "Okay. We got a couple. I can work with this."' : 'Jada: "Every picture has a pigeon in it, Tre."'], fx, done);
+    }
+    miniIntro('For the Gram', 'DUMBO, golden hour, the bridge shot. You\'re Jada\'s photographer.<br><br>Press the shutter (tap, Space or A) when she <b style="color:var(--gold)">hits the pose ✨</b> and <b>nobody is walking through the middle</b> of the frame. Pigeons, scooters and tourists ruin pictures. She wants at least four keepers.', ctl, function () {
+      var S2 = fitCanvas(C), last = performance.now();
+      (function loop(t) {
+        if (ctl.dead) return;
+        var dt = Math.min(0.05, (t - last) / 1000); last = t;
+        var W = C.clientWidth, H = C.clientHeight; if (W !== S2.w || H !== S2.h) S2 = fitCanvas(C);
+        if (!ctl.paused) {
+          g.t -= dt; if (g.t <= 0) return finish();
+          g.cyc += dt; var period = 3.6;
+          if (g.cyc >= period) { g.cyc -= period; var np; do { np = PN[Math.random() * PN.length | 0]; } while (np === g.pose); g.pose = np; }
+          g.posed = g.cyc > 0.7 && g.cyc < 2.6;        // ~1.9 s window per pose
+          g.spawn -= dt;
+          if (g.spawn <= 0) { var b = BOMBERS[Math.random() * BOMBERS.length | 0], dir = Math.random() < .5 ? 1 : -1; g.bombs.push({ e: b[0], n: b[1], v: b[2] * dir * (0.8 + Math.random() * 0.4), x: dir > 0 ? -0.08 : 1.08, y: b[0] === '🕊️' ? 0.4 : 0.78 + Math.random() * 0.06 }); g.spawn = 2.4 + Math.random() * 2.2; }
+          for (var i = g.bombs.length - 1; i >= 0; i--) { var bb = g.bombs[i]; bb.x += bb.v * dt; if (bb.x < -0.15 || bb.x > 1.15) g.bombs.splice(i, 1); }
+          if (g.cool > 0) g.cool -= dt; if (g.flash > 0) g.flash -= dt; if (g.msgT > 0) g.msgT -= dt;
+        }
+        x.fillStyle = '#120b1d'; x.fillRect(0, 0, W, H);
+        if (bgI) { var s = Math.max(W / bgI.width, H / bgI.height); x.drawImage(bgI, (W - bgI.width * s) / 2, (H - bgI.height * s) / 2, bgI.width * s, bgI.height * s); }
+        var im = poses[g.pose] || poses.happy, jh = H * 0.62;
+        if (im) { var jw = im.width * jh / im.height; if (g.posed) { x.save(); x.shadowColor = 'rgba(245,197,66,.9)'; x.shadowBlur = 26; } x.drawImage(im, W / 2 - jw / 2, H - jh, jw, jh); if (g.posed) x.restore(); }
+        var fs = Math.round(Math.min(W, H) * 0.11); x.font = fs + 'px serif'; x.textAlign = 'center';
+        g.bombs.forEach(function (b) { x.save(); x.translate(b.x * W, b.y * H); if (b.v < 0) x.scale(-1, 1); x.fillText(b.e, 0, 0); x.restore(); });
+        // viewfinder
+        x.strokeStyle = 'rgba(255,255,255,.55)'; x.lineWidth = 1;
+        x.beginPath(); x.moveTo(W / 3, 0); x.lineTo(W / 3, H); x.moveTo(2 * W / 3, 0); x.lineTo(2 * W / 3, H); x.moveTo(0, H / 3); x.lineTo(W, H / 3); x.moveTo(0, 2 * H / 3); x.lineTo(W, 2 * H / 3); x.stroke();
+        x.fillStyle = blocked() ? 'rgba(255,90,90,.16)' : 'rgba(61,220,132,.08)'; x.fillRect(W * 0.28, 0, W * 0.44, H);
+        x.lineWidth = 4; x.strokeStyle = '#fff'; var m = 18, L = 34;
+        [[m, m, 1, 1], [W - m, m, -1, 1], [m, H - m, 1, -1], [W - m, H - m, -1, -1]].forEach(function (c) { x.beginPath(); x.moveTo(c[0], c[1] + L * c[3]); x.lineTo(c[0], c[1]); x.lineTo(c[0] + L * c[2], c[1]); x.stroke(); });
+        x.fillStyle = '#fff'; x.font = '900 ' + Math.round(Math.min(22, W / 22)) + 'px Inter,sans-serif'; x.textAlign = 'left';
+        x.fillText('● REC  ⏱ ' + Math.ceil(g.t) + 's', 30, 52); x.textAlign = 'right'; x.fillStyle = '#f5c542'; x.fillText('Keepers ' + g.good, W - 30, 52);
+        x.textAlign = 'center';
+        if (g.posed) { x.fillStyle = '#f5c542'; x.font = '900 ' + Math.round(Math.min(30, W / 16)) + 'px "Archivo Black",sans-serif'; x.fillText('✨ NOW', W / 2, H * 0.2); }
+        else { x.fillStyle = 'rgba(255,255,255,.75)'; x.font = '800 16px Inter,sans-serif'; x.fillText(g.cyc <= 0.7 ? 'fixing her hair…' : 'checking the last one…', W / 2, H * 0.2); }
+        if (blocked()) { x.fillStyle = '#ff5a5a'; x.font = '900 16px Inter,sans-serif'; x.fillText('SOMEBODY\'S IN THE SHOT', W / 2, H * 0.2 + 28); }
+        if (g.msgT > 0) { x.fillStyle = '#fff'; x.font = '900 ' + Math.round(Math.min(24, W / 20)) + 'px Inter,sans-serif'; x.fillText(g.msg, W / 2, H * 0.32); }
+        if (g.flash > 0) { x.fillStyle = 'rgba(255,255,255,' + (g.flash / 0.18) + ')'; x.fillRect(0, 0, W, H); }
+        requestAnimationFrame(loop);
+      })(last);
+    });
   }
 
   /* ---------- test hooks + boot ---------- */
