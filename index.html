@@ -102,7 +102,7 @@
     var saves = G.map(function (g) { var b = best(g); return b ? '<li>' + esc(g.title) + ' · <b>' + esc(g.scoreLabel || 'Best') + ' ' + b + '</b></li>' : ''; }).join('');
     document.getElementById('saves').innerHTML = saves || '<li>No save data yet. Play something.</li>';
     document.getElementById('savesH').textContent = who ? 'SAVE DATA · CLOUD · ' + String(who.name).toUpperCase() : 'SAVE DATA · THIS DEVICE';
-    document.getElementById('savesBtn').style.display = (AC && !who) ? '' : 'none';
+    document.getElementById('savesBtn').style.display = (AC && !who && window.__arcadeOnline) ? '' : 'none';
   }
   paintSaves();
   (function accounts() {
@@ -110,6 +110,7 @@
     document.getElementById('savesBtn').addEventListener('click', function () { AC.open(); });
     var boards = [];
     AC.online().then(function (on) {
+      window.__arcadeOnline = on; paintSaves();
       if (!on) return;
       document.getElementById('boards').hidden = false;
       document.getElementById('lbs').innerHTML = G.map(function (g, i) { return '<div class="card"><h4>' + esc(g.title) + ' <small>· ' + esc(g.scoreLabel || 'Best') + '</small></h4><div id="lb' + i + '"></div></div>'; }).join('');
