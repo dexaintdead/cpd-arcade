@@ -33,7 +33,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 #shot i{position:absolute;inset:-2%;background:#000 center/cover no-repeat;animation:kb2 9s ease-out forwards}
 #scene.shotmode #shot{opacity:1}
 #scene.shotmode .spr,#scene.shotmode #port{opacity:0!important}
-#shot.pop i{animation:shotin .45s cubic-bezier(.2,1.3,.4,1),kb2 9s ease-out .45s forwards}
+#shot.shotpop i{animation:shotin .45s cubic-bezier(.2,1.3,.4,1),kb2 9s ease-out .45s forwards}
 @keyframes shotin{0%{transform:scale(1.12);filter:brightness(1.6)}100%{transform:scale(1.02);filter:none}}
 .spr{position:absolute;bottom:0;height:86%;max-width:60%;object-fit:contain;object-position:bottom;transition:filter .35s,transform .25s,opacity .3s;opacity:0;pointer-events:none;z-index:1;filter:var(--grade,none) drop-shadow(0 0 14px var(--rim,rgba(255,190,140,.22))) drop-shadow(0 10px 22px rgba(0,0,0,.45));animation:breathe 4.2s ease-in-out infinite}
 @keyframes breathe{0%,100%{scale:1 1}50%{scale:1 1.007}}
@@ -273,7 +273,8 @@ button{font:inherit;color:inherit;cursor:pointer}
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
   var NAMES = { tre: 'Tre', jada: 'Jada', mike: 'Big Mike', brenda: 'Ms. Brenda', marcus: 'Marcus', kiki: 'Kiki & the girls', deshawn: 'Deshawn' };
-  var FACE = { _: 0.085, jada: 0.12, kiki: 0.08, brenda: 0.1, mike: 0.08 };   // face centre below the top of the hair, as a fraction of sprite height
+  // portrait crop: [face centre below the top of the figure (fraction of its height), zoom (null = auto)] — tuned on the real sprites
+  var FACE = { _: [0.085, null], jada: [0.21, 1.8], kiki: [0.18, 1.9], brenda: [0.16, 1.95], mike: [0.11, null] };
   var COLORS = { tre: '#f5c542', jada: '#ff4fb3', mike: '#7fd3ff', brenda: '#c9a7ff', marcus: '#ff8a5b', kiki: '#ffb4e1', deshawn: '#8ef0b0' };
   var END_ORDER = ['end_wifed', 'end_broke_happy', 'end_barely', 'end_twist', 'end_couch', 'end_snapped', 'end_speedrun', 'end_read', 'end_marcus'];
   var settings = Object.assign({ mus: 0.45, vo: 1, txt: 0.6, auto: false, timers: true }, store('tj_settings') || {});
@@ -362,7 +363,10 @@ button{font:inherit;color:inherit;cursor:pointer}
           // where is the head? the opaque pixels in the top band of the cut-out
           var hb = o.getContext('2d').getImageData(0, 0, tw, Math.max(1, Math.round(th * 0.22))).data, sx = 0, n = 0, top = -1;
           for (var q = 3; q < hb.length; q += 4) if (hb[q] > 120) { var qx = (q >> 2) % tw, qy = (q >> 2) / tw | 0; if (top < 0) top = qy; if (qy - top < th * 0.16) { sx += qx; n++; } }
-          var meta = { cx: n ? sx / n / tw : 0.5, top: top < 0 ? 0 : top / th, ar: tw / th };
+          var meta = { cx: n ? sx / n / tw : 0.5, top: top < 0 ? 0 : top / th, ar: tw / th, rows: [] };
+          // centre of the figure in 1% bands down the top 40% — so the crop follows the FACE, not a big hairstyle
+          var rd = o.getContext('2d').getImageData(0, 0, tw, Math.max(1, Math.round(th * 0.4))).data;
+          for (var bnd = 0; bnd < 40; bnd++) { var y0 = Math.round(bnd * th * 0.01), y1 = Math.round((bnd + 1) * th * 0.01), bs = 0, bn = 0; for (var yy = y0; yy < y1; yy++) for (var xx = 0; xx < tw; xx += 2) if (rd[(yy * tw + xx) * 4 + 3] > 120) { bs += xx; bn++; } meta.rows.push(bn ? bs / bn / tw : null); }
           o.toBlob(function (bl) { var u = bl ? URL.createObjectURL(bl) : o.toDataURL(); spriteMeta[u] = meta; res(u); });
         } catch (e) { res(spec.url); }
       };
@@ -403,7 +407,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     if (k === shotKey) return; shotKey = url ? k : null;
     if (!url) { sc.classList.remove('shotmode'); return; }
     var i = el.querySelector('i'); i.style.backgroundImage = 'url("' + url + '")';
-    el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); sc.classList.add('shotmode'); sfx('pick');
+    el.classList.remove('shotpop'); void el.offsetWidth; el.classList.add('shotpop'); sc.classList.add('shotmode'); sfx('pick');
   }
   function placeSprite(slot, who, expr, talking) {
     var s = slots[slot];
@@ -454,8 +458,9 @@ button{font:inherit;color:inherit;cursor:pointer}
           if (src) {
             var mt = spriteMeta[src], fi = face.querySelector('i'); fi.style.backgroundImage = 'url("' + src + '")';
             if (mt) { // centre the bubble on the face. Image shown at S x the circle width; head ≈ 0.16 of the cut-out height.
-              var yc = mt.top + (FACE[who] || FACE._), S = Math.max(2.2, Math.min(5.5, 0.8 * mt.ar / 0.16));
-              var px = (0.5 - mt.cx * S) / (1 - S), py = (0.5 - yc * S / mt.ar) / (1 - S / mt.ar);
+              var fcfg = FACE[who] || FACE._, yc = mt.top + fcfg[0], S = fcfg[1] || Math.max(2.2, Math.min(5.5, 0.8 * mt.ar / 0.16));
+              var bi = Math.min(39, Math.round(yc * 100)), cx = mt.rows && mt.rows[bi] != null ? mt.rows[bi] : mt.cx;
+              var px = (0.5 - cx * S) / (1 - S), py = (0.5 - yc * S / mt.ar) / (1 - S / mt.ar);
               fi.style.backgroundSize = (S * 100).toFixed(1) + '% auto';
               fi.style.backgroundPosition = (Math.max(0, Math.min(1, px)) * 100).toFixed(1) + '% ' + (Math.max(0, Math.min(1, py)) * 100).toFixed(1) + '%';
             } else { fi.style.backgroundSize = ''; fi.style.backgroundPosition = ''; }
