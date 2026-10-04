@@ -261,6 +261,7 @@ button{font:inherit;color:inherit;cursor:pointer}
   <div id="end" class="card hide"><div class="panel" id="endP"></div></div>
   <div id="loading"></div>
 </div>
+<script src="gamepad.js?v=1"></script>
 <script src="tj-script.js?v=5"></script>
 <script src="tj-assets.js?v=5"></script>
 <script>
@@ -805,13 +806,10 @@ button{font:inherit;color:inherit;cursor:pointer}
   var gpPrev = {};
   var GP = { 0: 'A', 1: 'B', 2: 'X', 3: 'Y', 9: 'start', 12: 'up', 13: 'down', 14: 'left', 15: 'right' };
   function pollPad() {
-    var pads = navigator.getGamepads ? navigator.getGamepads() : [], gp = null;
-    for (var i = 0; i < pads.length; i++) if (pads[i]) { gp = pads[i]; break; }
-    if (gp) {
-      var ax = gp.axes[0] || 0, ay = gp.axes[1] || 0;
-      var now = {};
-      for (var b in GP) now[GP[b]] = gp.buttons[b] && gp.buttons[b].pressed;
-      if (ay < -0.6) now.up = true; if (ay > 0.6) now.down = true; if (ax < -0.6) now.left = true; if (ax > 0.6) now.right = true;
+    var g = window.ArcadePad ? ArcadePad.read(ArcadePad.first()) : null;
+    if (g) {
+      var ax = g.lx;
+      var now = { A: g.a, B: g.b, X: g.x, Y: g.y, start: g.start, up: g.up, down: g.down, left: g.left, right: g.right };
       for (var k in now) if (now[k] && !gpPrev[k]) onAction(k);
       held.padL = !!now.left; held.padR = !!now.right; held.padX = ax;
       gpPrev = now;

@@ -30,6 +30,7 @@
   <button class="btn" id="mute" type="button" aria-label="Mute">♪</button>
   <button class="btn" id="trick" type="button" aria-label="Trick"><b>↻</b>TRICK</button>
 </div>
+<script src="gamepad.js?v=1"></script>
 <script>
 /* Maverick: Skyline Dash — ContentPad Arcade house game #1 (build 2026100405-crew, v4).
    Rooftop skateboarding. Original game and character (Maverick, owned by ContentPad).
@@ -1180,11 +1181,10 @@
   // ── controller ───────────────────────────────────────────────────────────
   var pad = {};
   function pollPad() {
-    var pads = navigator.getGamepads ? navigator.getGamepads() : [], gp = null;
-    for (var i = 0; i < pads.length; i++) if (pads[i] && pads[i].connected) { gp = pads[i]; break; }
-    if (!gp) return;
-    var b = gp.buttons, dn = function (n) { return !!(b[n] && b[n].pressed); };
-    var now = { a: dn(0) || dn(3), x: dn(2) || dn(13) || gp.axes[1] > 0.6, up: dn(12) || gp.axes[1] < -0.6, b: dn(1), st: dn(9), l: dn(14) || gp.axes[0] < -0.6, r: dn(15) || gp.axes[0] > 0.6 };
+    if (!window.ArcadePad) return;
+    var g = ArcadePad.read(ArcadePad.first()); if (!g) return;
+    // bottom or top face button jumps / tricks · left face, LB/RB or down = TRICK · right face = back
+    var now = { a: g.a || g.y, x: g.x || g.down || g.lb || g.rb, up: g.up, b: g.b, st: g.start, l: g.left, r: g.right };
     if (now.a && !pad.a) press(); if (!now.a && pad.a) release();
     if (now.up && !pad.up) { if (paused) pauseNav(-1); else if (state === 'select' || state === 'locker') navRow(-1); else press(); } if (!now.up && pad.up) release();
     if (now.x && !pad.x) { if (state === 'select' || state === 'locker') navRow(1); else down(); }
