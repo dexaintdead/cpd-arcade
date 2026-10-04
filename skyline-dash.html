@@ -40,7 +40,7 @@
    Controls: Space / ↑ / W / tap / (A) = ollie (hold for height), again in the air = kickflip;
    ↓ / S / swipe down / TRICK button / (X) = shove-it in the air, boardslide on a rail.
    P / Esc / Start = pause menu. M = mute.
-   v4: the crew (Kiko, Dre, Biscuit skate with you when you earn them), Rider Level + Locker
+   v4: the crew (Kiko and Dre skate with you when you earn them), Rider Level + Locker
    (colorways, trails, starting crew), MANUAL and 360 SPIN, Moon Boots + Crew Call power-ups,
    new ride/kickflip art (two arms; flat board, wheels down).
    Talks to the Arcade page with postMessage {arcade:'start'|'over'|'exit'}; accepts {arcade:'key'}. */
@@ -57,10 +57,9 @@
     drone: CDN + '9af22a24-9ede-44f5-a1ef-b697bd7a42d1.png', vent: CDN + 'd30d3220-d0b5-4fa6-ae8c-3bc9b0a5b1c2.png',
     cloud: CDN + 'e4baee76-fe1a-4ee5-839c-cdd046d1ea86.png',
     kiko_r: CDN + 'cf3f5ae1-4c5b-4a31-92ef-cadda5a7f7de.png', kiko_o: CDN + 'f3ab06d6-072f-4aab-aa49-2983373596fb.png',
-    dre_r: CDN + '8562e681-b158-49cd-a721-9e862aa5aa88.png', dre_o: CDN + '5964cc58-63d2-49ed-868b-13e2f7432ae0.png',
-    bis_r: CDN + 'c1ece1a8-6216-4ba8-a704-a1570e6dc6f4.png', bis_o: CDN + '94fa0dfa-f6eb-43c7-8696-837b5355145c.png', music: CDN + '41c5a4c7-11a5-4a1c-8b25-1f50af42acb8.mp3'
+    dre_r: CDN + '8562e681-b158-49cd-a721-9e862aa5aa88.png', dre_o: CDN + '5964cc58-63d2-49ed-868b-13e2f7432ae0.png', music: CDN + '41c5a4c7-11a5-4a1c-8b25-1f50af42acb8.mp3'
   };
-  var KEYED = { ride: 1, push: 1, ollie: 1, flip: 1, grind: 1, bail: 1, drone: 1, vent: 1, cloud: 1, kiko_r: 1, kiko_o: 1, dre_r: 1, dre_o: 1, bis_r: 1, bis_o: 1 };
+  var KEYED = { ride: 1, push: 1, ollie: 1, flip: 1, grind: 1, bail: 1, drone: 1, vent: 1, cloud: 1, kiko_r: 1, kiko_o: 1, dre_r: 1, dre_o: 1 };
   var CROP = { grind: 0.83 };
   var VIA = 'https://link.contentpad.io/dl?u=';
 
@@ -218,10 +217,9 @@
   ];
   var CREW = {
     kiko: { n: 'KIKO', img: ['kiko_r', 'kiko_o'], col: '#3fd8c8', perk: '+50% trick points', how: 'Grab all of S-K-A-T-E in a level', lv: 7, h: 1.36 },
-    dre: { n: 'DRE', img: ['dre_r', 'dre_o'], col: '#ff5a5a', perk: 'Catches you once', how: 'Bank an INSANE combo (2,500+)', lv: 10, h: 1.46 },
-    biscuit: { n: 'BISCUIT', img: ['bis_r', 'bis_o'], col: '#b8a8ff', perk: 'Fetches coins for you', how: 'Collect 40 coins in one run', lv: 13, h: 0.78 }
+    dre: { n: 'DRE', img: ['dre_r', 'dre_o'], col: '#ff5a5a', perk: 'Catches you once', how: 'Bank an INSANE combo (2,500+)', lv: 10, h: 1.46 }
   };
-  var CREW_IDS = ['kiko', 'dre', 'biscuit'];
+  var CREW_IDS = ['kiko', 'dre'];
   function met(id) { return !!(SAVE.hints && SAVE.hints['met_' + id]); }
   function colorOf(id) { return COLORS.filter(function (c) { return c.id === id; })[0] || COLORS[0]; }
   function trailOf(id) { return TRAILS.filter(function (c) { return c.id === id; })[0] || TRAILS[0]; }
@@ -629,7 +627,6 @@
       return;
     }
     coins++; score += 25 * (power.k === 'double' ? 2 : 1); sfx.coin(); sparkle(sx(k.x), k.y);
-    if (coins % 40 === 0) crewJoin('biscuit');
   }
   // ── the crew ──
   // A crew member replays Maverick's own line a beat behind him (HIST), so they ride the same
@@ -758,7 +755,7 @@
       if (bx < ox + o.w - 12 && bx + bw > ox + 12 && by < oy + o.h - 10 && by + bh > oy + 10) { bail(o.k); if (P.dead) return; }
     }
     if (power.k === 'boost') for (i = 0; i < obs.length; i++) { var ob = obs[i], obx = sx(ob.x); if (!ob.smashed && bx < obx + ob.w && bx + bw > obx && by < ob.y + ob.h && by + bh > ob.y) { ob.smashed = true; ob.x = -9999; comboPts += 100; popups.push({ t: 0, s: 'SMASH', v: '' }); sparkle(obx + ob.w / 2, ob.y + ob.h / 2, 'rgba(255,79,179,'); } }
-    var mag = power.k === 'magnet' || power.k === 'boost' || hasCrew('biscuit');
+    var mag = power.k === 'magnet' || power.k === 'boost';
     for (i = 0; i < tokens.length; i++) {
       var k = tokens[i]; if (k.got) continue; var kx = sx(k.x); if (kx < -30 || kx > W + 30) continue;
       if (mag && !k.letter && !k.power) { var ddx = (P.x + P.w / 2) - kx, ddy = (P.y + P.h / 2) - k.y, dd = Math.hypot(ddx, ddy); if (dd < 260) { k.x += ddx / dd * 700 * dt; k.y += ddy / dd * 700 * dt; kx = sx(k.x); } }
@@ -963,7 +960,7 @@
       var bob = ground ? Math.sin(now / 110 + i) * 1.2 : 0;
       if (im && im.width) { var hh = P.h * C.h, sc = hh / im.height; if (im.width * sc > hh * 1.5) sc = hh * 1.5 / im.width; var dw = im.width * sc, dh = im.height * sc; cx.drawImage(im, x - dw / 2, gy - dh + bob, dw, dh); }
       else { cx.fillStyle = C.col; cx.fillRect(x - 18, gy - P.h * C.h * 0.8, 36, P.h * C.h * 0.8); }
-      var tagY = gy - P.h * C.h * (m.id === 'biscuit' ? 1.1 : 1.02) - 6;
+      var tagY = gy - P.h * C.h * 1.02 - 6;
       cx.font = '11px "Archivo Black",sans-serif'; var tw = cx.measureText(C.n).width + 14;
       cx.fillStyle = 'rgba(12,6,24,.7)'; cx.beginPath(); roundRect(x - tw / 2, tagY - 9, tw, 18, 9); cx.fill();
       cx.strokeStyle = C.col; cx.lineWidth = 1.5; cx.stroke(); txt(C.n, x, tagY + 1, 11, C.col, 'center', false);

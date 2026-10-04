@@ -8,7 +8,7 @@ window.ARCADE_GAMES = [
     title: 'Maverick: Skyline Dash',
     badge: 'v4 · the crew, the Locker, new tricks',
     tagline: 'Skate the rooftops. Chain the tricks. Bank the combo.',
-    about: 'Maverick took his board to the roofs. Ollie the gaps, kickflip, shove-it and 360 spin in the air, manual between tricks to keep a combo alive, grind and boardslide the rails, launch off ramps and time the window-washer lifts. Bank big combos, grab S-K-A-T-E and earn your crew — Kiko, Dre and Biscuit the corgi drop in and skate with you, each with a perk. Level up your rider to unlock colorways, trails and a starting crew in the Locker. Eight levels from sunset to the top of the Spire, then see how far you get in Endless.',
+    about: 'Maverick took his board to the roofs. Ollie the gaps, kickflip, shove-it and 360 spin in the air, manual between tricks to keep a combo alive, grind and boardslide the rails, launch off ramps and time the window-washer lifts. Bank big combos, grab S-K-A-T-E and earn your crew — Kiko and Dre drop in and skate with you, each with a perk. Level up your rider to unlock colorways, trails and a starting crew in the Locker. Eight levels from sunset to the top of the Spire, then see how far you get in Endless.',
     genre: 'Skate',
     tags: ['Skateboarding', '8 levels', 'Endless', 'Crew', 'Customize', 'Controller'],
     controls: [['Space / tap / (A)', 'Ollie — hold for height'], ['Again in the air', 'Kickflip'], ['↓ / swipe down / TRICK / (X)', 'Shove-it in the air · again = 360 spin'], ['↓ on the ground', 'Manual — keeps your combo alive'], ['↓ on a rail', 'Boardslide'], ['Land on a rail', 'Grind it'], ['Land clean', 'Bank your combo'], ['P / Esc / Start', 'Pause menu'], ['M', 'Mute']],
