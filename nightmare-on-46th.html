@@ -154,7 +154,18 @@
     for (var y = 0; y < h; y += 2) for (var x = 0; x < w; x += 2) if (d[(y * w + x) * 4 + 3] > 60) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
     if (x1 <= x0 || y1 <= y0) return c;
     var o = document.createElement('canvas'); o.width = x1 - x0 + 2; o.height = y1 - y0 + 2;
-    o.getContext('2d').drawImage(c, -x0, -y0); return o;
+    o.getContext('2d').drawImage(c, -x0, -y0);
+    // Where the soles really are: the lowest row with a solid run of pixels (stray shadow specks and
+    // soft keyed edges below the feet don't count), plus how wide the stance is at the floor.
+    var need = Math.max(4, (x1 - x0) * 0.035), foot = y1, fx0 = x1, fx1 = x0;
+    for (var fy = y1 + 1; fy > y0; fy--) {
+      var cnt = 0; for (var fx = x0; fx <= x1; fx++) if (d[(fy * w + fx) * 4 + 3] > 150) cnt++;
+      if (cnt >= need) { foot = fy; break; }
+    }
+    var band = Math.max(6, (y1 - y0) * 0.07);
+    for (var by = Math.max(y0, foot - band); by <= foot; by++) for (var bx = x0; bx <= x1; bx++) if (d[(by * w + bx) * 4 + 3] > 150) { if (bx < fx0) fx0 = bx; if (bx > fx1) fx1 = bx; }
+    o._footRow = foot - y0 + 1; o._fx0 = (fx0 <= fx1 ? fx0 : x0) - x0; o._fx1 = (fx0 <= fx1 ? fx1 : x1) - x0;
+    return o;
   }
   function load(key, id, keyed) {
     needed++;
@@ -849,52 +860,105 @@
     if (!im || !im._area || !base._area) return s;
     return s * Math.max(0.85, Math.min(1.45, Math.sqrt(base._area / im._area)));
   }
+  // ── grounding: each stage's floor reflects and tints the fighters a little differently ──
+  var STAGE_LOOK = {
+    harbor: { refl: 0.26, tint: 'rgba(110,50,170,', ta: 0.10, rim: 'rgba(255,150,60,' },
+    street: { refl: 0.22, tint: 'rgba(255,130,50,', ta: 0.08, rim: 'rgba(255,190,120,' },
+    subway: { refl: 0.18, tint: 'rgba(90,200,120,', ta: 0.11, rim: 'rgba(170,255,170,' },
+    rooftop: { refl: 0.10, tint: 'rgba(230,40,40,', ta: 0.10, rim: 'rgba(255,90,70,' }
+  };
+  // the sprite, lit for this stage: a touch of the room's colour, darker toward the floor (contact shading)
+  function graded(im) {
+    var L = STAGE_LOOK[stage] || STAGE_LOOK.harbor; im._g = im._g || {};
+    if (im._g[stage]) return im._g[stage];
+    var c = document.createElement('canvas'); c.width = im.width; c.height = im.height;
+    var g = c.getContext('2d'); g.drawImage(im, 0, 0); g.globalCompositeOperation = 'source-atop';
+    g.fillStyle = L.tint + L.ta + ')'; g.fillRect(0, 0, c.width, c.height);
+    var fr = im._footRow || im.height, gr = g.createLinearGradient(0, fr - c.height * 0.22, 0, fr);
+    gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,.45)'); g.fillStyle = gr; g.fillRect(0, 0, c.width, c.height);
+    var rg = g.createLinearGradient(0, 0, 0, c.height * 0.35); rg.addColorStop(0, L.rim + '.16)'); rg.addColorStop(1, L.rim + '0)'); g.fillStyle = rg; g.fillRect(0, 0, c.width, c.height);
+    c._footRow = im._footRow; c._fx0 = im._fx0; c._fx1 = im._fx1;
+    return (im._g[stage] = c);
+  }
+  // the same sprite faded from the soles upward, for the floor reflection
+  function reflOf(src) {
+    if (src._r) return src._r;
+    var c = document.createElement('canvas'); c.width = src.width; c.height = src.height;
+    var g = c.getContext('2d'), fr = src._footRow || src.height; g.drawImage(src, 0, 0); g.globalCompositeOperation = 'destination-in';
+    var gr = g.createLinearGradient(0, fr, 0, fr - src.height * 0.55); gr.addColorStop(0, 'rgba(0,0,0,1)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, c.width, c.height);
+    return (src._r = c);
+  }
   function drawFighter(f, now) {
     var pose = poseOf(f), im = IMG[f.id + '_' + pose] || IMG[f.id + '_idle'], s = scaleFor(f.id, IMG[f.id + '_' + pose] ? pose : 'idle');
     var x = f.x + (Math.random() - 0.5) * (f.st === 'hit' && f.stun > 0.2 ? 6 : 0), y = GY + f.y;
     drawMoveCue(f, now);
-    // shadow
-    cx.fillStyle = 'rgba(0,0,0,.4)'; cx.beginPath(); cx.ellipse(f.x, GY + 4, f.d.h * 0.22 * (1 + f.y / 600), 9, 0, 0, 7); cx.fill();
-    cx.save(); cx.translate(x, y);
-    if (f.face < 0) cx.scale(-1, 1);
-    var breathe = pose === 'idle' ? 1 + Math.sin(now / 320 + f.bob) * 0.012 : 1, lean = 0, sx = 1, hop = 0;
+    var breathe = pose === 'idle' ? 1 + Math.sin(now / 320 + f.bob) * 0.012 : 1, lean = 0, sx = 1;
     if (f.st === 'walk' || (f.st === 'block' && Math.abs(f.vx) > 40)) {
+      // the body bobs with each step but the feet stay planted: squash and stretch from the soles, no lift
       var ph = f.walkPh || 0, fwd = Math.sign(f.vx) === f.face;
-      hop = -Math.abs(Math.sin(ph)) * 9;                                  // a step every half cycle
-      breathe = 1 + Math.abs(Math.sin(ph)) * 0.025; sx = 1 - Math.abs(Math.sin(ph)) * 0.02;
-      lean = fwd ? 0.07 + Math.sin(ph * 2) * 0.015 : -0.06;              // into the walk going forward, back on the heels retreating
+      breathe = 1 + Math.abs(Math.sin(ph)) * 0.035 - 0.012; sx = 1 - Math.abs(Math.sin(ph)) * 0.02;
+      lean = fwd ? 0.06 + Math.sin(ph * 2) * 0.015 : -0.05;
     }
     if (f.st === 'atk' && f.atk) {
       var A = f.atk;
-      if (A.ph === 's') { lean = -0.05; sx = 0.97; breathe = 1.02; }      // wind-up
-      else if (A.ph === 'a') { lean = 0.06; sx = 1.05; breathe = 0.98; }  // snap
+      if (A.ph === 's') { lean = -0.05; sx = 0.97; breathe = 1.02; }
+      else if (A.ph === 'a') { lean = 0.06; sx = 1.05; breathe = 0.98; }
     }
     if (f.st === 'hit') lean = -0.12;
     if (f.y < 0 && f.st === 'jump') { breathe = 1 + Math.max(-0.06, Math.min(0.08, -f.vy / 9000)); sx = 2 - breathe; }
-    if (hop) cx.translate(0, hop);
-    if (sx !== 1) cx.scale(sx, 1);
-    if (f.crouch && pose === 'idle') cx.scale(1.05, 0.8);
-    if (f.st === 'jump' && pose === 'idle') cx.rotate(-0.08);
-    if (lean) cx.rotate(lean);
-    if (f.st === 'ko') { drawKO(f, now); cx.restore(); return; }
+    var alpha = 1, spin = 0;
     if (f.st === 'atk' && f.atk) {
       var TA = f.atk;
-      if (TA.m.tele) cx.globalAlpha = TA.ph === 's' ? Math.max(0, 1 - TA.t / TA.m.s * 1.5) : TA.ph === 'a' ? Math.min(1, 0.3 + TA.t / 0.08) : 1;
-      if (TA.m.spin && f.y < 0) { var sa = (f.t * 22) % 6.283; cx.translate(0, -f.d.h * 0.5); cx.rotate(sa); cx.translate(0, f.d.h * 0.5); }
+      if (TA.m.tele) alpha = TA.ph === 's' ? Math.max(0, 1 - TA.t / TA.m.s * 1.5) : TA.ph === 'a' ? Math.min(1, 0.3 + TA.t / 0.08) : 1;
+      if (TA.m.spin && f.y < 0) spin = (f.t * 22) % 6.283;
     }
-    if (im && im.width) {
-      var dw = im.width * s, dh = im.height * s;
-      if (pose === 'ko') { var k = Math.min(1.25, (f.d.h * 1.15) / im.width / s); dw *= k; dh *= k; cx.drawImage(im, -dw / 2, -dh * 0.92, dw, dh); }
-      else {
-        // anchor attacks on the back edge so the body stays put and the limb reaches forward
-        var ax = pose === 'punch' || pose === 'kick' || pose === 'special' ? -dw / 2 + Math.max(0, (dw - (IMG[f.id + '_idle'] ? IMG[f.id + '_idle'].width * scaleFor(f.id) : dw)) * 0.5) : -dw / 2;
-        if (f.st === 'hit' || (f.blocking && f.stun > 0)) ax -= 8;
-        if (f.hp > 0 && now - f.lastHit < 90) { cx.filter = 'brightness(2.2)'; }
-        cx.drawImage(im, ax, -dh * breathe, dw, dh * breathe); cx.filter = 'none';
+    var src = im && im.width && f.st !== 'ko' ? graded(im) : null, dw = 0, dh = 0, ax = 0, top = 0;
+    if (src) {
+      dw = im.width * s; dh = im.height * s;
+      ax = pose === 'punch' || pose === 'kick' || pose === 'special' ? -dw / 2 + Math.max(0, (dw - (IMG[f.id + '_idle'] ? IMG[f.id + '_idle'].width * scaleFor(f.id) : dw)) * 0.5) : -dw / 2;
+      if (f.st === 'hit' || (f.blocking && f.stun > 0)) ax -= 8;
+      top = -(src._footRow || im.height) * s * breathe;     // soles land exactly on the floor line
+    }
+    function pose3(c) {   // the body's transform, from the soles
+      if (f.face < 0) c.scale(-1, 1);
+      if (sx !== 1) c.scale(sx, 1);
+      if (f.crouch && pose === 'idle') c.scale(1.05, 0.8);
+      if (f.st === 'jump' && pose === 'idle') c.rotate(-0.08);
+      if (lean) c.rotate(lean);
+      if (spin) { c.translate(0, -f.d.h * 0.5); c.rotate(spin); c.translate(0, f.d.h * 0.5); }
+    }
+    var L = STAGE_LOOK[stage] || STAGE_LOOK.harbor, lift = Math.min(1, -f.y / 260);
+    // 1 · reflection in the floor, mirrored about the floor line and clipped below it
+    if (src && L.refl && lift < 1) {
+      cx.save(); cx.beginPath(); cx.rect(0, GY, W, H - GY); cx.clip();
+      cx.translate(x, GY - f.y); cx.scale(1, -1); pose3(cx);
+      cx.globalAlpha = L.refl * (1 - lift) * alpha; cx.drawImage(reflOf(src), ax, top, dw, dh * breathe);
+      cx.restore();
+    }
+    // 2 · shadows: a soft pool under the fighter and a tight dark contact line where the feet meet the floor
+    if (f.st !== 'ko') {
+      var span = src ? Math.max(f.d.h * 0.16, ((src._fx1 || 0) - (src._fx0 || 0)) * s) : f.d.h * 0.3;
+      var fc = src ? ax + ((src._fx0 || 0) + (src._fx1 || 0)) / 2 * s : 0, scx = x + (f.face < 0 ? -1 : 1) * fc * sx;
+      var sw = (span * 0.6 + 26) * (1 - lift * 0.45);
+      cx.save(); cx.translate(scx, GY + 2); cx.scale(1, 0.17);
+      var pool = cx.createRadialGradient(0, 0, 0, 0, 0, sw * 1.3);
+      pool.addColorStop(0, 'rgba(0,0,0,' + (0.6 * (1 - lift * 0.65)) + ')'); pool.addColorStop(0.55, 'rgba(0,0,0,' + (0.32 * (1 - lift * 0.65)) + ')'); pool.addColorStop(1, 'rgba(0,0,0,0)');
+      cx.fillStyle = pool; cx.beginPath(); cx.arc(0, 0, sw * 1.3, 0, 7); cx.fill(); cx.restore();
+      if (lift < 0.25) {
+        var ca = 0.6 * (1 - lift * 4); cx.save(); cx.translate(scx, GY + 1); cx.scale(1, 0.12);
+        var cg = cx.createRadialGradient(0, 0, 0, 0, 0, span * 0.6); cg.addColorStop(0, 'rgba(0,0,0,' + ca + ')'); cg.addColorStop(1, 'rgba(0,0,0,0)');
+        cx.fillStyle = cg; cx.beginPath(); cx.arc(0, 0, span * 0.6, 0, 7); cx.fill(); cx.restore();
       }
-    } else {
-      cx.fillStyle = f.d.col; cx.fillRect(-f.d.h * 0.16, -f.d.h, f.d.h * 0.32, f.d.h);
     }
+    // 3 · the fighter
+    cx.save(); cx.translate(x, y);
+    if (f.st === 'ko') { if (f.face < 0) cx.scale(-1, 1); drawKO(f, now); cx.restore(); return; }
+    pose3(cx); cx.globalAlpha = alpha;
+    if (src) {
+      if (f.hp > 0 && now - f.lastHit < 90) cx.filter = 'brightness(2.2)';
+      cx.drawImage(src, ax, top, dw, dh * breathe); cx.filter = 'none';
+    } else { cx.fillStyle = f.d.col; cx.fillRect(-f.d.h * 0.16, -f.d.h, f.d.h * 0.32, f.d.h); }
     cx.restore();
   }
   // KO: the hit pose tips back around the feet, lands, and cross-fades into the lying-down render
@@ -905,11 +969,13 @@
     if (since >= 0 && since < 0.16) { var q = 1 - since / 0.16; cx.scale(1 + 0.07 * q, 1 - 0.1 * q); }
     if (hitIm && hitIm.width && blend < 1) {
       var hs = scaleFor(f.id, 'hit'), dw = hitIm.width * hs, dh = hitIm.height * hs;
-      cx.save(); cx.globalAlpha = 1 - blend; cx.rotate(ang); cx.drawImage(hitIm, -dw / 2, -dh, dw, dh); cx.restore();
+      cx.save(); cx.globalAlpha = 1 - blend; cx.rotate(ang); cx.drawImage(hitIm, -dw / 2, -(hitIm._footRow || hitIm.height) * hs, dw, dh); cx.restore();
     }
     if (koIm && koIm.width && blend > 0) {
       var ks = scaleFor(f.id), kw = koIm.width * ks, kh = koIm.height * ks, k = Math.min(1.25, (f.d.h * 1.15) / kw); kw *= k; kh *= k;
-      cx.save(); cx.globalAlpha = blend; cx.drawImage(koIm, -kw * 0.72, -kh * 0.92, kw, kh); cx.restore();
+      var kb = (koIm._footRow || koIm.height * 0.92) / koIm.height * kh;
+      if (f.y > -6) { cx.save(); cx.globalAlpha = blend * 0.55; cx.translate(-kw * 0.22, 2); cx.scale(1, 0.1); var kg = cx.createRadialGradient(0, 0, 0, 0, 0, kw * 0.55); kg.addColorStop(0, 'rgba(0,0,0,1)'); kg.addColorStop(1, 'rgba(0,0,0,0)'); cx.fillStyle = kg; cx.beginPath(); cx.arc(0, 0, kw * 0.55, 0, 7); cx.fill(); cx.restore(); }
+      cx.save(); cx.globalAlpha = blend; cx.drawImage(koIm, -kw * 0.72, -kb, kw, kh); cx.restore();
     }
     cx.globalAlpha = 1;
   }
@@ -962,7 +1028,7 @@
       cx.save(); cx.translate(e.x, e.y); if (e.face < 0) cx.scale(-1, 1);
       cx.globalAlpha = Math.max(0, a); cx.globalCompositeOperation = 'lighter';
       cx.filter = 'brightness(0.7) sepia(1) saturate(4) hue-rotate(' + (e.col === '#5ee0ff' ? 160 : e.col === '#b06cff' ? 230 : e.col === '#9dff4f' ? 60 : 0) + 'deg)';
-      cx.drawImage(e.im, -dw / 2, -dh, dw, dh);
+      cx.drawImage(e.im, -dw / 2, -(e.im._footRow || e.im.height) * e.s, dw, dh);
       cx.restore(); cx.filter = 'none';
     });
   }
