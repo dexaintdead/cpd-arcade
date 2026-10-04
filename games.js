@@ -1,7 +1,26 @@
-/* ContentPad Arcade — the game catalog (build 2026100402-arcade).
+/* ContentPad Arcade — the game catalog (build 2026100406-n46).
    House games live in this repo as <slug>.html at the top level and are listed here.
    Only status:'live' entries are shown. rating marks adult games (the game itself runs its own age gate). */
 window.ARCADE_GAMES = [
+  {
+    slug: 'nightmare-on-46th',
+    file: 'nightmare-on-46th.html',
+    title: 'Nightmare on 46th Street',
+    badge: 'New · Halloween at Harbor NYC',
+    tagline: 'Six legends. One cursed DJ. Survive till 3 AM.',
+    about: 'Halloween at Harbor, 621 West 46th Street. At midnight a DJ nobody booked drops a cursed record, the dance floor splits open and New York\'s legends crawl out of the speakers. Pick Vexa the Bottle Queen, Stitch the Doorman, the Rat King, Jack Spokes, Madame 46 or Glow, and fight across the Harbor dance floor, 46th Street, the subway and the rooftop to take down The Headliner. Specials, blocking, crouching sweeps and a Midnight Meter super for every fighter. Beat the arcade to unlock two secret fighters, or fight a friend in 2-player Versus.',
+    genre: 'Fighting',
+    tags: ['Fighting', 'Halloween', 'New York', '8 fighters', '2 players', 'Controller'],
+    controls: [['← → / A D', 'Walk · hold away to block'], ['↑ / W', 'Jump'], ['↓ / S', 'Crouch · crouch + kick sweeps'], ['J / Z', 'Punch'], ['K / X', 'Kick'], ['L / C or ↓↘→ + punch', 'Special'], ['I / V', 'Super, when the Midnight Meter is full'], ['P / Esc / Start', 'Pause'], ['Versus', 'P1 WASD + F G H T · P2 arrows + , . / ;']],
+    by: 'ContentPad Studios × Dream Hospitality',
+    made: 'Art, music and announcer made in ContentPad Studio · written and coded by Claude',
+    scoreLabel: 'Best score',
+    cover: 'https://media.cpdblackbook.com/a2a988e8-fbbd-4510-8238-b1c311f61608/ccc90bc0-3155-47c2-8c1a-a6a9596b4ce6.png',
+    accent: '#ff7a1a',
+    released: '2026-10-04',
+    controller: true, mobile: true,
+    status: 'live'
+  },
   {
     slug: 'skyline-dash',
     file: 'skyline-dash.html',
