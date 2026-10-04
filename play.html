@@ -36,7 +36,7 @@
 
 <script src="games.js?v=5"></script>
 <script src="arcade.js?v=2"></script>
-<script src="account.js?v=1"></script>
+<script src="account.js?v=2"></script>
 <script>
 (function () {
   'use strict';
@@ -57,7 +57,7 @@
         '<button class="btn ghost" id="share" type="button">Share</button></div>' +
     '</div><aside class="side">' +
       '<div class="card score"><div><h4>' + esc(g.scoreLabel || 'Your best') + '</h4><span style="color:var(--dim);font-size:13px" id="bestWhere">saved on this device</span></div><b id="best">' + (best() || '—') + '</b></div>' +
-      '<div class="card"><h4>Leaderboard</h4><div id="lb"></div></div>' +
+      '<div class="card" id="lbCard" hidden><h4>Leaderboard</h4><div id="lb"></div></div>' +
       '<div class="card"><h4>About</h4><p>' + esc(g.about) + '</p></div>' +
       (g.controls ? '<div class="card"><h4>Controls</h4><div class="keys">' + g.controls.map(function (c) { return '<div><kbd>' + esc(c[0]) + '</kbd><span>' + esc(c[1]) + '</span></div>'; }).join('') + '</div></div>' : '') +
       '<div class="card"><h4>Credits</h4><p><b style="color:var(--tx)">' + esc(g.by) + '</b><br>' + esc(g.made || '') + '</p>' +
@@ -72,7 +72,7 @@
   function start() { if (started) return; started = true; where(); frame.src = src; }
   if (AC && AC.signedIn() && AC.sync) { setTimeout(start, 2500); Promise.resolve(AC.sync(g.slug)).then(start, start); } else start();
   if (AC) {
-    lb = AC.board(document.getElementById('lb'), g.slug, { picker: true, limit: 10 });
+    AC.online().then(function (on) { if (!on) return; document.getElementById('lbCard').hidden = false; lb = AC.board(document.getElementById('lb'), g.slug, { picker: true, limit: 10 }); });
     AC.onChange(function () { where(); if (lb) lb.refresh(); });
     // Whatever happened since the last push goes up when the page is left.
     addEventListener('pagehide', function () { if (AC.signedIn()) AC.sync(g.slug, '', { keepalive: true }); });

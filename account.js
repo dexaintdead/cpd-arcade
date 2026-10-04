@@ -75,7 +75,9 @@
         clearTimeout(to);
         return r.json().catch(function () { return {}; }).then(function (j) {
           if (r.status === 401 && state.token && path.indexOf('/arcade/auth/') !== 0) setSession('', null);   // token revoked or expired
-          j = j || {}; j._status = r.status; if (r.status === 404 && !j.error) j.error = 'offline';
+          j = j || {}; j._status = r.status;
+          // The Arcade module answers in snake_case; anything else at 404 is the API without it (not deployed yet).
+          if (r.status === 404 && !/^[a-z_]+$/.test(j.error || '')) j.error = 'offline';
           return j;
         });
       }, function () { clearTimeout(to); return { ok: false, error: 'offline', _status: 0 }; });
