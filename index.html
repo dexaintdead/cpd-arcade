@@ -12,6 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="arcade.css?v=3">
+<style>.lbgrid{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}.lbgrid .card h4 small{color:var(--mute);letter-spacing:.1em}</style>
 </head>
 <body>
 <div class="sky"></div><canvas id="dust"></canvas><div class="scan"></div>
@@ -35,8 +36,13 @@
     <div class="grid" id="live"></div>
   </section>
 
+  <section class="sec" id="boards" hidden>
+    <h2 class="disp chrome">Leaderboards <small>top players, all devices</small></h2>
+    <div class="grid lbgrid" id="lbs"></div>
+  </section>
+
   <section class="sec">
-    <div class="mem"><div class="chipcard" aria-hidden="true"></div><div><h4>SAVE DATA · THIS DEVICE</h4><ul id="saves"></ul></div></div>
+    <div class="mem"><div class="chipcard" aria-hidden="true"></div><div><h4 id="savesH">SAVE DATA · THIS DEVICE</h4><ul id="saves"></ul></div><button class="btn ghost" type="button" id="savesBtn" style="grid-column:1/-1;justify-self:start;display:none">Sign in to save to the cloud</button></div>
   </section>
 </main>
 
@@ -47,6 +53,7 @@
 
 <script src="games.js?v=5"></script>
 <script src="arcade.js?v=2"></script>
+<script src="account.js?v=1"></script>
 <script>
 (function () {
   'use strict';
@@ -82,15 +89,36 @@
   show(0);
 
   document.getElementById('countLive').textContent = G.length + (G.length === 1 ? ' game' : ' games');
-  document.getElementById('live').innerHTML = G.map(function (g) {
+  function paintTiles() { document.getElementById('live').innerHTML = G.map(function (g) {
     var b = best(g);
     return '<a class="tile" href="' + href(g) + '">' +
       '<div class="art"><img src="' + esc(g.cover) + '" alt="" loading="lazy">' + (isNew(g) ? '<span class="badge new">New</span>' : '') + (g.rating ? '<span class="badge r">' + esc(g.rating) + '</span>' : '') + '</div>' +
       '<div class="meta"><h3 class="disp">' + esc(g.title) + '</h3><p>' + esc(g.tagline) + '</p>' +
       '<div class="row">' + chips(g) + (b ? '<span class="chip" style="color:var(--gold)">' + esc(g.scoreLabel || 'Best') + ' ' + b + '</span>' : '') + '</div></div></a>';
-  }).join('');
-  var saves = G.map(function (g) { var b = best(g); return b ? '<li>' + esc(g.title) + ' · <b>' + esc(g.scoreLabel || 'Best') + ' ' + b + '</b></li>' : ''; }).join('');
-  document.getElementById('saves').innerHTML = saves || '<li>No save data yet. Play something.</li>';
+  }).join(''); }
+  paintTiles();
+  function paintSaves() {
+    var AC = window.ArcadeAccount, who = AC && AC.player;
+    var saves = G.map(function (g) { var b = best(g); return b ? '<li>' + esc(g.title) + ' · <b>' + esc(g.scoreLabel || 'Best') + ' ' + b + '</b></li>' : ''; }).join('');
+    document.getElementById('saves').innerHTML = saves || '<li>No save data yet. Play something.</li>';
+    document.getElementById('savesH').textContent = who ? 'SAVE DATA · CLOUD · ' + String(who.name).toUpperCase() : 'SAVE DATA · THIS DEVICE';
+    document.getElementById('savesBtn').style.display = (AC && !who) ? '' : 'none';
+  }
+  paintSaves();
+  (function accounts() {
+    var AC = window.ArcadeAccount; if (!AC) return;
+    document.getElementById('savesBtn').addEventListener('click', function () { AC.open(); });
+    var boards = [];
+    AC.online().then(function (on) {
+      if (!on) return;
+      document.getElementById('boards').hidden = false;
+      document.getElementById('lbs').innerHTML = G.map(function (g, i) { return '<div class="card"><h4>' + esc(g.title) + ' <small>· ' + esc(g.scoreLabel || 'Best') + '</small></h4><div id="lb' + i + '"></div></div>'; }).join('');
+      boards = G.map(function (g, i) { return AC.board(document.getElementById('lb' + i), g.slug, { limit: 5 }); });
+    });
+    function refresh() { show(sel); paintSaves(); paintTiles(); boards.forEach(function (b) { b.refresh(); }); }
+    AC.onChange(refresh);
+    if (AC.signedIn()) Promise.resolve(AC.syncAll()).then(refresh, function () {});
+  })();
 
   /* keyboard + controller navigation of the menu */
   addEventListener('keydown', function (e) {

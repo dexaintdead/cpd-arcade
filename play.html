@@ -36,6 +36,7 @@
 
 <script src="games.js?v=5"></script>
 <script src="arcade.js?v=2"></script>
+<script src="account.js?v=1"></script>
 <script>
 (function () {
   'use strict';
@@ -50,18 +51,32 @@
   var src = g.file || (encodeURIComponent(g.slug) + '.html');
   main.innerHTML =
     '<div class="play-wrap"><div>' +
-      '<div class="stage" id="stage"><div class="fsbar" id="fsbar"><button type="button" id="fsExit">✕ Exit full screen</button><a href="./" id="fsHome">☰ All games</a></div><iframe id="game" title="' + esc(g.title) + '" src="' + src + '" allow="autoplay; fullscreen; gamepad" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock"></iframe></div>' +
+      '<div class="stage" id="stage"><div class="fsbar" id="fsbar"><button type="button" id="fsExit">✕ Exit full screen</button><a href="./" id="fsHome">☰ All games</a></div><iframe id="game" title="' + esc(g.title) + '" allow="autoplay; fullscreen; gamepad" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock"></iframe></div>' +
       '<div class="stagebar"><h1 class="disp chrome">' + esc(g.title) + '</h1>' +
         '<button class="btn ghost" id="fs" type="button">⛶ Full screen</button>' +
         '<button class="btn ghost" id="share" type="button">Share</button></div>' +
     '</div><aside class="side">' +
-      '<div class="card score"><div><h4>' + esc(g.scoreLabel || 'Your best') + '</h4><span style="color:var(--dim);font-size:13px">saved on this device</span></div><b id="best">' + (best() || '—') + '</b></div>' +
+      '<div class="card score"><div><h4>' + esc(g.scoreLabel || 'Your best') + '</h4><span style="color:var(--dim);font-size:13px" id="bestWhere">saved on this device</span></div><b id="best">' + (best() || '—') + '</b></div>' +
+      '<div class="card"><h4>Leaderboard</h4><div id="lb"></div></div>' +
       '<div class="card"><h4>About</h4><p>' + esc(g.about) + '</p></div>' +
       (g.controls ? '<div class="card"><h4>Controls</h4><div class="keys">' + g.controls.map(function (c) { return '<div><kbd>' + esc(c[0]) + '</kbd><span>' + esc(c[1]) + '</span></div>'; }).join('') + '</div></div>' : '') +
       '<div class="card"><h4>Credits</h4><p><b style="color:var(--tx)">' + esc(g.by) + '</b><br>' + esc(g.made || '') + '</p>' +
         '<div class="row" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">' + (g.tags || []).map(function (t) { return '<span class="chip">' + esc(t) + '</span>'; }).join('') + '</div></div>' +
     '</aside></div>';
   var frame = document.getElementById('game');
+  var AC = window.ArcadeAccount, lb = null;
+  function where() { var w = document.getElementById('bestWhere'); if (w) w.textContent = AC && AC.player ? 'synced to ' + AC.player.name : 'saved on this device'; document.getElementById('best').textContent = best() || '—'; }
+  // Pull the cloud save into this device BEFORE the game reads it, then start the game.
+  // Never waits more than 2.5 s: a slow network costs a sync, not the game.
+  var started = false;
+  function start() { if (started) return; started = true; where(); frame.src = src; }
+  if (AC && AC.signedIn() && AC.sync) { setTimeout(start, 2500); Promise.resolve(AC.sync(g.slug)).then(start, start); } else start();
+  if (AC) {
+    lb = AC.board(document.getElementById('lb'), g.slug, { picker: true, limit: 10 });
+    AC.onChange(function () { where(); if (lb) lb.refresh(); });
+    // Whatever happened since the last push goes up when the page is left.
+    addEventListener('pagehide', function () { if (AC.signedIn()) AC.sync(g.slug, '', { keepalive: true }); });
+  }
   frame.addEventListener('load', function () { try { frame.contentWindow.focus(); } catch (e) {} });
   document.getElementById('stage').addEventListener('pointerdown', function () { try { frame.contentWindow.focus(); } catch (e) {} });
   var stage = document.getElementById('stage');
@@ -101,7 +116,10 @@
   window.addEventListener('message', function (e) {
     if (e.source !== frame.contentWindow) return;
     var d = e.data || {};
-    if (d.arcade === 'over' && d.game === g.slug) { var b = best(); document.getElementById('best').textContent = b || '—'; }
+    if (d.arcade === 'over' && d.game === g.slug) {
+      var b = best(); document.getElementById('best').textContent = b || '—';
+      if (AC && AC.signedIn()) AC.sync(g.slug, 'over').then(function (j) { where(); if (j && lb) { lb.refresh(); AC.toast('Saved to your account'); } });
+    }
     if (d.arcade === 'exit' && d.game === g.slug) { exitFs(); location.href = './'; }
   });
 })();
