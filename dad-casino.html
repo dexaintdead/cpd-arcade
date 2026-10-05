@@ -148,7 +148,7 @@
   .pt.lit{background:rgba(243,216,138,.15);box-shadow:0 0 22px rgba(243,216,138,.5)}
   /* slots */
   .machine{position:absolute;left:372px;top:72px;width:880px;height:560px;border-radius:30px;background:linear-gradient(180deg,#2b2112,#0d0a05 40%,#1a1409);border:3px solid var(--gold);box-shadow:0 0 0 6px #1a1305,0 0 0 8px var(--gold3),0 30px 80px rgba(0,0,0,.8),0 0 60px rgba(201,168,76,.25)}
-  .machine .crown{position:absolute;left:50%;top:-58px;width:130px;margin-left:-65px;filter:drop-shadow(0 6px 18px rgba(0,0,0,.8))}
+  .machine .crown{position:absolute;left:50%;top:-46px;width:104px;margin-left:-52px;z-index:2;filter:drop-shadow(0 6px 18px rgba(0,0,0,.8))}
   .machine .mt{position:absolute;left:0;right:0;top:14px;text-align:center;font:400 40px/1 "Bebas Neue";letter-spacing:.14em}
   .reels{position:absolute;left:48px;top:64px;width:784px;height:420px;border-radius:16px;overflow:hidden;background:radial-gradient(ellipse at 50% 50%,#1b1520,#07060a);box-shadow:inset 0 0 0 2px var(--gold3),inset 0 20px 40px rgba(0,0,0,.8),inset 0 -20px 40px rgba(0,0,0,.8);display:grid;grid-template-columns:repeat(5,1fr)}
   .reel{position:relative;overflow:hidden;border-right:1px solid rgba(201,168,76,.18)}
@@ -290,7 +290,7 @@
     <div class="paytab" id="paytab"></div>
     <div class="machine">
       <img class="crown" data-sym="W" alt="">
-      <div class="mt gold-text">DEAD MAN'S JACKPOT</div>
+      <div class="mt gold-text">DEAD MAN'S<span style="display:inline-block;width:120px"></span>JACKPOT</div>
       <div class="fsbadge" id="fsBadge">FREE SPINS</div>
       <div class="reels" id="reels"></div>
       <svg id="lines" viewBox="0 0 784 420"></svg>
@@ -953,7 +953,7 @@
     { id: 'roulette', t: 'ROULETTE', u: 'EUROPEAN · SINGLE ZERO', bg: 'roulette', sym: 'V' },
     { id: 'slots', t: "DEAD MAN'S JACKPOT", u: 'SLOTS · FREE SPINS · 1,000× JACKPOT', bg: 'slots', sym: 'W' },
     { id: 'baccarat', t: 'BACCARAT', u: 'PLAYER · BANKER · TIE', bg: 'cards', sym: 'BUBBLY' },
-    { id: 'craps', t: 'CRAPS', u: 'PASS LINE · FIELD · ODDS', bg: 'craps', sym: 'DICE', wide: true }
+    { id: 'craps', t: 'CRAPS', u: 'PASS LINE · FIELD · ODDS', bg: 'craps', sym: 'DICE' }
   ];
   var tiles = $('tiles');
   GAMES.forEach(function (g) {
