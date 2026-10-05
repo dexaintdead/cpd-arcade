@@ -12,6 +12,8 @@
   'use strict';
   var API = window.ARCADE_API || 'https://cpd-api.dex-fe2.workers.dev';
   var TK = 'arcade_token', PK = 'arcade_player';
+  // Signing in with ContentPad: the dashboard hands over a one-time code (see redeem below).
+  var GO = 'https://app.contentpad.io/arcade-go.html';
 
   function ls(k, v) {
     try {
@@ -171,6 +173,8 @@
     '.lb-empty{color:var(--mute);font-size:13.5px;padding:6px 0}' +
     '.lb-sel{width:100%;margin:0 0 10px;font:700 13px Inter,sans-serif;color:#fff;background:rgba(2,6,30,.6);border:1px solid var(--line2);border-radius:10px;padding:8px 10px}' +
     '.acct-cta{margin-top:10px;width:100%;justify-content:center}' +
+    '#acct .cpd-or{display:flex;align-items:center;gap:10px;margin:16px 0 12px;color:var(--mute);font-size:12px;text-transform:uppercase;letter-spacing:.16em}#acct .cpd-or:before,#acct .cpd-or:after{content:"";flex:1;height:1px;background:var(--line)}' +
+    '#acct .cpd-sso{display:flex;justify-content:center;width:100%;text-decoration:none}' +
     '.acct-toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,30px);opacity:0;z-index:150;padding:10px 18px;border-radius:999px;font:800 13px Inter,sans-serif;letter-spacing:.04em;background:rgba(8,12,40,.92);border:1px solid var(--line2);color:#fff;transition:.35s;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.5)}.acct-toast.on{opacity:1;transform:translate(-50%,0)}';
   document.head.appendChild(css);
 
@@ -228,7 +232,9 @@
       '<p>Sign in with your email and your levels, stars, endings and high scores follow you to any device — and you get on the leaderboards. Free. No password: we email you a code.</p>' +
       '<form id="fEmail"><label for="aEmail">Email</label><input id="aEmail" type="email" autocomplete="email" inputmode="email" required value="' + esc(flow.email) + '" placeholder="you@example.com">' +
       '<div class="msg"></div><div class="row"><button class="btn play" type="submit">Email me a code</button></div></form>' +
-      '<p class="fine">We use your email to sign you in, and for Arcade news only if you say so on the next step.</p>');
+      '<div class="cpd-or"><span>or</span></div>' +
+      '<a class="btn ghost cpd-sso" href="' + esc(GO + '?back=' + encodeURIComponent(location.pathname + location.search)) + '">Continue with ContentPad</a>' +
+      '<p class="fine">We use your email to sign you in, and for Arcade news only if you say so on the next step. ContentPad members are signed in with their ContentPad account.</p>');
     document.getElementById('fEmail').addEventListener('submit', function (e) {
       e.preventDefault(); var btn = this.querySelector('button'); flow.email = document.getElementById('aEmail').value.trim();
       busy(btn, true, 'Sending…'); msg('');
@@ -342,6 +348,30 @@
 
   // The chip only appears once the account service answers, so shipping this page
   // before the API module is live shows nothing half-built.
-  function boot() { online().then(function (on) { if (on || state.token) paintChip(); }); if (state.token) refreshMe(); }
+  // ── arriving from the ContentPad dashboard: #cpd=<one-time code> ─────────
+  // The code is taken off the address bar before anything else, so it never
+  // lands in history, a bookmark or a shared link. It is single use either way.
+  function redeemHandoff() {
+    var m = /(?:^#|&)cpd=([a-f0-9]{48})(?:&|$)/.exec(location.hash || '');
+    if (!m) return Promise.resolve(false);
+    try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { location.hash = ''; }
+    return call('POST', '/arcade/auth/redeem', { code: m[1] }).then(function (j) {
+      if (!j.ok) { if (j.error !== 'offline') toast('That sign-in link has expired. Open the Arcade from ContentPad again, or sign in with your email.'); return false; }
+      setSession(j.token, j.player);
+      flow.consent = j.consent_text;
+      paintChip();
+      return syncAll().then(function () {
+        if (j.is_new) { lastFocus = document.activeElement; modal().classList.add('open'); stepWelcome(); }
+        else toast('Signed in as ' + j.player.name + ' with ContentPad.');
+        return true;
+      }, function () { return true; });
+    });
+  }
+  function boot() {
+    redeemHandoff().then(function (viaCpd) {
+      online().then(function (on) { if (on || state.token) paintChip(); });
+      if (state.token && !viaCpd) refreshMe();
+    });
+  }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot); else boot();
 })();
