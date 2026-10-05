@@ -3,6 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- Arcade as an app: saved to the Home Screen it runs full screen with no browser bars (2026-10-05) -->
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Arcade">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <title>ContentPad Arcade — original games, free to play</title>
 <meta name="description" content="The ContentPad Arcade: original browser games made in ContentPad's own studio. Free to play on desktop, phone or with a controller, with leaderboards.">
 <link rel="canonical" href="https://arcade.contentpad.io/">
@@ -161,5 +168,6 @@
 </script>
 <!-- ContentPad network bar: Home · Tour · Advertising · Magazine · Arcade · Live (2026-10-05) -->
 <script src="https://contentpad.io/cp-network.js?v=1" defer></script>
+<script src="/app.js?v=1" defer></script>
 </body>
 </html>
