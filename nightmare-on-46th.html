@@ -165,6 +165,16 @@
     var band = Math.max(6, (y1 - y0) * 0.07);
     for (var by = Math.max(y0, foot - band); by <= foot; by++) for (var bx = x0; bx <= x1; bx++) if (d[(by * w + bx) * 4 + 3] > 150) { if (bx < fx0) fx0 = bx; if (bx > fx1) fx1 = bx; }
     o._footRow = foot - y0 + 1; o._fx0 = (fx0 <= fx1 ? fx0 : x0) - x0; o._fx1 = (fx0 <= fx1 ? fx1 : x1) - x0;
+    // each foot on its own: in a three-quarter stance the back foot sits higher in the picture than the front one.
+    // For every column, the lowest solid pixel; columns whose lowest pixel is in the bottom fifth are "feet",
+    // and runs of them separated by a gap are separate feet.
+    var lowBand = (y1 - y0) * 0.2, runs = [], cur = null;
+    for (var cx2 = x0; cx2 <= x1; cx2++) {
+      var low = -1; for (var cy2 = foot; cy2 >= foot - lowBand; cy2--) if (d[(cy2 * w + cx2) * 4 + 3] > 150) { low = cy2; break; }
+      if (low >= 0) { if (cur && cx2 - cur.x1 <= 3) { cur.x1 = cx2; cur.y = Math.max(cur.y, low); cur.n++; } else { cur = { x0: cx2, x1: cx2, y: low, n: 1 }; runs.push(cur); } }
+    }
+    runs = runs.filter(function (r) { return r.n >= Math.max(5, (x1 - x0) * 0.025); }).sort(function (a, b) { return b.n - a.n; }).slice(0, 2);
+    o._feet = runs.map(function (r) { return { x: (r.x0 + r.x1) / 2 - x0, w: r.x1 - r.x0, y: r.y - y0 + 1 }; });
     return o;
   }
   function load(key, id, keyed) {
@@ -862,9 +872,9 @@
   }
   // ── grounding: each stage's floor reflects and tints the fighters a little differently ──
   var STAGE_LOOK = {
-    harbor: { refl: 0.26, tint: 'rgba(110,50,170,', ta: 0.10, rim: 'rgba(255,150,60,' },
-    street: { refl: 0.22, tint: 'rgba(255,130,50,', ta: 0.08, rim: 'rgba(255,190,120,' },
-    subway: { refl: 0.18, tint: 'rgba(90,200,120,', ta: 0.11, rim: 'rgba(170,255,170,' },
+    harbor: { refl: 0.34, tint: 'rgba(110,50,170,', ta: 0.10, rim: 'rgba(255,150,60,' },
+    street: { refl: 0.3, tint: 'rgba(255,130,50,', ta: 0.08, rim: 'rgba(255,190,120,' },
+    subway: { refl: 0.24, tint: 'rgba(90,200,120,', ta: 0.11, rim: 'rgba(170,255,170,' },
     rooftop: { refl: 0.10, tint: 'rgba(230,40,40,', ta: 0.10, rim: 'rgba(255,90,70,' }
   };
   // the sprite, lit for this stage: a touch of the room's colour, darker toward the floor (contact shading)
@@ -877,7 +887,7 @@
     var fr = im._footRow || im.height, gr = g.createLinearGradient(0, fr - c.height * 0.22, 0, fr);
     gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,.45)'); g.fillStyle = gr; g.fillRect(0, 0, c.width, c.height);
     var rg = g.createLinearGradient(0, 0, 0, c.height * 0.35); rg.addColorStop(0, L.rim + '.16)'); rg.addColorStop(1, L.rim + '0)'); g.fillStyle = rg; g.fillRect(0, 0, c.width, c.height);
-    c._footRow = im._footRow; c._fx0 = im._fx0; c._fx1 = im._fx1;
+    c._footRow = im._footRow; c._fx0 = im._fx0; c._fx1 = im._fx1; c._feet = im._feet;
     return (im._g[stage] = c);
   }
   // the same sprite faded from the soles upward, for the floor reflection
@@ -943,7 +953,7 @@
       var sw = (span * 0.6 + 26) * (1 - lift * 0.45);
       cx.save(); cx.translate(scx, GY + 2); cx.scale(1, 0.17);
       var pool = cx.createRadialGradient(0, 0, 0, 0, 0, sw * 1.3);
-      pool.addColorStop(0, 'rgba(0,0,0,' + (0.6 * (1 - lift * 0.65)) + ')'); pool.addColorStop(0.55, 'rgba(0,0,0,' + (0.32 * (1 - lift * 0.65)) + ')'); pool.addColorStop(1, 'rgba(0,0,0,0)');
+      pool.addColorStop(0, 'rgba(0,0,0,' + (0.72 * (1 - lift * 0.65)) + ')'); pool.addColorStop(0.55, 'rgba(0,0,0,' + (0.4 * (1 - lift * 0.65)) + ')'); pool.addColorStop(1, 'rgba(0,0,0,0)');
       cx.fillStyle = pool; cx.beginPath(); cx.arc(0, 0, sw * 1.3, 0, 7); cx.fill(); cx.restore();
       if (lift < 0.25) {
         var ca = 0.6 * (1 - lift * 4); cx.save(); cx.translate(scx, GY + 1); cx.scale(1, 0.12);
@@ -955,6 +965,15 @@
     cx.save(); cx.translate(x, y);
     if (f.st === 'ko') { if (f.face < 0) cx.scale(-1, 1); drawKO(f, now); cx.restore(); return; }
     pose3(cx); cx.globalAlpha = alpha;
+    if (src && src._feet && lift < 0.2) {
+      var fa = (1 - lift * 5) * alpha;
+      src._feet.forEach(function (ft) {
+        var fx = ax + ft.x * s, fy = top + ft.y * s * breathe, rw = Math.max(10, ft.w * s * 0.62);
+        cx.save(); cx.translate(fx, fy - 1); cx.scale(1, 0.22);
+        var g2 = cx.createRadialGradient(0, 0, 0, 0, 0, rw); g2.addColorStop(0, 'rgba(0,0,0,' + (0.85 * fa) + ')'); g2.addColorStop(0.6, 'rgba(0,0,0,' + (0.45 * fa) + ')'); g2.addColorStop(1, 'rgba(0,0,0,0)');
+        cx.fillStyle = g2; cx.beginPath(); cx.arc(0, 0, rw, 0, 7); cx.fill(); cx.restore();
+      });
+    }
     if (src) {
       if (f.hp > 0 && now - f.lastHit < 90) cx.filter = 'brightness(2.2)';
       cx.drawImage(src, ax, top, dw, dh * breathe); cx.filter = 'none';
