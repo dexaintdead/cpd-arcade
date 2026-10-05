@@ -54,6 +54,25 @@
         ls('arcade_best_tre-and-jada', String(Object.keys(d.endings || {}).length));
         ls('arcade_sync_tj', JSON.stringify({ json: JSON.stringify(d.save || null), at: d.save_at || 0 }));
       }
+    },
+    // Dex Ain't Dead Casino: play-money bankroll. The newest bankroll wins (chips_at); peak, lifetime winnings and rounds only go up.
+    'dad-casino': {
+      read: function () {
+        var b = lsj('dad_casino');
+        if (!b) return { chips: null, chips_at: 0, peak: 0, won: 0, hands: 0, biggest: 0, bonus_at: 0 };
+        return { chips: Math.floor(b.chips || 0), chips_at: b.at || 0, peak: Math.floor(b.peak || 0), won: Math.floor(b.won || 0), hands: b.hands || 0, biggest: Math.floor(b.biggest || 0), bonus_at: b.bonus_at || 0 };
+      },
+      empty: function (d) { return d.chips == null && !d.hands; },
+      write: function (d) {
+        if (!d || d.chips == null) return;
+        var cur = lsj('dad_casino') || {};
+        cur.chips = Math.max(0, Math.floor(d.chips)); cur.at = d.chips_at || cur.at || 0;
+        cur.peak = Math.max(cur.peak || 0, d.peak || 0, cur.chips); cur.won = Math.max(cur.won || 0, d.won || 0);
+        cur.hands = Math.max(cur.hands || 0, d.hands || 0); cur.biggest = Math.max(cur.biggest || 0, d.biggest || 0);
+        cur.bonus_at = Math.max(cur.bonus_at || 0, d.bonus_at || 0);
+        ls('dad_casino', JSON.stringify(cur)); ls('arcade_best_dad-casino', String(cur.peak));
+        try { window.dispatchEvent(new Event('arcade:sync')); } catch (e) {}
+      }
     }
   };
 

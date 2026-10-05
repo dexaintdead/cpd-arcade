@@ -35,9 +35,9 @@
 </div></footer>
 
 <script src="gamepad.js?v=1"></script>
-<script src="games.js?v=8"></script>
+<script src="games.js?v=9"></script>
 <script src="arcade.js?v=3"></script>
-<script src="account.js?v=2"></script>
+<script src="account.js?v=3"></script>
 <script>
 (function () {
   'use strict';
@@ -119,7 +119,7 @@
     var d = e.data || {};
     if (d.arcade === 'over' && d.game === g.slug) {
       var b = best(); document.getElementById('best').textContent = b || '—';
-      if (AC && AC.signedIn()) AC.sync(g.slug, 'over').then(function (j) { where(); if (j && lb) { lb.refresh(); AC.toast('Saved to your account'); } });
+      if (AC && AC.signedIn()) AC.sync(g.slug, 'over').then(function (j) { where(); if (j && lb) { lb.refresh(); if (!g.quietSync) AC.toast('Saved to your account'); } });
     }
     if (d.arcade === 'exit' && d.game === g.slug) { exitFs(); location.href = './'; }
   });

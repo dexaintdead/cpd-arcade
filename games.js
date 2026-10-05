@@ -1,7 +1,28 @@
-/* ContentPad Arcade — the game catalog (build 2026100406-n46).
+/* ContentPad Arcade — the game catalog (build 2026100408-casino).
    House games live in this repo as <slug>.html at the top level and are listed here.
    Only status:'live' entries are shown. rating marks adult games (the game itself runs its own age gate). */
 window.ARCADE_GAMES = [
+  {
+    slug: 'dad-casino',
+    file: 'dad-casino.html',
+    title: "Dex Ain't Dead Casino",
+    badge: 'New · Dex is dealing',
+    tagline: 'Blackjack, baccarat, roulette, craps and the slots. Dex deals. Play money only.',
+    about: "Pull up a seat at Dex Ain't Dead's own casino. Dex deals every table himself, in his own voice: blackjack that pays 3 to 2, baccarat, single-zero roulette, craps with odds, and Dead Man's Jackpot, a five-reel slot with free spins and a 1,000× skull jackpot. DAD Radio plays Dex's records the whole time. You start with 10,000 play-money chips, the house spots you when you go broke, and there's a free stack every four hours. Sign in to the Arcade and your bankroll follows you to any device. Play money only: nothing to buy, nothing to cash out. 18+.",
+    genre: 'Casino',
+    tags: ['Casino', 'Blackjack', 'Roulette', 'Craps', 'Baccarat', 'Slots', 'Play money', 'Controller'],
+    controls: [['Tap a spot', 'Place the selected chip'], ['1 – 6', 'Pick a chip'], ['Space / Enter / Start', 'Deal · spin · roll'], ['H S D P', 'Blackjack: hit, stand, double, split'], ['D-pad + A', 'Move between buttons and press'], ['Esc / B', 'Back to the lobby'], ['M', 'Mute']],
+    by: "ContentPad Studios × Dex Ain't Dead",
+    made: "Art and Dex's dealer voice made in ContentPad Studio · music by Dex Ain't Dead · code by Claude",
+    scoreLabel: 'Peak bankroll',
+    cover: 'https://media.cpdblackbook.com/a2a988e8-fbbd-4510-8238-b1c311f61608/227b6d27-8cf7-4ad2-b411-6cf6e9b7e5ee.png',
+    accent: '#C9A84C',
+    released: '2026-10-04',
+    rating: '18+',
+    quietSync: true,
+    controller: true, mobile: true,
+    status: 'live'
+  },
   {
     slug: 'nightmare-on-46th',
     file: 'nightmare-on-46th.html',
