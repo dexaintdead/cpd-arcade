@@ -308,7 +308,7 @@
   <div id="hud">
     <div id="brand" data-nav tabindex="0"><img data-sym="W" alt=""><div><div class="w gold-text">DEX AIN'T DEAD</div><div class="s">CASINO</div></div></div>
     <button class="hb" id="hLobby" data-nav style="display:none">◀ LOBBY</button>
-    <div id="bank"><svg class="chipi" viewBox="0 0 28 28"><circle cx="14" cy="14" r="13" fill="#9a7516"/><circle cx="14" cy="14" r="9" fill="#f3d88a" stroke="#fff" stroke-dasharray="3 3"/></svg><b id="bankN" class="gold-text">10,000</b></div>
+    <div id="bank"><svg class="chipi" viewBox="0 0 28 28"><circle cx="14" cy="14" r="13" fill="#9a7516"/><circle cx="14" cy="14" r="9" fill="#f3d88a" stroke="#fff" stroke-dasharray="3 3"/></svg><b id="bankN" class="gold-text">$10,000</b></div>
     <button class="hb" id="hRadio" data-nav title="DAD Radio">♫ RADIO</button>
     <button class="hb" id="hMute" data-nav title="Sound">🔊</button>
     <a class="hb" id="hHome" href="./" style="text-decoration:none;display:none">ARCADE</a>
@@ -342,7 +342,7 @@
 <script src="gamepad.js?v=1"></script>
 <script src="casino-logic.js?v=1"></script>
 <script>
-/* Dex Ain't Dead Casino — ContentPad Arcade house game #4 (build 2026100408-casino, v1).
+/* Dex Ain't Dead Casino — ContentPad Arcade house game #4 (build 2026100409-casino, v2).
    Blackjack · Baccarat · Roulette · Craps · Slots, dealt by Dex (glossy 3D, his own cloned voice).
    Art made in ContentPad Studio; rules in casino-logic.js (unit-tested house edges, slot RTP ≈ 95.6 %).
    Play money: one bankroll across every game, saved on the device as dad_casino and, when the player is
@@ -371,26 +371,29 @@
   var START = 10000, SPOT = 2500, BONUS = 2500, BONUS_EVERY = 4 * 3600 * 1000;
   var bank = (function () { try { return JSON.parse(ls('dad_casino') || 'null'); } catch (e) { return null; } })() || { chips: START, at: 0, peak: START, won: 0, hands: 0, biggest: 0, bonus_at: 0 };
   function save() { bank.at = Date.now(); bank.peak = Math.max(bank.peak || 0, bank.chips); ls('dad_casino', JSON.stringify(bank)); ls('arcade_best_' + GAME_ID, String(Math.floor(bank.peak))); }
-  function fmt(n) { return Math.floor(n).toLocaleString('en-US'); }
+  // play money is kept in US dollars to the cent: 3:2 on $25 pays $37.50, banker commission on $25 is $1.25
+  function money(n) { return Math.round((+n || 0) * 100) / 100; }
+  function fmt(n) { n = money(n); var cents = Math.abs(n % 1) > 0.004; return '$' + n.toLocaleString('en-US', { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: 2 }); }
+  function fmtWhole(n) { return '$' + Math.round(n).toLocaleString('en-US'); }
   var shown = bank.chips, bankAnim = 0;
   function renderBank(bump) {
     var target = bank.chips; cancelAnimationFrame(bankAnim);
     var from = shown, t0 = performance.now(), dur = Math.min(1200, 200 + Math.abs(target - from) / 20);
-    (function step(t) { var k = Math.min(1, (t - t0) / dur); shown = from + (target - from) * (1 - Math.pow(1 - k, 3)); $('bankN').textContent = fmt(shown); if (k < 1) bankAnim = requestAnimationFrame(step); })(t0);
+    (function step(t) { var k = Math.min(1, (t - t0) / dur); shown = from + (target - from) * (1 - Math.pow(1 - k, 3)); $('bankN').textContent = k < 1 ? fmtWhole(shown) : fmt(target); if (k < 1) bankAnim = requestAnimationFrame(step); })(t0);
     if (bump) { var b = $('bank'); b.classList.remove('up'); void b.offsetWidth; b.classList.add('up'); }
   }
   // take chips for a bet / give back stake + winnings. Rounds record net results for stats.
-  function take(n) { if (n > bank.chips) return false; bank.chips -= n; save(); renderBank(); return true; }
-  function give(n, bump) { n = Math.floor(n); if (!n) return; bank.chips += n; save(); renderBank(bump !== false); }
+  function take(n) { n = money(n); if (n > money(bank.chips) + 0.001) return false; bank.chips = money(bank.chips - n); save(); renderBank(); return true; }
+  function give(n, bump) { n = money(n); if (!n) return; bank.chips = money(bank.chips + n); save(); renderBank(bump !== false); }
   function roundDone(staked, returned) {
-    var net = returned - staked; bank.hands = (bank.hands || 0) + 1;
-    if (net > 0) { bank.won = (bank.won || 0) + net; bank.biggest = Math.max(bank.biggest || 0, net); }
+    var net = money(returned - staked); bank.hands = (bank.hands || 0) + 1; bank.net = money((bank.net || 0) + net);
+    if (net > 0) { bank.won = money((bank.won || 0) + net); bank.biggest = Math.max(bank.biggest || 0, net); }
     save(); post('over', { score: Math.floor(bank.peak) }); syncSoon();
     setTimeout(checkBroke, 1800);
   }
   function checkBroke() {
     if (bank.chips >= 100 || anyOnTable()) return;
-    bank.chips += SPOT; save(); renderBank(true); say('broke', 'shrug'); toast('The house spots you ' + fmt(SPOT) + ' chips');
+    bank.chips = money(bank.chips + SPOT); bank.house = money((bank.house || 0) + SPOT); save(); renderBank(true); say('broke', 'shrug'); toast('The house spots you ' + fmt(SPOT));
   }
   var syncT = 0; function syncSoon() { clearTimeout(syncT); syncT = setTimeout(function () { try { if (window.ArcadeAccount && ArcadeAccount.sync) ArcadeAccount.sync(GAME_ID); } catch (e) {} }, 1500); }
   function post(type, extra) { try { if (EMBED) window.parent.postMessage(Object.assign({ arcade: type, game: GAME_ID }, extra || {}), '*'); } catch (e) {} }
@@ -491,7 +494,7 @@
   }
 
   // ── chips & betting (shared by every table) ──
-  var DENOMS = [{ v: 25, c: 'c25', t: '25' }, { v: 100, c: 'c100', t: '100' }, { v: 500, c: 'c500', t: '500' }, { v: 1000, c: 'c1k', t: '1K' }, { v: 5000, c: 'c5k', t: '5K' }, { v: 25000, c: 'c25k', t: '25K' }];
+  var DENOMS = [{ v: 25, c: 'c25', t: '$25' }, { v: 100, c: 'c100', t: '$100' }, { v: 500, c: 'c500', t: '$500' }, { v: 1000, c: 'c1k', t: '$1K' }, { v: 5000, c: 'c5k', t: '$5K' }, { v: 25000, c: 'c25k', t: '$25K' }];
   var chipSel = +(ls('dad_chip') || 100);
   function chipClass(v) { for (var i = DENOMS.length - 1; i >= 0; i--) if (v >= DENOMS[i].v) return DENOMS[i]; return DENOMS[0]; }
   function buildTrays() {
@@ -929,7 +932,7 @@
         ev.wins.forEach(function (w) { L.SLOT_LINES[w.line].slice(0, w.n).forEach(function (row, r) { var el = cols[r].strip.children[row]; if (el) el.classList.add('win'); }); });
       }
       if (ev.scatters >= 3) cols.forEach(function (c) { [].forEach.call(c.strip.children, function (e) { if (e.getAttribute('data-k') === 'V') e.classList.add('win'); }); });
-      win = Math.floor(win);
+      win = money(win);
       if (win) give(win);
       $('slWin').textContent = fmt(win);
       if (free) SL.freeWin += win;
@@ -963,11 +966,11 @@
   });
   var bonus = document.createElement('button'); bonus.className = 'tile'; bonus.setAttribute('data-nav', ''); bonus.id = 'bonusTile';
   bonus.style.background = 'radial-gradient(circle at 50% 40%,#3a2a08,#0a0703)'; tiles.appendChild(bonus);
-  bonus.onclick = function () { var left = (bank.bonus_at || 0) + BONUS_EVERY - Date.now(); if (left > 0) { toast('Next stack in ' + Math.ceil(left / 60000) + ' min'); return; } bank.bonus_at = Date.now(); give(BONUS); save(); say('win', 'hype', 'On the house. ' + fmt(BONUS) + ' chips — go get it.'); burst(1100, 380, 80); renderLobby(); };
+  bonus.onclick = function () { var left = (bank.bonus_at || 0) + BONUS_EVERY - Date.now(); if (left > 0) { toast('Next stack in ' + Math.ceil(left / 60000) + ' min'); return; } bank.bonus_at = Date.now(); give(BONUS); bank.house = money((bank.house || 0) + BONUS); save(); say('win', 'hype', 'On the house. ' + fmt(BONUS) + ' in chips — go get it.'); burst(1100, 380, 80); renderLobby(); };
   function renderLobby() {
     var left = (bank.bonus_at || 0) + BONUS_EVERY - Date.now();
-    bonus.innerHTML = '<img src="' + CDN + SYM.CHAIN + '.png" alt=""><div class="t gold-text">' + (left > 0 ? 'NEXT STACK' : 'FREE STACK') + '</div><div class="u">' + (left > 0 ? 'IN ' + Math.ceil(left / 60000) + ' MIN' : '+' + fmt(BONUS) + ' CHIPS · TAP TO CLAIM') + '</div>';
-    $('lstats').innerHTML = '<div class="stat"><small>PEAK BANKROLL</small><b>' + fmt(bank.peak) + '</b></div><div class="stat"><small>LIFETIME WINNINGS</small><b>' + fmt(bank.won || 0) + '</b></div><div class="stat"><small>BIGGEST WIN</small><b>' + fmt(bank.biggest || 0) + '</b></div><div class="stat"><small>ROUNDS</small><b>' + fmt(bank.hands || 0) + '</b></div><div style="margin-left:auto;font:700 11px Inter;letter-spacing:.14em;color:var(--dim)">PLAY MONEY ONLY · ' + (window.ArcadeAccount && ArcadeAccount.signedIn && ArcadeAccount.signedIn() ? 'SAVED TO YOUR ARCADE ACCOUNT' : 'SAVED ON THIS DEVICE') + '</div>';
+    bonus.innerHTML = '<img src="' + CDN + SYM.CHAIN + '.png" alt=""><div class="t gold-text">' + (left > 0 ? 'NEXT STACK' : 'FREE STACK') + '</div><div class="u">' + (left > 0 ? 'IN ' + Math.ceil(left / 60000) + ' MIN' : '+' + fmt(BONUS) + ' IN CHIPS · TAP TO CLAIM') + '</div>';
+    $('lstats').innerHTML = '<div class="stat"><small>PEAK BANKROLL</small><b>' + fmt(bank.peak) + '</b></div><div class="stat"><small>NET WIN / LOSS</small><b style="color:' + ((bank.net || 0) > 0 ? '#3fe08a' : (bank.net || 0) < 0 ? '#ff4d6a' : 'inherit') + '">' + ((bank.net || 0) > 0 ? '+' : (bank.net || 0) < 0 ? '−' : '') + fmt(Math.abs(bank.net || 0)) + '</b></div><div class="stat"><small>TOTAL WON</small><b>' + fmt(bank.won || 0) + '</b></div><div class="stat"><small>BIGGEST WIN</small><b>' + fmt(bank.biggest || 0) + '</b></div><div class="stat"><small>ROUNDS</small><b>' + (bank.hands || 0).toLocaleString('en-US') + '</b></div><div style="margin-left:auto;font:700 11px Inter;letter-spacing:.14em;color:var(--dim)">PLAY MONEY ONLY · ' + (window.ArcadeAccount && ArcadeAccount.signedIn && ArcadeAccount.signedIn() ? 'SAVED TO YOUR ARCADE ACCOUNT' : 'SAVED ON THIS DEVICE') + '</div>';
   }
   var scene = '';
   function go(id) {
@@ -1110,7 +1113,7 @@
   renderBank(); buildTrays();
   if (ls('dad_age') === '1') {
     $('gate').querySelector('.age').textContent = '18+'; $('gYes').innerHTML = 'ENTER THE CASINO';
-    $('gate').querySelector('p').innerHTML = '<b style="color:var(--ink)">Welcome back.</b> Play money only — your bankroll is <b style="color:var(--gold2)">' + fmt(bank.chips) + '</b> chips.';
+    $('gate').querySelector('p').innerHTML = '<b style="color:var(--ink)">Welcome back.</b> Play money only — your bankroll is <b style="color:var(--gold2)">' + fmt(bank.chips) + '</b>.';
   }
   go('lobby'); $('dealer').style.opacity = 1;
   if (bank.chips < 100 && !roundLive) setTimeout(checkBroke, 1200);

@@ -35,9 +35,9 @@
 </div></footer>
 
 <script src="gamepad.js?v=1"></script>
-<script src="games.js?v=9"></script>
+<script src="games.js?v=11"></script>
 <script src="arcade.js?v=3"></script>
-<script src="account.js?v=3"></script>
+<script src="account.js?v=4"></script>
 <script>
 (function () {
   'use strict';
@@ -48,7 +48,7 @@
   if (!g) { main.innerHTML = '<section class="sec"><h2 class="disp chrome">Game not found</h2><p style="color:var(--dim)">That game isn\'t in the Arcade. <a href="./" style="color:var(--ice)">See all games</a>.</p></section>'; return; }
   document.title = g.title + ' · ContentPad Arcade';
   var bestKey = g.slug === 'skyline-dash' ? 'skyline_best' : 'arcade_best_' + g.slug;
-  function best() { try { return +localStorage.getItem(bestKey) || 0; } catch (e) { return 0; } }
+  function best() { try { var n = +localStorage.getItem(bestKey) || 0; return n ? (g.scorePrefix || '') + n.toLocaleString('en-US') : 0; } catch (e) { return 0; } }
   var src = g.file || (encodeURIComponent(g.slug) + '.html');
   main.innerHTML =
     '<div class="play-wrap"><div>' +
@@ -73,7 +73,7 @@
   function start() { if (started) return; started = true; where(); frame.src = src; }
   if (AC && AC.signedIn() && AC.sync) { setTimeout(start, 2500); Promise.resolve(AC.sync(g.slug)).then(start, start); } else start();
   if (AC) {
-    AC.online().then(function (on) { if (!on) return; document.getElementById('lbCard').hidden = false; lb = AC.board(document.getElementById('lb'), g.slug, { picker: true, limit: 10 }); });
+    AC.online().then(function (on) { if (!on) return; document.getElementById('lbCard').hidden = false; lb = AC.board(document.getElementById('lb'), g.slug, { picker: true, limit: 10, prefix: g.scorePrefix }); });
     AC.onChange(function () { where(); if (lb) lb.refresh(); });
     // Whatever happened since the last push goes up when the page is left.
     addEventListener('pagehide', function () { if (AC.signedIn()) AC.sync(g.slug, '', { keepalive: true }); });

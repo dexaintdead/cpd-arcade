@@ -19,6 +19,7 @@
       if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v);
     } catch (e) { return null; }
   }
+  function c2(n) { return Math.round((+n || 0) * 100) / 100; }
   function lsj(k) { try { return JSON.parse(ls(k) || 'null'); } catch (e) { return null; } }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function fmt(n) { return Number(n || 0).toLocaleString(); }
@@ -55,18 +56,18 @@
         ls('arcade_sync_tj', JSON.stringify({ json: JSON.stringify(d.save || null), at: d.save_at || 0 }));
       }
     },
-    // Dex Ain't Dead Casino: play-money bankroll. The newest bankroll wins (chips_at); peak, lifetime winnings and rounds only go up.
+    // Dex Ain't Dead Casino: play-money bankroll in US dollars, kept to the cent. The newest bankroll wins (chips_at); peak, lifetime winnings and rounds only go up.
     'dad-casino': {
       read: function () {
         var b = lsj('dad_casino');
-        if (!b) return { chips: null, chips_at: 0, peak: 0, won: 0, hands: 0, biggest: 0, bonus_at: 0 };
-        return { chips: Math.floor(b.chips || 0), chips_at: b.at || 0, peak: Math.floor(b.peak || 0), won: Math.floor(b.won || 0), hands: b.hands || 0, biggest: Math.floor(b.biggest || 0), bonus_at: b.bonus_at || 0 };
+        if (!b) return { chips: null, chips_at: 0, peak: 0, won: 0, net: 0, house: 0, hands: 0, biggest: 0, bonus_at: 0 };
+        return { chips: c2(b.chips), chips_at: b.at || 0, peak: c2(b.peak), won: c2(b.won), net: c2(b.net), house: c2(b.house), hands: b.hands || 0, biggest: c2(b.biggest), bonus_at: b.bonus_at || 0 };
       },
       empty: function (d) { return d.chips == null && !d.hands; },
       write: function (d) {
         if (!d || d.chips == null) return;
         var cur = lsj('dad_casino') || {};
-        cur.chips = Math.max(0, Math.floor(d.chips)); cur.at = d.chips_at || cur.at || 0;
+        cur.chips = Math.max(0, c2(d.chips)); cur.at = d.chips_at || cur.at || 0; if (d.net != null) cur.net = c2(d.net); if (d.house != null) cur.house = c2(d.house);
         cur.peak = Math.max(cur.peak || 0, d.peak || 0, cur.chips); cur.won = Math.max(cur.won || 0, d.won || 0);
         cur.hands = Math.max(cur.hands || 0, d.hands || 0); cur.biggest = Math.max(cur.biggest || 0, d.biggest || 0);
         cur.bonus_at = Math.max(cur.bonus_at || 0, d.bonus_at || 0);
@@ -319,8 +320,8 @@
         if (!j.ok) { el.innerHTML = '<div class="lb-empty">' + (j.error === 'offline' ? 'Leaderboards are switching on soon.' : 'Couldn\'t load the leaderboard.') + '</div>'; return; }
         cur = j.board;
         var pick = (o.picker && j.boards.length > 1) ? '<select class="lb-sel" aria-label="Leaderboard">' + j.boards.map(function (b) { return '<option value="' + esc(b.id) + '"' + (b.id === cur ? ' selected' : '') + '>' + esc(b.title) + '</option>'; }).join('') + '</select>' : '';
-        var rows = j.entries.map(function (e) { return '<li class="' + (e.you ? 'you' : '') + '"><span class="n">' + e.rank + '</span><span class="nm">' + esc(e.name) + (e.you ? ' · you' : '') + '</span><b>' + fmt(e.score) + '</b></li>'; }).join('');
-        if (j.you && !j.entries.some(function (e) { return e.you; })) rows += '<li class="gap">· · ·</li><li class="you"><span class="n">' + j.you.rank + '</span><span class="nm">' + esc(state.player ? state.player.name : 'You') + ' · you</span><b>' + fmt(j.you.score) + '</b></li>';
+        var rows = j.entries.map(function (e) { return '<li class="' + (e.you ? 'you' : '') + '"><span class="n">' + e.rank + '</span><span class="nm">' + esc(e.name) + (e.you ? ' · you' : '') + '</span><b>' + (o.prefix || '') + fmt(Math.round(e.score)) + '</b></li>'; }).join('');
+        if (j.you && !j.entries.some(function (e) { return e.you; })) rows += '<li class="gap">· · ·</li><li class="you"><span class="n">' + j.you.rank + '</span><span class="nm">' + esc(state.player ? state.player.name : 'You') + ' · you</span><b>' + (o.prefix || '') + fmt(Math.round(j.you.score)) + '</b></li>';
         el.innerHTML = pick + (rows ? '<ol class="lb">' + rows + '</ol>' : '<div class="lb-empty">No scores yet. Be the first.</div>') +
           (!state.player ? '<button class="btn ghost acct-cta" type="button">Sign in to get on the board</button>' : '');
         var s = el.querySelector('select'); if (s) s.addEventListener('change', function () { cur = s.value; paint(); });

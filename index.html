@@ -52,15 +52,15 @@
 </div></footer>
 
 <script src="gamepad.js?v=1"></script>
-<script src="games.js?v=9"></script>
+<script src="games.js?v=11"></script>
 <script src="arcade.js?v=3"></script>
-<script src="account.js?v=3"></script>
+<script src="account.js?v=4"></script>
 <script>
 (function () {
   'use strict';
   var G = (window.ARCADE_GAMES || []).filter(function (g) { return g.status === 'live'; });
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
-  function best(g) { try { return +localStorage.getItem(g.slug === 'skyline-dash' ? 'skyline_best' : 'arcade_best_' + g.slug) || 0; } catch (e) { return 0; } }
+  function best(g) { try { var n = +localStorage.getItem(g.slug === 'skyline-dash' ? 'skyline_best' : 'arcade_best_' + g.slug) || 0; return n ? (g.scorePrefix || '') + n.toLocaleString('en-US') : 0; } catch (e) { return 0; } }
   function isNew(g) { return g.released && (Date.now() - new Date(g.released).getTime()) < 21 * 864e5; }
   function href(g) { return 'play.html?g=' + encodeURIComponent(g.slug); }
   function chips(g) {
@@ -115,7 +115,7 @@
       if (!on) return;
       document.getElementById('boards').hidden = false;
       document.getElementById('lbs').innerHTML = G.map(function (g, i) { return '<div class="card"><h4>' + esc(g.title) + ' <small>· ' + esc(g.scoreLabel || 'Best') + '</small></h4><div id="lb' + i + '"></div></div>'; }).join('');
-      boards = G.map(function (g, i) { return AC.board(document.getElementById('lb' + i), g.slug, { limit: 5 }); });
+      boards = G.map(function (g, i) { return AC.board(document.getElementById('lb' + i), g.slug, { limit: 5, prefix: g.scorePrefix }); });
     });
     function refresh() { show(sel); paintSaves(); paintTiles(); boards.forEach(function (b) { b.refresh(); }); }
     AC.onChange(refresh);
