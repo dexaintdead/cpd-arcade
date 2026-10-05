@@ -940,7 +940,7 @@
     }
     var L = STAGE_LOOK[stage] || STAGE_LOOK.harbor, lift = Math.min(1, -f.y / 260);
     // 1 · reflection in the floor, mirrored about the floor line and clipped below it
-    if (src && L.refl && lift < 1) {
+    if (src && L.refl && lift < 1 && !(src._feet && src._feet.length)) {
       cx.save(); cx.beginPath(); cx.rect(0, GY, W, H - GY); cx.clip();
       cx.translate(x, GY - f.y); cx.scale(1, -1); pose3(cx);
       cx.globalAlpha = L.refl * (1 - lift) * alpha; cx.drawImage(reflOf(src), ax, top, dw, dh * breathe);
@@ -965,12 +965,20 @@
     cx.save(); cx.translate(x, y);
     if (f.st === 'ko') { if (f.face < 0) cx.scale(-1, 1); drawKO(f, now); cx.restore(); return; }
     pose3(cx); cx.globalAlpha = alpha;
-    if (src && src._feet && lift < 0.2) {
-      var fa = (1 - lift * 5) * alpha;
-      src._feet.forEach(function (ft) {
-        var fx = ax + ft.x * s, fy = top + ft.y * s * breathe, rw = Math.max(10, ft.w * s * 0.62);
-        cx.save(); cx.translate(fx, fy - 1); cx.scale(1, 0.22);
-        var g2 = cx.createRadialGradient(0, 0, 0, 0, 0, rw); g2.addColorStop(0, 'rgba(0,0,0,' + (0.85 * fa) + ')'); g2.addColorStop(0.6, 'rgba(0,0,0,' + (0.45 * fa) + ')'); g2.addColorStop(1, 'rgba(0,0,0,0)');
+    if (src && src._feet && src._feet.length && lift < 0.6) {
+      // each foot is its own contact point: a three-quarter stance puts the back foot higher in the picture,
+      // so each half of the body is mirrored about its own sole, and each sole gets its own contact shadow
+      var feet = src._feet.slice().sort(function (a, b) { return a.x - b.x; }), mid = feet.length > 1 ? (feet[0].x + feet[1].x) / 2 : 0;
+      var ra = L.refl * Math.max(0, 1 - lift / 0.6) * alpha, refl = reflOf(src);
+      feet.forEach(function (ft, i) {
+        var yf = top + ft.y * s * breathe, xa = feet.length > 1 && i === 1 ? ax + mid * s : ax - 60, xb = feet.length > 1 && i === 0 ? ax + mid * s : ax + dw + 60;
+        if (ra > 0.01) { cx.save(); cx.beginPath(); cx.rect(xa, yf, xb - xa, dh); cx.clip(); cx.translate(0, 2 * yf); cx.scale(1, -1); cx.globalAlpha = ra; cx.drawImage(refl, ax, top, dw, dh * breathe); cx.restore(); }
+      });
+      var fa = Math.max(0, 1 - lift * 4) * alpha;
+      if (fa > 0.01) feet.forEach(function (ft) {
+        var fx = ax + ft.x * s, fy = top + ft.y * s * breathe, rw = Math.max(16, ft.w * s * 0.85);
+        cx.save(); cx.translate(fx, fy - 2); cx.scale(1, 0.26);
+        var g2 = cx.createRadialGradient(0, 0, 0, 0, 0, rw); g2.addColorStop(0, 'rgba(0,0,0,' + (0.95 * fa) + ')'); g2.addColorStop(0.45, 'rgba(0,0,0,' + (0.7 * fa) + ')'); g2.addColorStop(1, 'rgba(0,0,0,0)');
         cx.fillStyle = g2; cx.beginPath(); cx.arc(0, 0, rw, 0, 7); cx.fill(); cx.restore();
       });
     }
