@@ -1029,7 +1029,7 @@
     if (!im._area || !base._area) return s;
     var k = s * Math.sqrt(base._area / im._area);
     if (pose === 'jump') return Math.max(s * 0.9, Math.min(s * 1.15, k));
-    if (pose === 'crouch') return Math.max(s * 0.95, Math.min(s * 1.25, k));
+    if (pose === 'crouch') return Math.max(s * 0.9, Math.min(s, k));   // a squat is never drawn bigger than the standing scale
     return Math.max(0.85 * s, Math.min(1.45 * s, k));
   }
   // ── grounding: each stage's floor reflects and tints the fighters a little differently ──
@@ -1629,7 +1629,7 @@
     y += 6; head('COMMAND MOVES');
     (MOVESET[id] || []).forEach(function (mv, i) { row(mv.n, INPUT_LABEL[i].replace('P', P1).replace('K', K1) + '   ·   ' + SHORT_LABEL[i].replace('SP', S1), d.col); });
     row('SUPER · ' + d.su, X1 + ' with a full Midnight Meter', '#ff7a1a');
-    txt((pad ? '◀ ▶' : '← →') + ' other fighters  ·  ' + (pad ? 'B / START' : 'ESC / ' + K1) + ' back', W / 2, H - 16, 12, 'rgba(255,255,255,.7)', 'center', null, false);
+    txt((pad ? '◀ ▶' : '← →') + ' other fighters  ·  ' + (pad ? 'B / START' : 'ESC / ' + K1) + ' back', W * 0.74, H - 16, 12, 'rgba(255,255,255,.7)', 'center', null, false);
     txt(pad ? 'X punch · A kick · B special · Y super · RT super · START pause' : 'TAB or I opens this list on the fighter select', W * 0.17, H - 16, 11, 'rgba(255,255,255,.5)', 'center', null, false);
   }
   function choose(i) {
