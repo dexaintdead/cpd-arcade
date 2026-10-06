@@ -58,6 +58,21 @@
         ls('arcade_sync_tj', JSON.stringify({ json: JSON.stringify(d.save || null), at: d.save_at || 0 }));
       }
     },
+    // High Flying (Slapwoods): best score, stages unlocked and medals only ever go up.
+    'high-flying': {
+      read: function () {
+        var s = lsj('hf_save') || {};
+        return { best: s.best || 0, unlocked: s.unlocked || 1, medals: s.medals || {} };
+      },
+      empty: function (d) { return !d.best && (d.unlocked || 1) <= 1; },
+      write: function (d) {
+        var cur = lsj('hf_save') || {};
+        cur.best = Math.max(cur.best || 0, d.best || 0); cur.unlocked = Math.max(cur.unlocked || 1, d.unlocked || 1);
+        cur.medals = cur.medals || {}; for (var k in (d.medals || {})) if (d.medals[k]) cur.medals[k] = true;
+        ls('hf_save', JSON.stringify(cur)); ls('arcade_best_high-flying', String(cur.best));
+        try { window.dispatchEvent(new Event('arcade:sync')); } catch (e) {}
+      }
+    },
     // Dex Ain't Dead Casino: play-money bankroll in US dollars, kept to the cent. The newest bankroll wins (chips_at); peak, lifetime winnings and rounds only go up.
     'dad-casino': {
       read: function () {
