@@ -59,7 +59,7 @@
 </div>
 <script src="gamepad.js?v=1"></script>
 <script>
-/* Nightmare on 46th Street — ContentPad Arcade house game #3 (build 2026100407-n46, v3).
+/* Nightmare on 46th Street — ContentPad Arcade house game #3 (build 2026100604-n46, v4: Street Fighter pace, harder hits, run/backdash, jump + movement animation).
    A Halloween street fighter for Harbor NYC × Dream Hospitality, Saturday Oct 31.
    Original characters and story. Art, music and announcer made in ContentPad Studio; code written with Claude.
 
@@ -118,6 +118,8 @@
       bio: 'Nobody booked him. Nobody can stop him. He feeds on the dance floor.', q: 'The night is MINE. Nobody leaves the floor.', win: 'Encore? There is no encore.' }
   };
   var CAST = ['vexa', 'stitch', 'ratking', 'jack', 'madame', 'glow'];
+  // v4 pace: heavier gravity with a harder jump (same height, half the hang time), faster walks, runs and backdashes
+  var GRAV = 3400, JUMP_V = -1180, WALK = 1.28, RUN = 2.15;
   var SECRET = ['maverick', 'headliner'];
   var STAGE_FOR = ['harbor', 'street', 'subway', 'street', 'harbor', 'subway'];   // arcade ladder stages; the boss is on the rooftop
   var STAGE_NAME = { harbor: 'HARBOR · DANCE FLOOR', street: 'WEST 46TH STREET', subway: 'THE TUNNELS', rooftop: 'ROOFTOP · 3 AM' };
@@ -270,19 +272,22 @@
   };
   var lastStep = 0;
   var sfx = {
-    whiff: function (heavy) { hiss('bandpass', heavy ? 1700 : 2600, heavy ? 320 : 700, 1.4, heavy ? 0.2 : 0.13, heavy ? 0.32 : 0.22, 0, 0.05, 0.03); },
+    whiff: function (heavy) { hiss('bandpass', heavy ? 1900 : 2900, heavy ? 300 : 650, 1.6, heavy ? 0.13 : 0.09, heavy ? 0.42 : 0.3, 0, 0.05, 0.015); },
+    dash: function () { hiss('bandpass', 700, 2400, 1.2, 0.16, 0.35, 0, 0.1, 0.02); tone('sine', 140, 60, 0.08, 0.3); },
     hit: function (big, kind) {
-      // sub thump + body + crack, heavier hits get more of each and a room tail
-      tone('sine', big ? 150 : 180, big ? 38 : 55, big ? 0.24 : 0.14, big ? 0.95 : 0.7, 0, big ? 0.25 : 0.08);
-      hiss('lowpass', big ? 1500 : 2200, big ? 300 : 600, 0.9, big ? 0.12 : 0.07, big ? 0.7 : 0.5);
-      hiss('highpass', 3200, 0, 0.8, 0.025, big ? 0.45 : 0.3);
-      if (big) { tone('square', 90, 45, 0.12, 0.12); hiss('bandpass', 700, 200, 2, 0.25, 0.25, 0.02, 0.4); }
+      // v4: a hard crack on top, a meaty mid "thud", and a sub punch underneath; kicks get a deeper body, big hits get a growl and a room tail
+      hiss('highpass', 2400, 0, 0.6, 0.028, big ? 1.1 : 0.85);
+      hiss('bandpass', big ? 900 : 1300, big ? 220 : 420, 1.4, big ? 0.16 : 0.1, big ? 1.0 : 0.8);
+      tone('square', big ? 260 : 320, big ? 42 : 70, big ? 0.17 : 0.11, big ? 0.4 : 0.3);
+      tone('sine', big ? 140 : 170, big ? 26 : 40, big ? 0.34 : 0.2, big ? 1.3 : 1.0, 0, big ? 0.3 : 0.1);
+      if (kind === 'kick') { hiss('lowpass', 1100, 180, 1, 0.14, 0.6); tone('sine', 95, 35, 0.22, 0.6, 0.01); }
+      if (big) { tone('sawtooth', 75, 28, 0.3, 0.3, 0.01, 0.2); hiss('lowpass', 520, 110, 1, 0.45, 0.55, 0.03, 0.5); tone('square', 48, 30, 0.2, 0.2, 0.02); }
     },
-    block: function () { tone('triangle', 820, 790, 0.13, 0.16, 0, 0.2); tone('triangle', 1268, 1240, 0.11, 0.1, 0, 0.2); hiss('bandpass', 3600, 0, 3, 0.04, 0.3); tone('sine', 120, 70, 0.06, 0.3); },
+    block: function () { tone('triangle', 820, 790, 0.1, 0.2, 0, 0.2); tone('triangle', 1268, 1240, 0.08, 0.12, 0, 0.2); hiss('bandpass', 3600, 0, 3, 0.03, 0.45); tone('sine', 130, 60, 0.08, 0.5); },
     special: function (id) { (SIG[id] || SIG.vexa)(false); hiss('highpass', 400, 4000, 1, 0.25, 0.12, 0, 0.3, 0.12); },
     super: function (id) { hiss('highpass', 200, 6000, 1, 0.55, 0.25, 0, 0.4, 0.45); tone('sine', 60, 28, 1.0, 0.9, 0.45, 0.4); (SIG[id] || SIG.vexa)(true); },
-    jump: function () { hiss('lowpass', 900, 2200, 1, 0.12, 0.12, 0, 0, 0.04); },
-    land: function () { tone('sine', 110, 48, 0.1, 0.45); hiss('lowpass', 600, 200, 1, 0.08, 0.25); },
+    jump: function () { hiss('lowpass', 800, 2600, 1, 0.14, 0.22, 0, 0, 0.03); tone('sine', 120, 70, 0.07, 0.35); },
+    land: function () { tone('sine', 120, 40, 0.12, 0.7); hiss('lowpass', 700, 180, 1, 0.09, 0.45); hiss('highpass', 2500, 0, 0.6, 0.015, 0.25); },
     step: function () { var n = performance.now(); if (n - lastStep < 140) return; lastStep = n; tone('sine', 95, 60, 0.05, 0.12); hiss('lowpass', 500, 200, 1, 0.04, 0.08); },
     ko: function () { tone('sine', 120, 25, 1.4, 1, 0, 0.6); hiss('lowpass', 1200, 60, 1, 1.2, 0.5, 0, 0.6); },
     menu: function () { tone('triangle', 700, 950, 0.05, 0.05); },
@@ -453,6 +458,14 @@
       { m: { s: 0.32, a: 0.16, r: 0.32, dmg: 120, reach: 120, y: 0.7, kb: 340, meter: 10, tele: true, pose: 'punch', launch: true }, n: 'ENCORE' }]
   };
   var INPUT_LABEL = ['↓↘→ + P', '→↓↘ + P', '↓↙← + K'], SHORT_LABEL = ['SP', '↓ + SP', '← + SP'];
+  // v4: everything comes out faster and recovers faster (Street Fighter pace). Each move object is trimmed once.
+  (function () {
+    var done = [];
+    function quick(m) { if (!m || done.indexOf(m) !== -1) return; done.push(m); if (m.s != null) m.s = Math.round(m.s * 0.7 * 1000) / 1000; if (m.r != null) m.r = Math.round(m.r * 0.62 * 1000) / 1000; if (m.kb) m.kb = Math.round(m.kb * 1.12); }
+    Object.keys(MOVES).forEach(function (k) { quick(MOVES[k]); });
+    Object.keys(SPECIAL).forEach(function (k) { quick(SPECIAL[k]); });
+    Object.keys(MOVESET).forEach(function (id) { MOVESET[id].forEach(function (e) { quick(e.m); }); });
+  })();
 
   // ── fight flow ───────────────────────────────────────────────────────────
   function startFight(p1, p2, stg) {
@@ -546,7 +559,7 @@
   }
 
   // ── the AI ───────────────────────────────────────────────────────────────
-  function aiLevel() { if (mode !== 'arcade') return 0.55; var L = ladder[ladderPos]; return L && L.boss ? 0.85 : 0.32 + ladderPos * 0.08; }
+  function aiLevel() { if (mode !== 'arcade') return 0.6; var L = ladder[ladderPos]; return L && L.boss ? 0.88 : 0.36 + ladderPos * 0.08; }
   var ai = { t: 0, plan: null };
   function runAI(f, c, dt) {
     var o = opp(f), lv = aiLevel(), dx = o.x - f.x, ad = Math.abs(dx), toward = dx > 0 ? 'right' : 'left', away = dx > 0 ? 'left' : 'right';
@@ -568,7 +581,7 @@
       if (ai.plan !== 'wait') ai.t = 0.12 + (1 - lv) * 0.45 + Math.random() * 0.2;
     }
     switch (ai.plan) {
-      case 'approach': c[toward] = 1; if (ad < 120) ai.t = 0; break;
+      case 'approach': c[toward] = 1; if (f.st !== 'run' && ad > 320 && !f.run && lv > 0.4 && Math.random() < dt * 2) { f.run = 1; } if (ad < 120) ai.t = 0; break;
       case 'back': c[away] = 1; break;
       case 'jumpin': if (f.y === 0) { c.up = 1; c[toward] = 1; } else if (ad < 140) c.k = 1; break;
       case 'punch': c.p = 1; ai.plan = null; break;
@@ -618,7 +631,7 @@
     var dir = dirOf(c); if (dir && (!c.hist.length || c.hist[c.hist.length - 1].d !== dir)) { c.hist.push({ d: dir, t: performance.now() }); if (c.hist.length > 12) c.hist.shift(); }
     if (f.st === 'ko') {
       // flung back, lands, one small bounce, then slides to a stop
-      f.koT = (f.koT || 0) + dt; f.vy += 2400 * dt; f.y += f.vy * dt; f.x += f.vx * dt; clampX(f);
+      f.koT = (f.koT || 0) + dt; f.vy += GRAV * dt; f.y += f.vy * dt; f.x += f.vx * dt; clampX(f);
       if (f.y >= 0) {
         f.y = 0;
         if (f.vy > 260 && !f.koB) { f.koB = 1; f.koLand = f.koLand || f.koT; f.vy = -f.vy * 0.3; f.y = -0.5; f.vx *= 0.55; dust(f.x, -150, 6, true); dust(f.x, 150, 6, true); sfx.land(); tone('sine', 80, 40, 0.25, 0.7); shake = Math.max(shake, 9); }
@@ -626,13 +639,14 @@
       } else f.vx *= Math.pow(0.6, dt);
       return;
     }
-    if (f.st === 'win') { f.vy += 2400 * dt; f.y = Math.min(0, f.y + f.vy * dt); f.x += f.vx * dt; f.vx *= 0.9; clampX(f); return; }
+    if (f.st === 'win') { f.vy += GRAV * dt; f.y = Math.min(0, f.y + f.vy * dt); f.x += f.vx * dt; f.vx *= 0.9; clampX(f); return; }
+    f.landT = Math.max(0, (f.landT || 0) - dt); f.recoil = Math.max(0, (f.recoil || 0) - dt); if (f.y < 0) f.jumpT = (f.jumpT || 0) + dt;
     // facing
     if (f.y === 0 && f.st !== 'atk') f.face = o.x > f.x ? 1 : -1;
     // stun
     if (f.stun > 0) {
       f.stun -= dt; f.x += f.vx * dt; f.vx *= Math.pow(0.02, dt);
-      if (f.y < 0 || f.vy < 0) { f.vy += 2400 * dt; f.y += f.vy * dt; if (f.y >= 0) { f.y = 0; f.vy = 0; } }
+      if (f.y < 0 || f.vy < 0) { f.vy += GRAV * dt; f.y += f.vy * dt; if (f.y >= 0) { f.y = 0; f.vy = 0; } }
       clampX(f);
       if (f.stun <= 0) { f.st = 'idle'; f.blocking = false; }
       return;
@@ -650,7 +664,7 @@
         else if (edge(c, 'k')) which = 2;
         else which = dp(f, c) ? 1 : 0;
         var mv = (MOVESET[f.id] || [{ m: SPECIAL[d.sp], n: d.spn }])[which];
-        startAtk(f, 'special', mv.m, mv.n, which); f.spCD = 0.9; c.hist = []; f.crouch = false;
+        startAtk(f, 'special', mv.m, mv.n, which); f.spCD = 0.55; c.hist = []; f.crouch = false;
       }
       else if (edge(c, 'p')) startAtk(f, 'punch', air ? MOVES.jpunch : f.crouch ? MOVES.cpunch : MOVES.punch);
       else if (edge(c, 'k')) startAtk(f, 'kick', air ? MOVES.jkick : f.crouch ? MOVES.ckick : MOVES.kick);
@@ -665,13 +679,19 @@
       if (A.m.rise && f.y < 0 && f.atk) { if (A.ph === 'r' && f.vy < 0) A.t = 0; if (Math.random() < 0.7) fx.length < 420 && fx.push({ k: 'p', x: f.x + (Math.random() - 0.5) * 40, y: GY + f.y - f.d.h * 0.4, vx: (Math.random() - 0.5) * 80, vy: 60, t: 0, life: 0.4, col: A.m.trail || f.d.col, r: 2 + Math.random() * 3 }); }
     } else if (f.y === 0) {
       // walk / jump
-      if (c.up && !c.prev.up) { f.vy = -980; f.y = -0.01; f.vx = (fwd ? 1 : back ? -1 : 0) * f.face * d.spd * 0.95; f.st = 'jump'; sfx.jump(); }
-      else if (!f.crouch && (fwd || back) && !f.blocking) { f.vx = (fwd ? 1 : -1) * f.face * d.spd; f.st = 'walk'; }
-      else if (f.blocking && back) { f.vx = -f.face * d.spd * 0.45; f.st = 'block'; }
+      // double-tap forward = run, double-tap back = backdash
+      if (fwd && !f.prevFwd) { if (f.t - (f.lastFwdTap || -9) < 0.26 && !f.crouch) { f.run = 1; sfx.dash(); dust(f.x, -f.face * 160, 4, true); } f.lastFwdTap = f.t; }
+      if (back && !f.prevBack) { if (f.t - (f.lastBackTap || -9) < 0.26 && !f.crouch && !f.bdash) { f.bdash = 0.24; f.inv = 0.12; f.vx = -f.face * d.spd * 2.8; f.vy = -260; f.y = -0.01; sfx.dash(); dust(f.x, f.face * 160, 4, true); ghost(f, 0.5); } f.lastBackTap = f.t; }
+      f.prevFwd = fwd; f.prevBack = back; if (!fwd) f.run = 0;
+      if (f.bdash > 0) { f.bdash -= dt; f.st = 'block'; }
+      else if (c.up && !c.prev.up) { f.vy = JUMP_V; f.y = -0.01; f.vx = (fwd ? (f.run ? RUN : 1.15) : back ? -1.05 : 0) * f.face * d.spd; f.st = 'jump'; f.jumpT = 0; sfx.jump(); }
+      else if (!f.crouch && fwd && f.run && !f.blocking) { f.vx = f.face * d.spd * RUN; f.st = 'run'; }
+      else if (!f.crouch && (fwd || back) && !f.blocking) { f.vx = (fwd ? 1 : -1) * f.face * d.spd * WALK; f.st = 'walk'; }
+      else if (f.blocking && back) { f.vx = -f.face * d.spd * 0.5; f.st = 'block'; }
       else { f.vx = 0; f.st = f.crouch ? 'crouch' : 'idle'; }
     }
     // physics
-    if (f.y < 0 || f.vy < 0) { f.vy += 2400 * dt; f.y += f.vy * dt; if (f.y >= 0) { f.y = 0; f.vy = 0; if (f.st === 'jump' || f.st === 'atk') { if (f.st === 'atk' && f.atk && (f.atk.kind !== 'special' || f.atk.m.rise)) { f.atk = null; } if (!f.atk) f.st = 'idle'; } } }
+    if (f.y < 0 || f.vy < 0) { f.vy += GRAV * dt; f.y += f.vy * dt; if (f.y >= 0) { f.y = 0; f.vy = 0; f.landT = 0.14; if (f.st === 'jump' || f.st === 'atk') { if (f.st === 'atk' && f.atk && (f.atk.kind !== 'special' || f.atk.m.rise)) { f.atk = null; } if (!f.atk) f.st = 'idle'; } } }
     f.x += f.vx * dt;
     clampX(f);
     moveFx(f, dt);
@@ -742,12 +762,12 @@
     }
     damage(o, dmg, f);
     if (o.st !== 'ko') {   // the knockout blow keeps its own fall (set in damage)
-      o.vx = f.face * kb; o.stun = sweep ? 0.6 : kind === 'super' ? 0.8 : 0.3 + dmg / 400; o.st = 'hit'; o.atk = null;
+      o.vx = f.face * kb; o.stun = sweep ? 0.5 : kind === 'super' ? 0.7 : 0.2 + dmg / 520; o.st = 'hit'; o.atk = null;
       if (sweep || kind === 'super' || dmg >= 100) { o.vy = -520; o.y = -1; }
     }
-    f.combo = f.comboT > 0 ? f.combo + 1 : 1; f.comboT = 0.9;
+    f.combo = f.comboT > 0 ? f.combo + 1 : 1; f.comboT = 0.8;
     if (f.combo >= 2) fx.push({ k: 'combo', n: f.combo, side: f.side, t: 0 });
-    hitstop = dmg >= 100 ? 0.11 : 0.06; shake = Math.min(18, 4 + dmg / 12);
+    hitstop = dmg >= 100 ? 0.1 : 0.05; shake = Math.min(20, 5 + dmg / 10); o.recoil = 0.16;
     sfx.hit(dmg >= 100, kind);
     if (o.hp > 0) say(o, dmg >= 100 && Math.random() < 0.45 ? 'h2' : 'h1', { gap: dmg >= 100 ? 300 : 700 });
     sparkle(hx, hy, dmg >= 100 ? '#ffb347' : '#ffffff', dmg >= 100 ? 16 : 10);
@@ -802,15 +822,15 @@
     if (air && !f.wasAir) { dust(f.x, -f.vx * 0.3 - 40, 4, true); dust(f.x, -f.vx * 0.3 + 40, 4, true); }
     if (!air && f.wasAir && f.st !== 'ko') { sfx.land(); dust(f.x, -90, 5, true); dust(f.x, 90, 5, true); fx.push({ k: 'ring', x: f.x, y: GY, r0: 20, r1: 120, col: 'rgba(255,220,180,.7)', flat: true, t: 0, life: 0.3 }); }
     f.wasAir = air;
-    var dir = Math.sign(f.vx), moving = !air && Math.abs(f.vx) > 40 && (f.st === 'walk' || f.st === 'block');
+    var dir = Math.sign(f.vx), moving = !air && Math.abs(f.vx) > 40 && (f.st === 'walk' || f.st === 'run' || f.st === 'block');
     if (moving) {
       f.walkPh = (f.walkPh || 0) + Math.abs(f.vx) * dt / 34;
       f.stepT = (f.stepT || 0) - dt;
-      if (f.stepT <= 0) { f.stepT = 0.17; sfx.step(); dust(f.x - dir * f.d.h * 0.12, -dir * 120, 2, false); }
+      if (f.stepT <= 0) { f.stepT = f.st === 'run' ? 0.11 : 0.15; sfx.step(); dust(f.x - dir * f.d.h * 0.12, -dir * (f.st === 'run' ? 220 : 120), f.st === 'run' ? 3 : 2, false); }
     }
     // after-images on anything fast: dashes, jump-ins, attacks while active, being launched
     f.ghostT = (f.ghostT || 0) - dt;
-    var fast = (f.st === 'atk' && f.atk && (f.atk.ph === 'a' || f.atk.m.dash)) || (air && Math.abs(f.vx) > 200) || (f.st === 'hit' && Math.abs(f.vx) > 260);
+    var fast = f.st === 'run' || f.bdash > 0 || (f.st === 'atk' && f.atk && (f.atk.ph === 'a' || f.atk.m.dash)) || (air && Math.abs(f.vx) > 200) || (f.st === 'hit' && Math.abs(f.vx) > 260);
     if (fast && f.ghostT <= 0) { f.ghostT = 0.035; ghost(f, f.st === 'hit' ? 0.22 : 0.38); }
   }
   function burst(q, owner, o) {
@@ -864,6 +884,10 @@
     if (f.st === 'hit') return 'hit';
     if (f.st === 'block' || (f.blocking && f.stun > 0)) return 'block';
     if (f.st === 'atk') return f.atk.m.pose || (f.atk.kind === 'super' ? 'special' : f.atk.kind === 'special' ? 'special' : f.atk.kind);
+    if (f.st === 'jump' && IMG[f.id + '_jump']) return 'jump';
+    if (f.st === 'run' && IMG[f.id + '_run']) return 'run';
+    if ((f.st === 'walk' || f.st === 'run') && IMG[f.id + '_walk']) return 'walk';
+    if (f.crouch && IMG[f.id + '_crouch']) return 'crouch';
     return 'idle';
   }
   // the size every pose of a fighter is drawn at, taken from their idle render
@@ -872,7 +896,7 @@
   // stays the same whatever the pose, so each pose is scaled by sqrt(idle area / pose area).
   function scaleFor(id, pose) {
     var base = IMG[id + '_idle'], s = base && base.height ? F[id].h / base.height : 1;
-    if (!pose || pose === 'idle' || pose === 'ko') return s;
+    if (!pose || pose === 'idle' || pose === 'ko' || pose === 'jump' || pose === 'walk' || pose === 'run' || pose === 'crouch') return s;
     var im = IMG[id + '_' + pose];
     if (!im || !im._area || !base._area) return s;
     return s * Math.max(0.85, Math.min(1.45, Math.sqrt(base._area / im._area)));
@@ -911,19 +935,29 @@
     var x = f.x + (Math.random() - 0.5) * (f.st === 'hit' && f.stun > 0.2 ? 6 : 0), y = GY + f.y;
     drawMoveCue(f, now);
     var breathe = pose === 'idle' ? 1 + Math.sin(now / 320 + f.bob) * 0.012 : 1, lean = 0, sx = 1;
-    if (f.st === 'walk' || (f.st === 'block' && Math.abs(f.vx) > 40)) {
+    if (f.st === 'walk' || f.st === 'run' || (f.st === 'block' && Math.abs(f.vx) > 40)) {
       // the body bobs with each step but the feet stay planted: squash and stretch from the soles, no lift
-      var ph = f.walkPh || 0, fwd = Math.sign(f.vx) === f.face;
-      breathe = 1 + Math.abs(Math.sin(ph)) * 0.035 - 0.012; sx = 1 - Math.abs(Math.sin(ph)) * 0.02;
-      lean = fwd ? 0.06 + Math.sin(ph * 2) * 0.015 : -0.05;
+      var ph = f.walkPh || 0, fwd = Math.sign(f.vx) === f.face, run = f.st === 'run';
+      breathe = 1 + Math.abs(Math.sin(ph)) * (run ? 0.05 : 0.035) - 0.012; sx = 1 - Math.abs(Math.sin(ph)) * (run ? 0.035 : 0.02);
+      lean = run ? 0.2 + Math.sin(ph * 2) * 0.03 : fwd ? 0.07 + Math.sin(ph * 2) * 0.02 : -0.06;
     }
+    if (f.bdash > 0) { lean = -0.18; sx = 0.94; breathe = 1.04; }
+    if (f.landT > 0 && f.y === 0 && f.st !== 'atk') { var lk = f.landT / 0.14; sx *= 1 + 0.16 * lk; breathe *= 1 - 0.14 * lk; }
+    if (f.recoil > 0 && f.st === 'hit') { var rk = f.recoil / 0.16; sx *= 1 - 0.1 * rk; breathe *= 1 + 0.06 * rk; }
     if (f.st === 'atk' && f.atk) {
       var A = f.atk;
       if (A.ph === 's') { lean = -0.05; sx = 0.97; breathe = 1.02; }
       else if (A.ph === 'a') { lean = 0.06; sx = 1.05; breathe = 0.98; }
     }
     if (f.st === 'hit') lean = -0.12;
-    if (f.y < 0 && f.st === 'jump') { breathe = 1 + Math.max(-0.06, Math.min(0.08, -f.vy / 9000)); sx = 2 - breathe; }
+    if (f.y < 0 && (f.st === 'jump' || (f.st === 'atk' && f.atk && (f.atk.kind === 'punch' || f.atk.kind === 'kick')))) {
+      // jump arc: a stretch off the floor, a tuck at the top, a lean back into the fall, legs reaching for the landing
+      var jt = f.jumpT || 0, rising = f.vy < 0, apex = Math.max(0, 1 - Math.abs(f.vy) / 700);
+      breathe = 1 + (rising ? 0.09 : -0.04) * (1 - apex) - 0.08 * apex; sx = 2 - breathe;
+      if (jt < 0.08) { breathe = 1.14 - jt * 0.5; sx = 0.9 + jt * 0.6; }
+      lean = (Math.sign(f.vx) === f.face && f.vx !== 0 ? 1 : f.vx === 0 ? 0 : -0.6) * (rising ? 0.16 : 0.06) * (1 - apex * 0.5) + (rising ? 0 : -0.05);
+      if (f.st === 'atk') { lean += f.atk.kind === 'kick' ? 0.18 : 0.1; }
+    }
     var alpha = 1, spin = 0;
     if (f.st === 'atk' && f.atk) {
       var TA = f.atk;
@@ -941,7 +975,7 @@
       if (f.face < 0) c.scale(-1, 1);
       if (sx !== 1) c.scale(sx, 1);
       if (f.crouch && pose === 'idle') c.scale(1.05, 0.8);
-      if (f.st === 'jump' && pose === 'idle') c.rotate(-0.08);
+      if (f.st === 'jump' && pose === 'idle') { var ak = f.vy < 0 ? -0.06 : 0.04; c.rotate(ak); }
       if (lean) c.rotate(lean);
       if (spin) { c.translate(0, -f.d.h * 0.5); c.rotate(spin); c.translate(0, f.d.h * 0.5); }
     }
