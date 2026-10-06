@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <!--
-  HIGH FLYING · Slapwoods × ContentPad Arcade (build 2026100603-hf)
+  HIGH FLYING · Slapwoods × ContentPad Arcade (build 2026100604-hf)
   A Star-Fox-style 3D rail shooter. Slappy the Bear (Slapwoods' mascot) vs Baron Buzzkill and the Buzzkill Armada.
   Three stages (H-Town Sunset, Thunder Canyon, The Stratosphere), a boss at the end of each. 21+ gate (Slapwoods is a tobacco brand).
   Art made in ContentPad Studio (nano-banana-pro, referenced to Dex's Slappy photos) + Slapwoods' own logo and Slappy art.
@@ -191,10 +191,10 @@ a.mb{text-decoration:none}
   <div class="ctrls">
     <b>WASD / arrows · left stick</b><span>Fly</span>
     <b>Right stick · arrows · mouse</b><span>Aim (pick a scheme in Controls &amp; flight)</span>
-    <b>Space · J · (A)</b><span>Fire. Hold, then let go for a lock-on charge shot</span>
+    <b>Space · J · RT</b><span>Fire. Hold, then let go for a lock-on charge shot</span>
     <b>Q / E · LB / RB</b><span>Barrel roll (or double-tap a direction). Knocks enemy shots away</span>
     <b>B · K · (B)</b><span>Slap Bomb: clears the sky</span>
-    <b>Shift · (X)</b><span>Boost &nbsp;·&nbsp; <b>C · (Y)</b> brake</span>
+    <b>Shift · hold (A)</b><span>Boost: fly faster while held &nbsp;·&nbsp; <b>C · (Y) · LT</b> brake</span>
     <b>P / Esc · Start</b><span>Pause &nbsp;·&nbsp; <b>M</b> mute</span>
   </div>
   <p class="tiny">Grab <b style="color:#ffe1a0">W</b> for stronger lasers (Natural → Russian Cream twins → Bloodshot hyper). Honey pots and gold rings fix your shield. Wipe out a whole formation for a bonus. Knock out a boss's turrets, then hit the red eye.</p>
@@ -260,7 +260,7 @@ a.mb{text-decoration:none}
 <script>
 (function () {
   'use strict';
-  var GAME_ID = 'high-flying', BUILD = '2026100603-hf';
+  var GAME_ID = 'high-flying', BUILD = '2026100604-hf';
   var $ = function (id) { return document.getElementById(id); };
   var EMBED = false; try { EMBED = window.top !== window; } catch (e) { EMBED = true; }
   function post(type, extra) { try { if (EMBED) window.parent.postMessage(Object.assign({ arcade: type, game: GAME_ID }, extra || {}), '*'); } catch (e) {} }
@@ -1071,8 +1071,8 @@ a.mb{text-decoration:none}
     if (TCH.ax || TCH.ay) { ax = TCH.ax; ay = TCH.ay; }
     IN = {
       mx: clamp(mx, -1, 1), my: clamp(my, -1, 1), ax: clamp(ax, -1, 1), ay: clamp(ay, -1, 1),
-      fire: !!(K.fire || (pad && pad.a) || TCH.fire || (SAVE.scheme === 'mouse' && MOUSE.down)), bomb: !!(K.bomb || (pad && pad.b)), boost: !!(K.boost || (pad && (pad.x || pad.rt)) || TCH.boost), brake: !!(K.brake || (pad && (pad.y || pad.lt))),
-      rollL: !!(K.rollL || (pad && pad.lb)), rollR: !!(K.rollR || (pad && pad.rb)), pause: !!(K.pause || (pad && pad.start)), ok: !!(K.ok || K.fire || (pad && pad.a)), back: !!(K.back || K.pause || (pad && pad.b)),
+      fire: !!(K.fire || (pad && pad.rt) || TCH.fire || (SAVE.scheme === 'mouse' && MOUSE.down)), bomb: !!(K.bomb || (pad && pad.b)), boost: !!(K.boost || (pad && pad.a) || TCH.boost), brake: !!(K.brake || (pad && (pad.y || pad.lt || pad.x))),
+      rollL: !!(K.rollL || (pad && pad.lb)), rollR: !!(K.rollR || (pad && pad.rb)), pause: !!(K.pause || (pad && pad.start)), ok: !!(K.ok || K.fire || (pad && (pad.a || pad.rt))), back: !!(K.back || K.pause || (pad && pad.b)),
       up: !!(K.up || K.arU || (pad && pad.up)), down: !!(K.down || K.arD || (pad && pad.down)), mute: !!K.mute
     };
     if (pad && pad.any) audioInit();

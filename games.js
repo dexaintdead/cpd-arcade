@@ -1,4 +1,4 @@
-/* ContentPad Arcade — the game catalog (build 2026100603-hf).
+/* ContentPad Arcade — the game catalog (build 2026100604-hf).
    House games live in this repo as <slug>.html at the top level and are listed here.
    Only status:'live' entries are shown. rating marks adult games (the game itself runs its own age gate). */
 window.ARCADE_GAMES = [
@@ -11,7 +11,7 @@ window.ARCADE_GAMES = [
     about: "Slappy the Bear, the Slapwoods mascot, straps into his orange starfighter to take the sky back from Baron Buzzkill and the Buzzkill Armada. A 3D rail shooter in the old-school space-fighter style: three stages, from a golden-hour sunset over H-Town, through the lightning of Thunder Canyon, up to the Stratosphere, with a boss gunship at the end of each and the Killjoy Dreadnought waiting at the top. Twin lasers, hold-to-charge lock-on shots, barrel rolls that knock enemy fire away, Slap Bombs, boost and brake. Upgrade from Natural lasers to Russian Cream twins to Bloodshot hyper lasers, grab honey pots and gold rings to fix your shield, wipe out whole formations for bonuses and earn a medal on every stage. Presented by Slapwoods. 21+ only.",
     genre: 'Shooter',
     tags: ['21+', 'Shooter', '3D', '3 stages', 'Bosses', 'Slapwoods', 'Controller'],
-    controls: [['WASD / arrows / left stick', 'Fly'], ['Right stick / arrows / mouse', 'Aim — twin-stick, mouse or classic, in Controls & flight'], ['Space / J / (A) / click', 'Fire · hold and let go for a lock-on shot'], ['Q / E / LB / RB', 'Barrel roll · or double-tap a direction'], ['B / K / (B)', 'Slap Bomb'], ['Shift / (X)', 'Boost'], ['C / (Y)', 'Brake'], ['P / Esc / Start', 'Pause'], ['M', 'Mute']],
+    controls: [['WASD / arrows / left stick', 'Fly'], ['Right stick / arrows / mouse', 'Aim — twin-stick, mouse or classic, in Controls & flight'], ['Space / J / RT / click', 'Fire · hold and let go for a lock-on shot'], ['Q / E / LB / RB', 'Barrel roll · or double-tap a direction'], ['B / K / (B)', 'Slap Bomb'], ['Shift / hold (A)', 'Boost — faster while held'], ['C / (Y) / LT', 'Brake'], ['P / Esc / Start', 'Pause'], ['M', 'Mute']],
     by: 'ContentPad Studios × Slapwoods',
     made: 'Art made in ContentPad Studio · Slappy and the Slapwoods logo courtesy of Slapwoods · music, sound and code by Claude',
     scoreLabel: 'Best score',
