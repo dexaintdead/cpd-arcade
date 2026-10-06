@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
 <!--
-  HIGH FLYING · Slapwoods × ContentPad Arcade (build 2026100602-hf)
+  HIGH FLYING · Slapwoods × ContentPad Arcade (build 2026100603-hf)
   A Star-Fox-style 3D rail shooter. Slappy the Bear (Slapwoods' mascot) vs Baron Buzzkill and the Buzzkill Armada.
   Three stages (H-Town Sunset, Thunder Canyon, The Stratosphere), a boss at the end of each. 21+ gate (Slapwoods is a tobacco brand).
   Art made in ContentPad Studio (nano-banana-pro, referenced to Dex's Slappy photos) + Slapwoods' own logo and Slappy art.
@@ -67,10 +67,13 @@ html,body{margin:0;height:100%;overflow:hidden;background:#120a1e;color:#fff;fon
 .has-touch #comms{bottom:auto;top:max(64px,env(safe-area-inset-top))}
 /* ── touch controls ── */
 #touch{position:fixed;inset:0;z-index:7;pointer-events:none}
-#stickZone{position:absolute;left:0;top:0;bottom:0;width:52%;pointer-events:auto}
+#stickZone{position:absolute;left:0;top:0;bottom:0;width:50%;pointer-events:auto}
+#aimZone{position:absolute;right:0;top:0;bottom:0;width:50%;pointer-events:auto}
+#aimStick{position:absolute;width:100px;height:100px;margin:-50px 0 0 -50px;border-radius:50%;border:2px solid rgba(94,240,255,.4);background:rgba(94,240,255,.05)}
+#aimStick i{position:absolute;left:50%;top:50%;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;background:rgba(157,255,106,.55)}
 #stick{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:2px solid rgba(255,255,255,.35);background:rgba(255,255,255,.06)}
 #stick i{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:rgba(255,225,160,.55);box-shadow:0 0 18px rgba(255,138,28,.5)}
-.tb{position:absolute;pointer-events:auto;border-radius:50%;border:2px solid rgba(255,255,255,.55);background:rgba(20,10,34,.55);color:#fff;font:700 13px/1 var(--ui);letter-spacing:.12em;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.tb{position:absolute;z-index:2;pointer-events:auto;border-radius:50%;border:2px solid rgba(255,255,255,.55);background:rgba(20,10,34,.55);color:#fff;font:700 13px/1 var(--ui);letter-spacing:.12em;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
 .tb.on{background:rgba(255,138,28,.6)}
 #tFire{width:92px;height:92px;right:max(22px,env(safe-area-inset-right));bottom:max(30px,env(safe-area-inset-bottom));font-size:15px;border-color:#ffe1a0}
 #tRoll{width:62px;height:62px;right:calc(max(22px,env(safe-area-inset-right)) + 104px);bottom:max(22px,env(safe-area-inset-bottom))}
@@ -139,6 +142,7 @@ a.mb{text-decoration:none}
 
 <div id="touch" hidden>
   <div id="stickZone"></div><div id="stick" hidden><i></i></div>
+  <div id="aimZone"></div><div id="aimStick" hidden><i></i></div>
   <div class="tb" id="tFire">FIRE</div><div class="tb" id="tRoll">ROLL</div><div class="tb" id="tBomb">BOMB</div><div class="tb" id="tBoost">BOOST</div><div class="tb" id="tPause">❚❚</div>
 </div>
 
@@ -168,7 +172,7 @@ a.mb{text-decoration:none}
   <button class="mb" id="mStages">Stage select</button>
   <button class="mb" id="mHow">How to fly</button>
   <button class="mb" id="mIntro">▶ Watch intro</button>
-  <button class="mb" id="mInvert">Flight: normal</button>
+  <button class="mb" id="mCtrl">Controls &amp; flight</button>
   <button class="mb" id="mQuit">← Arcade</button>
   <div class="best" id="mBest"></div>
   <p class="tiny">Presented by Slapwoods · Because they slap · 21+ only. This product contains tobacco. Nicotine is an addictive chemical.</p>
@@ -185,7 +189,8 @@ a.mb{text-decoration:none}
 <div class="scr dim" id="how" hidden><div class="card">
   <p class="ttl" style="font-size:clamp(34px,7vw,60px)">How to fly</p>
   <div class="ctrls">
-    <b>Arrows / WASD · stick</b><span>Fly</span>
+    <b>WASD / arrows · left stick</b><span>Fly</span>
+    <b>Right stick · arrows · mouse</b><span>Aim (pick a scheme in Controls &amp; flight)</span>
     <b>Space · J · (A)</b><span>Fire. Hold, then let go for a lock-on charge shot</span>
     <b>Q / E · LB / RB</b><span>Barrel roll (or double-tap a direction). Knocks enemy shots away</span>
     <b>B · K · (B)</b><span>Slap Bomb: clears the sky</span>
@@ -196,11 +201,21 @@ a.mb{text-decoration:none}
   <button class="mb pri" id="hBack">Got it</button>
 </div></div>
 
+<div class="scr dim" id="ctrl" hidden><div class="card">
+  <p class="ttl" style="font-size:clamp(34px,7vw,60px)">Controls</p>
+  <button class="mb" id="cScheme">Aim: classic</button>
+  <p class="tiny" id="cSchemeHelp" style="margin-top:-2px;margin-bottom:8px"></p>
+  <button class="mb" id="cHandling">Handling: arcade</button>
+  <p class="tiny" id="cHandlingHelp" style="margin-top:-2px;margin-bottom:8px"></p>
+  <button class="mb" id="cInvert">Flight: normal</button>
+  <p class="tiny" style="margin-top:-2px;margin-bottom:8px">Normal: push up to climb. Inverted: push down to climb, like a real stick.</p>
+  <button class="mb pri" id="cBack">Done</button>
+</div></div>
 <div class="scr dim" id="pause" hidden><div class="card">
   <p class="ttl" style="font-size:clamp(38px,8vw,70px)">Paused</p>
   <button class="mb pri" id="pResume">Resume</button>
   <button class="mb" id="pRestart">Restart stage</button>
-  <button class="mb" id="pInvert">Flight: normal</button>
+  <button class="mb" id="pCtrl">Controls &amp; flight</button>
   <button class="mb" id="pSound">Sound: on</button>
   <button class="mb" id="pQuit">Quit to title</button>
 </div></div>
@@ -245,12 +260,12 @@ a.mb{text-decoration:none}
 <script>
 (function () {
   'use strict';
-  var GAME_ID = 'high-flying', BUILD = '2026100602-hf';
+  var GAME_ID = 'high-flying', BUILD = '2026100603-hf';
   var $ = function (id) { return document.getElementById(id); };
   var EMBED = false; try { EMBED = window.top !== window; } catch (e) { EMBED = true; }
   function post(type, extra) { try { if (EMBED) window.parent.postMessage(Object.assign({ arcade: type, game: GAME_ID }, extra || {}), '*'); } catch (e) {} }
   function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
-  var SAVE = { best: 0, unlocked: 1, medals: {}, invert: false, runs: 0 };
+  var SAVE = { best: 0, unlocked: 1, medals: {}, invert: false, runs: 0, scheme: 'classic', handling: 'arcade' };
   try { var sv = JSON.parse(ls('hf_save') || 'null'); if (sv) Object.assign(SAVE, sv); } catch (e) {}
   SAVE.best = Math.max(SAVE.best || 0, +ls('arcade_best_' + GAME_ID) || 0);
   function persist() { ls('hf_save', JSON.stringify(SAVE)); ls('arcade_best_' + GAME_ID, String(SAVE.best)); }
@@ -738,7 +753,15 @@ a.mb{text-decoration:none}
       L.m.lookAt(x + vx, y + vy, z + vz); return;
     }
   }
-  function aimDir() { var tilt = 0.012; return { x: P.vx * tilt, y: P.vy * tilt }; }
+  var aimV = new THREE.Vector3();
+  function aimDir() {
+    var tilt = 0.012, d = { x: P.vx * tilt, y: P.vy * tilt };
+    if (SAVE.scheme === 'mouse' && MOUSE.has) {
+      aimV.set(MOUSE.x, MOUSE.y, 0.5).unproject(cam).sub(cam.position).normalize();
+      if (aimV.z < -0.05) { var t = (-55 - cam.position.z) / aimV.z; d.x = (cam.position.x + aimV.x * t - P.x) / 55; d.y = (cam.position.y + aimV.y * t - P.y) / 55; }
+    } else if (SAVE.scheme === 'twin') { d.x = P.vx * tilt * 0.3 + AIM.x * 0.6; d.y = P.vy * tilt * 0.3 + AIM.y * 0.45; }
+    d.x = clamp(d.x, -0.8, 0.8); d.y = clamp(d.y, -0.6, 0.6); return d;
+  }
   function shoot() {
     if (P.fireCd > 0 || P.dead) return; P.fireCd = P.laser === 2 ? 0.055 : 0.07;
     var d = aimDir(), sp = 440, vz = -sp; ship.position.z += 0.22; camShake = Math.max(camShake, 0.06);
@@ -898,7 +921,7 @@ a.mb{text-decoration:none}
   function setTimeoutT(f, d) { timers.push({ t: T + d, f: f }); }
 
   /* ════════════════ FLOW ════════════════ */
-  var SCREENS = ['gate', 'under', 'title', 'stages', 'how', 'pause', 'clear', 'over', 'ending'];
+  var SCREENS = ['gate', 'under', 'title', 'stages', 'how', 'ctrl', 'pause', 'clear', 'over', 'ending'];
   var menu = null;
   function show(id) {
     SCREENS.forEach(function (s) { $(s).hidden = s !== id; });
@@ -911,11 +934,24 @@ a.mb{text-decoration:none}
   function menuOk() { if (!menu || !menu.items.length) return; var b = menu.items[menu.sel]; b.click(); }
   function menuBack() {
     if (!menu) return; var id = menu.id;
-    if (id === 'stages' || id === 'how') toTitle(); else if (id === 'pause') resume();
+    if (id === 'stages' || id === 'how') toTitle(); else if (id === 'ctrl') ctrlBack(); else if (id === 'pause') resume();
   }
 
-  function setInvertLabels() { var t = 'Flight: ' + (SAVE.invert ? 'inverted' : 'normal'); $('mInvert').textContent = t; $('pInvert').textContent = t; }
-  function toggleInvert() { SAVE.invert = !SAVE.invert; persist(); setInvertLabels(); sfx('ok'); }
+  var SCHEMES = ['classic', 'twin', 'mouse'], SCHEME_HELP = { classic: 'One control flies and aims: WASD or arrows, or the left stick. The nose points where you steer.', twin: 'Fly with WASD or the left stick. Aim with the arrow keys or the right stick, at the same time.', mouse: 'Fly with WASD, arrows or the stick. Aim with the mouse. Click to fire.' };
+  var HANDLING_HELP = { arcade: 'Snappy. The ship goes where you push, right away.', smooth: 'Heavier and faster. The ship glides and carries momentum through turns.' };
+  function setCtrlLabels() {
+    $('cScheme').textContent = 'Aim: ' + ({ classic: 'classic', twin: 'twin-stick', mouse: 'mouse' })[SAVE.scheme]; $('cSchemeHelp').textContent = SCHEME_HELP[SAVE.scheme];
+    $('cHandling').textContent = 'Handling: ' + SAVE.handling; $('cHandlingHelp').textContent = HANDLING_HELP[SAVE.handling];
+    $('cInvert').textContent = 'Flight: ' + (SAVE.invert ? 'inverted' : 'normal');
+    document.body.style.cursor = SAVE.scheme === 'mouse' && state === 'play' ? 'crosshair' : '';
+  }
+  function setInvertLabels() { setCtrlLabels(); }
+  function toggleInvert() { SAVE.invert = !SAVE.invert; persist(); setCtrlLabels(); sfx('ok'); }
+  function cycleScheme() { SAVE.scheme = SCHEMES[(SCHEMES.indexOf(SAVE.scheme) + 1) % SCHEMES.length]; AIM.x = AIM.y = 0; persist(); setCtrlLabels(); sfx('ok'); }
+  function toggleHandling() { SAVE.handling = SAVE.handling === 'arcade' ? 'smooth' : 'arcade'; persist(); setCtrlLabels(); sfx('ok'); }
+  var ctrlFrom = 'title';
+  function showCtrl(from) { ctrlFrom = from; setCtrlLabels(); show('ctrl'); }
+  function ctrlBack() { if (ctrlFrom === 'pause') { show('pause'); } else toTitle(); }
   var introEl = $('intro'), introVid = $('introVid'), introDone = null;
   function playIntro(then) {
     introDone = then || toTitle; $('hud').hidden = true; $('touch').hidden = true; show(null); stopSong();
@@ -955,11 +991,11 @@ a.mb{text-decoration:none}
     clearWorld(); STAGE = i; T = 0; script = buildScript(i); si0 = 0; stageHits = 0; stageStartScore = score;
     P.x = 0; P.y = 0; P.vx = P.vy = 0; P.shield = 100; P.inv = 1.5; P.dead = 0; P.roll = 0; P.charge = 0; P.boost = 1; ship.visible = true;
     buildEnv(i); show(null); $('hud').hidden = false; $('touch').hidden = !TOUCH; $('hStage').textContent = 'STAGE ' + (i + 1) + ' · ' + STAGES[i].name;
-    state = 'play'; playSong(STAGES[i].song); banner('STAGE ' + (i + 1), STAGES[i].name, 2.6);
+    state = 'play'; setCtrlLabels(); playSong(STAGES[i].song); banner('STAGE ' + (i + 1), STAGES[i].name, 2.6);
     post('start', { stage: i + 1 });
   }
-  function pause() { if (state !== 'play') return; state = 'pause'; show('pause'); clearInputs(); }
-  function resume() { if (state !== 'pause') return; state = 'play'; show(null); sfx('ok'); }
+  function pause() { if (state !== 'play') return; state = 'pause'; show('pause'); clearInputs(); document.body.style.cursor = ''; }
+  function resume() { if (state !== 'pause') return; state = 'play'; show(null); setCtrlLabels(); sfx('ok'); }
   function stageClear() {
     state = 'clear'; clearComms(); clearShots();
     var goal = STAGES[STAGE].goal, medal = stageHits >= goal;
@@ -995,11 +1031,22 @@ a.mb{text-decoration:none}
   }
 
   /* ════════════════ INPUT ════════════════ */
-  var K = {}, KP = {}, IN = {}, PREV = {}, lastTap = { l: 0, r: 0 }, TCH = { mx: 0, my: 0, fire: false, boost: false };
-  var KEYS = { ArrowLeft: 'left', a: 'left', A: 'left', ArrowRight: 'right', d: 'right', D: 'right', ArrowUp: 'up', w: 'up', W: 'up', ArrowDown: 'down', s: 'down', S: 'down', ' ': 'fire', j: 'fire', J: 'fire', z: 'fire', Z: 'fire', b: 'bomb', B: 'bomb', k: 'bomb', K: 'bomb', l: 'bomb', L: 'bomb', Shift: 'boost', c: 'brake', C: 'brake', Control: 'brake', q: 'rollL', Q: 'rollL', e: 'rollR', E: 'rollR', p: 'pause', P: 'pause', Escape: 'pause', Enter: 'ok', m: 'mute', M: 'mute', Backspace: 'back', y: 'brake', Y: 'brake' };
+  var K = {}, KP = {}, IN = {}, PREV = {}, lastTap = { l: 0, r: 0 }, TCH = { mx: 0, my: 0, ax: 0, ay: 0, fire: false, boost: false };
+  var MOUSE = { x: 0, y: 0, has: false, down: false }, AIM = { x: 0, y: 0 };
+  window.addEventListener('mousemove', function (e) { MOUSE.x = e.clientX / innerWidth * 2 - 1; MOUSE.y = -(e.clientY / innerHeight * 2 - 1); MOUSE.has = true; });
+  window.addEventListener('mousedown', function (e) { if (SAVE.scheme === 'mouse' && state === 'play' && e.button === 0) { MOUSE.down = true; audioInit(); e.preventDefault(); } });
+  window.addEventListener('mouseup', function () { MOUSE.down = false; });
+  window.addEventListener('contextmenu', function (e) { if (state === 'play') e.preventDefault(); });
+  function padSticks() {
+    var gp = window.ArcadePad ? ArcadePad.first() : null; if (!gp) return null;
+    var std = gp.mapping === 'standard', rx = gp.axes[2] || 0, ry = (std ? gp.axes[3] : (gp.axes.length > 5 ? gp.axes[5] : gp.axes[3])) || 0;
+    if (Math.abs(rx) < 0.16) rx = 0; if (Math.abs(ry) < 0.16) ry = 0;
+    return { rx: rx, ry: ry };
+  }
+  var KEYS = { ArrowLeft: 'arL', a: 'left', A: 'left', ArrowRight: 'arR', d: 'right', D: 'right', ArrowUp: 'arU', w: 'up', W: 'up', ArrowDown: 'arD', s: 'down', S: 'down', ' ': 'fire', j: 'fire', J: 'fire', z: 'fire', Z: 'fire', b: 'bomb', B: 'bomb', k: 'bomb', K: 'bomb', l: 'bomb', L: 'bomb', Shift: 'boost', c: 'brake', C: 'brake', Control: 'brake', q: 'rollL', Q: 'rollL', e: 'rollR', E: 'rollR', p: 'pause', P: 'pause', Escape: 'pause', Enter: 'ok', m: 'mute', M: 'mute', Backspace: 'back', y: 'brake', Y: 'brake' };
   function onKey(key, down, repeat) {
     var a = KEYS[key]; if (!a) return false;
-    if (down && !repeat && (a === 'left' || a === 'right') && state === 'play') { var side = a === 'left' ? 'l' : 'r', now = performance.now(); if (now - lastTap[side] < 260) roll(side === 'l' ? -1 : 1); lastTap[side] = now; }
+    if (down && !repeat && (a === 'left' || a === 'right' || ((a === 'arL' || a === 'arR') && SAVE.scheme !== 'twin')) && state === 'play') { var side = (a === 'left' || a === 'arL') ? 'l' : 'r', now = performance.now(); if (now - lastTap[side] < 260) roll(side === 'l' ? -1 : 1); lastTap[side] = now; }
     K[a] = down; if (down && !repeat) { KP[a] = true; audioInit(); }
     return true;
   }
@@ -1008,21 +1055,28 @@ a.mb{text-decoration:none}
   window.addEventListener('message', function (e) { var d = e.data || {}; if (e.source !== window.parent || d.arcade !== 'key') return; onKey(String(d.key || ''), d.type === 'keydown', !!d.repeat); });
   window.addEventListener('blur', function () { clearInputs(); if (state === 'play') pause(); });
   document.addEventListener('visibilitychange', function () { if (document.hidden && state === 'play') pause(); });
-  function clearInputs() { K = {}; TCH.fire = TCH.boost = false; TCH.mx = TCH.my = 0; }
+  function clearInputs() { K = {}; TCH.fire = TCH.boost = false; TCH.mx = TCH.my = TCH.ax = TCH.ay = 0; MOUSE.down = false; }
   var padPrev = {};
   function readInputs() {
     var pad = window.ArcadePad ? ArcadePad.read(ArcadePad.first()) : null;
-    var mx = (K.right ? 1 : 0) - (K.left ? 1 : 0), my = (K.up ? 1 : 0) - (K.down ? 1 : 0);
-    if (pad) { if (Math.abs(pad.lx) > 0.18 || Math.abs(pad.ly) > 0.18) { mx = pad.lx; my = -pad.ly; } else { mx += (pad.right ? 1 : 0) - (pad.left ? 1 : 0); my += (pad.up ? 1 : 0) - (pad.down ? 1 : 0); } }
+    var twin = SAVE.scheme === 'twin', arX = (K.arR ? 1 : 0) - (K.arL ? 1 : 0), arY = (K.arU ? 1 : 0) - (K.arD ? 1 : 0);
+    var mx = (K.right ? 1 : 0) - (K.left ? 1 : 0), my = (K.up ? 1 : 0) - (K.down ? 1 : 0), ax = 0, ay = 0;
+    if (twin) { ax = arX; ay = arY; } else { mx += arX; my += arY; }
+    var st = padSticks();
+    if (pad) {
+      if (Math.abs(pad.lx) > 0.18 || Math.abs(pad.ly) > 0.18) { mx = pad.lx; my = -pad.ly; } else { mx += (pad.right ? 1 : 0) - (pad.left ? 1 : 0); my += (pad.up ? 1 : 0) - (pad.down ? 1 : 0); }
+      if (st && (st.rx || st.ry)) { if (!twin && SAVE.scheme === 'classic' && state === 'play') { SAVE.scheme = 'twin'; persist(); setCtrlLabels(); banner('TWIN-STICK ON', 'Left stick flies · right stick aims', 2); } ax = st.rx; ay = -st.ry; }
+    }
     if (TCH.mx || TCH.my) { mx = TCH.mx; my = TCH.my; }
+    if (TCH.ax || TCH.ay) { ax = TCH.ax; ay = TCH.ay; }
     IN = {
-      mx: clamp(mx, -1, 1), my: clamp(my, -1, 1),
-      fire: !!(K.fire || (pad && pad.a) || TCH.fire), bomb: !!(K.bomb || (pad && pad.b)), boost: !!(K.boost || (pad && (pad.x || pad.rt)) || TCH.boost), brake: !!(K.brake || (pad && (pad.y || pad.lt))),
+      mx: clamp(mx, -1, 1), my: clamp(my, -1, 1), ax: clamp(ax, -1, 1), ay: clamp(ay, -1, 1),
+      fire: !!(K.fire || (pad && pad.a) || TCH.fire || (SAVE.scheme === 'mouse' && MOUSE.down)), bomb: !!(K.bomb || (pad && pad.b)), boost: !!(K.boost || (pad && (pad.x || pad.rt)) || TCH.boost), brake: !!(K.brake || (pad && (pad.y || pad.lt))),
       rollL: !!(K.rollL || (pad && pad.lb)), rollR: !!(K.rollR || (pad && pad.rb)), pause: !!(K.pause || (pad && pad.start)), ok: !!(K.ok || K.fire || (pad && pad.a)), back: !!(K.back || K.pause || (pad && pad.b)),
-      up: !!(K.up || (pad && pad.up)), down: !!(K.down || (pad && pad.down)), mute: !!K.mute
+      up: !!(K.up || K.arU || (pad && pad.up)), down: !!(K.down || K.arD || (pad && pad.down)), mute: !!K.mute
     };
     if (pad && pad.any) audioInit();
-    var MAPP = { fire: ['fire', 'ok'], ok: ['ok'], pause: ['pause', 'back'], back: ['back'], bomb: ['bomb'], rollL: ['rollL'], rollR: ['rollR'], up: ['up'], down: ['down'], mute: ['mute'] };
+    var MAPP = { fire: ['fire', 'ok'], ok: ['ok'], pause: ['pause', 'back'], back: ['back'], bomb: ['bomb'], rollL: ['rollL'], rollR: ['rollR'], up: ['up'], down: ['down'], arU: ['up'], arD: ['down'], mute: ['mute'] };
     for (var a in KP) (MAPP[a] || []).forEach(function (f) { if (!PREV[f]) IN[f] = true; });
     KP = {};
   }
@@ -1036,6 +1090,11 @@ a.mb{text-decoration:none}
     function up(e) { if (e.pointerId !== sid) return; sid = null; st.hidden = true; knob.style.transform = ''; TCH.mx = TCH.my = 0; }
     zone.addEventListener('pointerup', up); zone.addEventListener('pointercancel', up);
     function btn(id, down, upf) { var b = $(id); b.addEventListener('pointerdown', function (e) { audioInit(); b.classList.add('on'); b.setPointerCapture(e.pointerId); down(); e.preventDefault(); }); function u() { b.classList.remove('on'); if (upf) upf(); } b.addEventListener('pointerup', u); b.addEventListener('pointercancel', u); }
+    var az = $('aimZone'), ast = $('aimStick'), aknob = ast.querySelector('i'), aid = null, aox = 0, aoy = 0;
+    az.addEventListener('pointerdown', function (e) { audioInit(); if (SAVE.scheme === 'classic') { SAVE.scheme = 'twin'; persist(); setCtrlLabels(); } aid = e.pointerId; aox = e.clientX; aoy = e.clientY; ast.style.left = aox + 'px'; ast.style.top = aoy + 'px'; ast.hidden = false; az.setPointerCapture(aid); e.preventDefault(); });
+    az.addEventListener('pointermove', function (e) { if (e.pointerId !== aid) return; var dx = e.clientX - aox, dy = e.clientY - aoy, L = Math.hypot(dx, dy), m = 45; if (L > m) { dx *= m / L; dy *= m / L; } aknob.style.transform = 'translate(' + dx + 'px,' + dy + 'px)'; TCH.ax = dx / m; TCH.ay = -dy / m; });
+    function aup(e) { if (e.pointerId !== aid) return; aid = null; ast.hidden = true; aknob.style.transform = ''; TCH.ax = TCH.ay = 0; }
+    az.addEventListener('pointerup', aup); az.addEventListener('pointercancel', aup);
     btn('tFire', function () { TCH.fire = true; }, function () { TCH.fire = false; });
     btn('tBoost', function () { TCH.boost = true; }, function () { TCH.boost = false; });
     btn('tBomb', function () { if (state === 'play') useBomb(); });
@@ -1048,8 +1107,9 @@ a.mb{text-decoration:none}
   /* ════════════════ UPDATE ════════════════ */
   function updatePlayer(dt) {
     if (P.dead) { P.dead -= dt; if (P.dead <= 0) respawn(); return; }
-    var my = SAVE.invert ? -IN.my : IN.my, spd = 24;
-    P.vx += (IN.mx * spd - P.vx) * Math.min(1, dt * 7); P.vy += (my * spd * 0.8 - P.vy) * Math.min(1, dt * 7);
+    var smooth = SAVE.handling === 'smooth', my = SAVE.invert ? -IN.my : IN.my, spd = smooth ? 30 : 25, acc = smooth ? 3.4 : 9;
+    P.vx += (IN.mx * spd - P.vx) * Math.min(1, dt * acc); P.vy += (my * spd * 0.8 - P.vy) * Math.min(1, dt * acc);
+    var ay = SAVE.invert ? -IN.ay : IN.ay; AIM.x += (IN.ax - AIM.x) * Math.min(1, dt * 14); AIM.y += (ay - AIM.y) * Math.min(1, dt * 14);
     if (P.roll > 0) { P.vx += P.rollDir * 30 * dt * 4; }
     P.x = clamp(P.x + P.vx * dt, -17, 17); P.y = clamp(P.y + P.vy * dt, -8, 12);
     if ((P.x === 17 && P.vx > 0) || (P.x === -17 && P.vx < 0)) P.vx *= 0.5;
@@ -1235,14 +1295,15 @@ a.mb{text-decoration:none}
   on('mStart', function () { newRun(0); });
   on('mStages', showStages);
   on('mHow', function () { show('how'); });
-  on('mInvert', toggleInvert);
+  on('mCtrl', function () { showCtrl('title'); });
+  on('cScheme', cycleScheme); on('cHandling', toggleHandling); on('cInvert', toggleInvert); on('cBack', ctrlBack);
   on('mQuit', quit);
   on('hBack', toTitle);
   on('sBack', toTitle);
   Array.prototype.forEach.call(document.querySelectorAll('[data-stage]'), function (b) { b.addEventListener('click', function () { audioInit(); sfx('ok'); newRun(+b.dataset.stage); }); });
   on('pResume', resume);
   on('pRestart', function () { score = stageStartScore; startStage(STAGE); });
-  on('pInvert', toggleInvert);
+  on('pCtrl', function () { showCtrl('pause'); });
   on('pSound', function () { setMute(!muted); });
   on('pQuit', toTitle);
   on('cNext', nextFromClear);
@@ -1270,6 +1331,7 @@ a.mb{text-decoration:none}
     god: function (b) { god = b !== false; }, killBoss: function () { if (boss) { boss.parts.forEach(function (p) { p.hp = 0; }); killBoss(); } },
     stats: function () { return { score: score, hits: hits, stageHits: stageHits, lives: P.lives, shield: P.shield, ents: ents.length, stage: STAGE, T: T, boss: !!boss, laser: P.laser, bombs: P.bombs, x: P.x, y: P.y, menu: menu && menu.id }; },
     lasers: function () { return LASERS.filter(function (L) { return L.on; }).length; },
+    aim: function () { return aimDir(); }, scheme: function (v) { SAVE.scheme = v; setCtrlLabels(); }, mouse: function (x, y) { MOUSE.x = x; MOUSE.y = y; MOUSE.has = true; },
     dbg: function () { return { K: K, IN: IN, PREV: PREV, menu: menu && menu.id, sel: menu && menu.sel }; },
     hurt: function (n) { var g = god; god = false; P.inv = 0; hurt(n || 200); god = g; }, bomb: useBomb, roll: roll, setLaser: function (l) { P.laser = l; }
   };
