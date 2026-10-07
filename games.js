@@ -1,7 +1,26 @@
-/* ContentPad Arcade — the game catalog (build 2026100604-hf).
+/* ContentPad Arcade — the game catalog (build 2026100702-tt).
    House games live in this repo as <slug>.html at the top level and are listed here.
    Only status:'live' entries are shown. rating marks adult games (the game itself runs its own age gate). */
 window.ARCADE_GAMES = [
+  {
+    slug: 'toy-tokyo-catcher',
+    file: 'toy-tokyo-catcher.html',
+    title: 'Gacha Rush: Toy Tokyo UFO Catcher',
+    badge: 'New · Toy Tokyo × ContentPad · real pulls',
+    tagline: 'Grab a capsule. Every one is a real Toy Tokyo pull, or crew.',
+    about: "A claw machine stuffed with capsules from Toy Tokyo, the East Village collectibles shop at 91 Second Avenue. Aim the claw, drop it, and carry your capsule to the prize chute. Crack it open to find a real piece from the shop, from a $6 blind box up to a KAWS-tier grail, with a link to the real thing. You might also get one of the seven original crew stickers: MOKO, Oni-Bot, Kumo, Neko-naut, Daru-G, Hoshi and Kinoko. Grails slip, combos stack, and a full crew binder earns 5 bonus plays. Your binder is saved on this device.",
+    genre: 'Arcade',
+    tags: ['Claw machine', 'Collectibles', 'Toy Tokyo', 'Binder', 'Controller'],
+    controls: [['← → / A D / left stick / drag', 'Aim the claw'], ['Space / Enter / ↓ / (A) / DROP', 'Drop the claw'], ['B / (Y)', 'Open your binder'], ['M', 'Mute'], ['Esc', 'Close a card']],
+    by: 'ContentPad Studios × Toy Tokyo',
+    made: 'Characters, art and the theme "Second Avenue Gacha" made in ContentPad Studio · products and photos courtesy of Toy Tokyo · code by Claude',
+    scoreLabel: 'Best score',
+    cover: 'https://media.cpdblackbook.com/a2a988e8-fbbd-4510-8238-b1c311f61608/5f632fc8-2fbd-4cd4-bae8-9e8f842d56c3.png',
+    accent: '#ff3ea5',
+    released: '2026-10-07',
+    controller: true, mobile: true,
+    status: 'live'
+  },
   {
     slug: 'high-flying',
     file: 'high-flying.html',

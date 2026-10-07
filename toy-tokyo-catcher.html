@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- Gacha Rush · Toy Tokyo UFO Catcher — ContentPad Arcade (build 2026100702-tt v1.1)
+     A claw machine full of capsules. Every capsule is a real Toy Tokyo pull (linked to toytokyo.com) or one of the
+     seven original Toy Tokyo × ContentPad crew stickers. Posts {arcade:'start'|'over'} and {arcade:'toytokyo', event, ...}.
+     ?embed=1 (inside toytokyo.html) skips the music because the landing page plays the theme. -->
+<title>Gacha Rush · Toy Tokyo UFO Catcher</title>
+<meta name="theme-color" content="#2a1258">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0b0b12;--pink:#ff3ea5;--yel:#ffe14d;--cy:#22d3ee;--tan:#ff8a1c;--vio:#2a1258}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--vio);color:#fff;font-family:'Space Grotesk',system-ui,sans-serif;overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+#wrap{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:max(8px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom))}
+#stage{position:relative;aspect-ratio:600/820;height:min(100%,calc((100vw - 16px) * 820 / 600));max-width:100%;border:4px solid var(--ink);border-radius:26px;overflow:hidden;box-shadow:8px 8px 0 var(--ink);background:#ffd6ec}
+canvas{display:block;width:100%;height:100%}
+.pad{display:none;width:100%;max-width:520px;gap:10px;align-items:stretch}
+.pad button{flex:1;height:64px;border:3px solid var(--ink);border-radius:18px;font:400 22px 'Dela Gothic One',sans-serif;color:var(--ink);box-shadow:4px 4px 0 var(--ink);touch-action:none}
+.pad button:active,.pad button.on{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.pad .mv{background:var(--cy)} .pad .drop{flex:1.6;background:var(--pink);color:#fff}
+@media (pointer:coarse){.pad{display:flex}#stage{height:min(calc(100% - 80px),calc((100vw - 16px) * 820 / 600))}}
+.tbtn{position:absolute;top:10px;z-index:4;width:40px;height:40px;border-radius:12px;border:3px solid var(--ink);background:#fff;color:var(--ink);font:700 16px 'Space Grotesk',sans-serif;cursor:pointer;box-shadow:3px 3px 0 var(--ink);display:grid;place-items:center}
+#mute{right:10px}#binderBtn{right:58px}
+/* reveal + binder overlays (real links, so DOM not canvas) */
+.ov{position:absolute;inset:0;z-index:6;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(42,18,88,.72);backdrop-filter:blur(3px)}
+.ov.show{display:flex}
+.card{position:relative;width:100%;max-width:400px;background:#fff;color:var(--ink);border:4px solid var(--ink);border-radius:22px;box-shadow:8px 8px 0 var(--ink);padding:16px;text-align:center;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{0%{transform:scale(.3) rotate(-8deg);opacity:0}100%{transform:none;opacity:1}}
+.rar{display:inline-block;font:400 14px 'Dela Gothic One',sans-serif;letter-spacing:.06em;padding:5px 12px;border:3px solid var(--ink);border-radius:99px;margin-bottom:8px}
+.r-common{background:var(--cy)}.r-rare{background:var(--pink);color:#fff}.r-grail{background:linear-gradient(90deg,#ffe14d,#ffb800,#fff3a0,#ffb800);animation:shine 1.4s linear infinite;background-size:200% 100%}.r-crew{background:var(--yel)}
+@keyframes shine{to{background-position:-200% 0}}
+.pic{height:min(34vh,230px);display:grid;place-items:center;overflow:hidden;margin:4px 0 8px;border-radius:14px;background:repeating-radial-gradient(circle at 50% 50%,#fff 0 6px,#ffeaf5 6px 12px)}
+.pic img{width:92%;height:100%;object-fit:contain;border-radius:10px}
+.card h3{margin:2px 0 4px;font:700 17px/1.25 'Space Grotesk',sans-serif}
+.card .jp{font:400 13px 'Dela Gothic One',sans-serif;color:#8a5}
+.price{font:400 22px 'Dela Gothic One',sans-serif;margin:4px 0 10px}
+.row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.b{display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 16px;border:3px solid var(--ink);border-radius:14px;font:700 15px 'Space Grotesk',sans-serif;color:var(--ink);background:#fff;text-decoration:none;box-shadow:4px 4px 0 var(--ink);cursor:pointer}
+.b.hot{background:var(--pink);color:#fff}.b.yl{background:var(--yel)}
+.b:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.note{font-size:13px;color:#555;margin:8px 0 0}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}
+.slot{aspect-ratio:1;border:3px solid var(--ink);border-radius:12px;background:#f3e9ff;display:grid;place-items:center;overflow:hidden}
+.slot img{width:88%;height:88%;object-fit:contain}.slot.no img{filter:brightness(0) opacity(.18)}
+.pulls{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px}
+.pulls a{flex:0 0 64px;height:64px;border:3px solid var(--ink);border-radius:10px;background:#fff;overflow:hidden}
+.pulls img{width:100%;height:100%;object-fit:cover}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="stage">
+    <canvas id="c" width="600" height="820" aria-label="Gacha Rush claw machine"></canvas>
+    <button class="tbtn" id="mute" type="button" aria-label="Sound on or off">♪</button>
+    <button class="tbtn" id="binderBtn" type="button" aria-label="Open your binder">▦</button>
+    <div class="ov" id="reveal"><div class="card" id="revealCard"></div></div>
+    <div class="ov" id="binder"><div class="card" id="binderCard"></div></div>
+  </div>
+  <div class="pad" id="pad">
+    <button class="mv" id="pl" type="button" aria-label="Move left">◀</button>
+    <button class="drop" id="pd" type="button">DROP</button>
+    <button class="mv" id="pr" type="button" aria-label="Move right">▶</button>
+  </div>
+</div>
+<script src="gamepad.js?v=1"></script>
+<script src="toytokyo-data.js?v=2"></script>
+<script>
+(function(){
+'use strict';
+var TT=window.TT||{collections:[],crew:[],media:'',cdn:''};
+var Q=new URLSearchParams(location.search), EMBED=Q.get('embed')==='1', GAME_ID='toy-tokyo-catcher';
+var cv=document.getElementById('c'), x=cv.getContext('2d'), W=600, H=820;
+var BOX={l:30,r:570,top:70,floor:652}, CHUTE={l:30,r:150,wallTop:548};
+function post(type,extra){try{if(window.parent!==window)window.parent.postMessage(Object.assign({arcade:type,game:GAME_ID},extra||{}),'*')}catch(e){}}
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function money(p){if(p>=10000)return'Price on request';return'$'+p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function img(src){var i=new Image();i.src=src;return i}
+function shopImg(i,w){return TT.cdn+i+(i.indexOf('?')>-1?'&':'?')+'width='+(w||500)}
+
+/* ---------- prize pools from the real catalog ---------- */
+var POOL={common:[],rare:[],grail:[]};
+TT.collections.forEach(function(c){(c.items||[]).forEach(function(it){var o={t:it.t,h:it.h,p:it.p,i:it.i,col:c.name,jp:c.jp,url:'https://toytokyo.com/products/'+it.h};
+  (it.p>=1000?POOL.grail:it.p>=100?POOL.rare:POOL.common).push(o)})});
+var CREW=TT.crew.map(function(c){return Object.assign({im:img(TT.media+c.img)},c)});
+var MOKO=CREW[0]?CREW[0].im:null;
+var RAR={crew:{w:22,grip:.86,pts:100,col:['#ffe14d','#fff7c2']},common:{w:46,grip:.74,pts:150,col:['#22d3ee','#bff6ff']},rare:{w:24,grip:.58,pts:400,col:['#ff3ea5','#ffc2e3']},grail:{w:8,grip:.4,pts:1500,col:['#ffc400','#fff3a0']}};
+function rollKind(){var t=0,k;for(k in RAR)t+=RAR[k].w;var r=Math.random()*t;for(k in RAR){r-=RAR[k].w;if(r<0)return k}return'common'}
+
+/* ---------- state ---------- */
+var S={mode:'title',coins:10,score:0,combo:0,best:+(ls('arcade_best_'+GAME_ID)||0),t:0,timer:15,msg:'',msgT:0};
+var binder={crew:[],pulls:[]};try{binder=Object.assign(binder,JSON.parse(ls('tt_binder')||'{}'))}catch(e){}
+function saveBinder(){ls('tt_binder',JSON.stringify(binder))}
+var caps=[], parts=[], claw={x:360,y:110,open:1,st:'idle',held:null,slipAt:-1,vx:0,tw:0};
+var keys={}, padHold={l:0,r:0};
+
+function mkCap(x0,y0){var k=rollKind(),r=k==='grail'?30:26+Math.random()*7|0;
+  var c={x:x0,y:y0,vx:(Math.random()-.5)*40,vy:0,r:r,k:k,rot:Math.random()*6.28,crew:null,item:null,sp:Math.random()*6};
+  if(k==='crew')c.crew=CREW[Math.random()*CREW.length|0];
+  else{var p=POOL[k];c.item=p.length?p[Math.random()*p.length|0]:null;if(!c.item){c.k='crew';c.crew=CREW[0]}}
+  return c}
+function fill(n){for(var i=0;i<n;i++)caps.push(mkCap(180+Math.random()*370,-40-i*50))}
+function reset(){caps=[];fill(30);for(var s=0;s<400;s++)phys(1/60,true);S.coins=10;S.score=0;S.combo=0;claw.x=360;claw.y=110;claw.st='idle';claw.held=null;claw.open=1;S.timer=15}
+
+/* ---------- physics: circles, gravity, walls, chute ---------- */
+function phys(dt,quiet){
+  var g=1500;
+  caps.forEach(function(c){if(c===claw.held)return;c.vy+=g*dt;c.x+=c.vx*dt;c.y+=c.vy*dt;c.rot+=c.vx*dt/c.r;
+    // walls
+    if(c.x-c.r<BOX.l){c.x=BOX.l+c.r;c.vx*=-.4}
+    if(c.x+c.r>BOX.r){c.x=BOX.r-c.r;c.vx*=-.4}
+    var inChute=c.x<CHUTE.r;
+    // divider wall between pile and chute
+    if(!c.fall){if(c.y+c.r>CHUTE.wallTop&&c.x-c.r<CHUTE.r+8&&c.x>CHUTE.r-4){c.x=CHUTE.r+8+c.r;c.vx=Math.abs(c.vx)*.3}}
+    if(inChute){c.fall=true}
+    if(!c.fall&&c.y+c.r>BOX.floor){c.y=BOX.floor-c.r;c.vy*=-.18;c.vx*=.9}
+  });
+  for(var it=0;it<3;it++)for(var i=0;i<caps.length;i++)for(var j=i+1;j<caps.length;j++){var a=caps[i],b=caps[j];
+    if(a.fall||b.fall)continue;var dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy),m=a.r+b.r;
+    if(d>0&&d<m){var o=(m-d)/2,nx=dx/d,ny=dy/d,ha=a===claw.held,hb=b===claw.held;
+      if(ha){b.x+=nx*o*2;b.y+=ny*o*2}else if(hb){a.x-=nx*o*2;a.y-=ny*o*2}else{a.x-=nx*o;a.y-=ny*o;b.x+=nx*o;b.y+=ny*o}
+      var rv=(b.vx-a.vx)*nx+(b.vy-a.vy)*ny;if(rv<0){var imp=-rv*.55;if(!ha){a.vx-=imp*nx;a.vy-=imp*ny}if(!hb){b.vx+=imp*nx;b.vy+=imp*ny}}
+      a.vx*=.985;b.vx*=.985}}
+  // collected through the chute
+  for(var k=caps.length-1;k>=0;k--){var c=caps[k];if(c.y-c.r>H+20){caps.splice(k,1);if(!quiet)win(c)}}
+}
+
+/* ---------- the claw ---------- */
+var RAIL=104, MINY=112;
+function surfaceUnder(cx){var top=BOX.floor;caps.forEach(function(c){if(c===claw.held||c.fall)return;if(Math.abs(c.x-cx)<c.r+6)top=Math.min(top,c.y-c.r)});return top}
+function startDrop(){if(S.mode!=='play'||claw.st!=='idle'||S.coins<=0)return;S.coins--;claw.st='down';claw.open=1;sfx('drop');post('start')}
+function stepClaw(dt){
+  var sp=280;
+  if(claw.st==='idle'){var dir=(keys.l||padHold.l?-1:0)+(keys.r||padHold.r?1:0)+(GP.l?-1:0)+(GP.r?1:0);dir=Math.max(-1,Math.min(1,dir));
+    claw.vx+=(dir*sp-claw.vx)*Math.min(1,dt*12);claw.x+=claw.vx*dt;claw.x=Math.max(CHUTE.r+40,Math.min(BOX.r-40,claw.x));
+    if(dir)S.moving=true;S.timer-=dt;if(S.timer<=0)startDrop()}
+  else if(claw.st==='down'){claw.y+=300*dt;var stop=surfaceUnder(claw.x)-38;if(claw.y>=Math.min(stop,BOX.floor-60)){claw.y=Math.min(stop,BOX.floor-60);claw.st='close';claw.tw=0}}
+  else if(claw.st==='close'){claw.tw+=dt;claw.open=Math.max(0,1-claw.tw/.35);if(claw.tw>.4){grab();claw.st='up'}}
+  else if(claw.st==='up'){claw.y-=230*dt;if(claw.held&&claw.slipAt>0&&claw.y<claw.slipAt){drop('slip')}if(claw.y<=MINY){claw.y=MINY;claw.st=claw.held?'carry':'home'}}
+  else if(claw.st==='carry'){claw.x-=300*dt;if(claw.held&&claw.slipAt<0&&claw.slipX&&claw.x<claw.slipX){drop('slip')}if(claw.x<=90){claw.x=90;claw.st='release';claw.tw=0}}
+  else if(claw.st==='release'){claw.tw+=dt;claw.open=Math.min(1,claw.tw/.3);if(claw.held&&claw.tw>.12){drop('win')}if(claw.tw>.6)claw.st='home'}
+  else if(claw.st==='home'){claw.open=1;claw.x+=(360-claw.x)*Math.min(1,dt*3);if(Math.abs(claw.x-360)<3){claw.st='idle';S.timer=15;if(S.coins<=0&&!pendingReveal)setTimeout(over,600)}}
+  if(claw.held){var h=claw.held;h.x=claw.x;h.y=claw.y+40+h.r*.55;h.vx=0;h.vy=0}
+}
+function grab(){
+  var best=null,bd=1e9;caps.forEach(function(c){if(c.fall)return;var dx=Math.abs(c.x-claw.x),dy=c.y-c.r-(claw.y+30);if(dx<c.r+12&&dy<34&&dx<bd){bd=dx;best=c}});
+  if(!best){sfx('miss');toast('MISS!');S.combo=0;return}
+  var R=RAR[best.k],centered=bd<10?.2:bd<18?.1:0,ok=Math.random()<R.grip+centered;
+  // a nudge either way: claws knock the pile around
+  caps.forEach(function(c){var d=Math.hypot(c.x-claw.x,c.y-claw.y-40);if(d<90&&c!==best){c.vx+=(c.x-claw.x)*2;c.vy-=80}});
+  if(!ok){best.vx+=(Math.random()-.5)*260;best.vy-=200;sfx('clack');toast(best.k==='grail'?'SO CLOSE…':'SLIPPED!');S.combo=0;return}
+  claw.held=best;claw.slipAt=-1;claw.slipX=0;sfx('clack');
+  // the house edge: rare & grail can slip on the way up or across
+  var slip=best.k==='grail'?.28:best.k==='rare'?.14:.04;
+  if(Math.random()<slip){if(Math.random()<.5)claw.slipAt=MINY+40+Math.random()*(claw.y-MINY-60);else claw.slipX=120+Math.random()*(claw.x-140)}
+}
+function drop(why){var h=claw.held;if(!h)return;claw.held=null;h.vy=40;h.vx=why==='slip'?(Math.random()-.5)*80:0;
+  if(why==='slip'){claw.open=1;sfx('miss');toast(h.x<CHUTE.r?'LUCKY DROP!':'DROPPED IT!');S.combo=0}}
+
+/* ---------- prizes ---------- */
+var pendingReveal=null;
+function win(c){
+  S.combo++;var pts=RAR[c.k].pts*(1+(S.combo-1)*.5)|0;S.score+=pts;burst(90,700,c.k);sfx(c.k==='grail'?'grail':'win');
+  if(S.score>S.best){S.best=S.score;ls('arcade_best_'+GAME_ID,S.best)}
+  var bonus=0;
+  if(c.k==='crew'&&c.crew){if(binder.crew.indexOf(c.crew.id)<0){binder.crew.push(c.crew.id);if(binder.crew.length===CREW.length){bonus=5;S.coins+=5}}}
+  else if(c.item){binder.pulls=binder.pulls.filter(function(p){return p.h!==c.item.h});binder.pulls.unshift({h:c.item.h,t:c.item.t,i:c.item.i,p:c.item.p});binder.pulls=binder.pulls.slice(0,24)}
+  saveBinder();if(caps.length<22)fill(8);
+  post('toytokyo',{event:'pull',kind:c.k,score:S.score,title:c.item?c.item.t:c.crew&&c.crew.name,handle:c.item?c.item.h:null});
+  pendingReveal={c:c,pts:pts,bonus:bonus};setTimeout(showReveal,550);
+}
+function showReveal(){var R=pendingReveal;if(!R)return;var c=R.c,el=document.getElementById('revealCard'),h;
+  if(c.k==='crew'){var cr=c.crew;h='<span class="rar r-crew">CREW STICKER · +'+R.pts+'</span><div class="pic"><img alt="" src="'+esc(TT.media+cr.img)+'"></div><h3>'+esc(cr.name)+' <span class="jp">'+esc(cr.jp)+'</span></h3><p class="note" style="margin-top:0">'+esc(cr.role)+'</p><p class="price">'+binder.crew.length+' / '+CREW.length+' crew</p>'+
+    (R.bonus?'<p class="note"><b>Full crew! +5 bonus plays.</b></p>':'')+'<div class="row"><button class="b hot" data-x="close">Keep playing</button><button class="b" data-x="binder">Binder</button></div>'}
+  else{var it=c.item,lab={common:'COMMON PULL',rare:'RARE PULL',grail:'★ GRAIL ★'}[c.k];
+    h='<span class="rar r-'+c.k+'">'+lab+' · +'+R.pts+'</span><div class="pic"><img alt="" src="'+esc(shopImg(it.i,600))+'"></div><h3>'+esc(it.t)+'</h3><div class="jp">'+esc(it.col)+' · '+esc(it.jp)+'</div><p class="price">'+money(it.p)+'</p>'+
+    '<div class="row"><a class="b yl" target="_blank" rel="noopener" href="'+esc(it.url)+'">Cop it at Toy Tokyo ↗</a><button class="b hot" data-x="close">Keep playing</button></div><p class="note">The real thing is at 91 Second Avenue and toytokyo.com.</p>'}
+  el.innerHTML=h;document.getElementById('reveal').classList.add('show');S.paused=true;
+}
+function closeReveal(){document.getElementById('reveal').classList.remove('show');S.paused=false;pendingReveal=null;if(S.coins<=0&&claw.st==='idle')setTimeout(over,300)}
+function showBinder(){var el=document.getElementById('binderCard');
+  el.innerHTML='<span class="rar r-crew">YOUR BINDER</span><h3>Crew '+binder.crew.length+' / '+CREW.length+'</h3><div class="grid">'+CREW.map(function(c){var have=binder.crew.indexOf(c.id)>-1;return'<div class="slot'+(have?'':' no')+'" title="'+esc(have?c.name:'???')+'"><img alt="" src="'+esc(TT.media+c.img)+'"></div>'}).join('')+'</div>'+
+  '<h3>Pulls</h3>'+(binder.pulls.length?'<div class="pulls">'+binder.pulls.map(function(p){return'<a target="_blank" rel="noopener" title="'+esc(p.t)+'" href="https://toytokyo.com/products/'+esc(p.h)+'"><img alt="" src="'+esc(shopImg(p.i,160))+'"></a>'}).join('')+'</div>':'<p class="note">Nothing yet — go win something.</p>')+
+  '<div class="row" style="margin-top:8px"><button class="b hot" data-x="closeb">Back to the machine</button></div><p class="note">Saved on this device.</p>';
+  document.getElementById('binder').classList.add('show');S.paused=true}
+document.addEventListener('click',function(e){var b=e.target.closest('[data-x]');if(!b)return;var a=b.getAttribute('data-x');
+  if(a==='close')closeReveal();else if(a==='binder'){closeReveal();showBinder()}else if(a==='closeb'){document.getElementById('binder').classList.remove('show');S.paused=false}});
+document.getElementById('binderBtn').onclick=function(){if(document.getElementById('binder').classList.contains('show')){document.getElementById('binder').classList.remove('show');S.paused=false}else showBinder()};
+function over(){if(S.mode!=='play'||claw.held)return;S.mode='over';post('over',{score:S.score});sfx('over')}
+
+/* ---------- fx ---------- */
+function burst(bx,by,k){var cols=k==='grail'?['#ffe14d','#fff','#ffb800']:['#ff3ea5','#22d3ee','#ffe14d','#fff'];for(var i=0;i<(k==='grail'?90:40);i++){var a=Math.random()*6.28,s=200+Math.random()*500;parts.push({x:bx,y:by,vx:Math.cos(a)*s,vy:Math.sin(a)*s-300,l:1+Math.random(),c:cols[i%cols.length],s:4+Math.random()*6,star:Math.random()<.4})}}
+function toast(m){S.msg=m;S.msgT=1.2}
+
+/* ---------- audio: theme (standalone only) + synth sfx ---------- */
+var AC=null,muted=ls('tt_muted')==='1',music=null;
+function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(e){}}if(AC&&AC.state==='suspended')AC.resume();return AC}
+function tone(f,d,type,vol,slide,when){var a=ac();if(!a||muted)return;var t=a.currentTime+(when||0),o=a.createOscillator(),g=a.createGain();o.type=type||'square';o.frequency.setValueAtTime(f,t);if(slide)o.frequency.exponentialRampToValueAtTime(slide,t+d);g.gain.setValueAtTime(vol||.12,t);g.gain.exponentialRampToValueAtTime(.001,t+d);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+d+.02)}
+function sfx(n){if(muted)return;if(n==='coin'){tone(988,.08,'square',.1);tone(1319,.25,'square',.1,0,.08)}
+  else if(n==='drop'){tone(220,.5,'sawtooth',.05,110)}
+  else if(n==='clack'){tone(160,.06,'square',.14);tone(90,.08,'triangle',.18,0,.04)}
+  else if(n==='miss'){tone(392,.18,'triangle',.12,330);tone(311,.3,'triangle',.12,247,.18)}
+  else if(n==='win'){[523,659,784,1047].forEach(function(f,i){tone(f,.16,'square',.09,0,i*.08)})}
+  else if(n==='grail'){[523,659,784,1047,1319,1568,2093].forEach(function(f,i){tone(f,.22,'square',.09,0,i*.07)});tone(1047,.9,'triangle',.08,2093,.5)}
+  else if(n==='over'){[784,659,523,392].forEach(function(f,i){tone(f,.22,'triangle',.11,0,i*.14)})}}
+function startMusic(){if(EMBED||music)return;try{music=new Audio(TT.media+TT.music);music.loop=true;music.volume=.45;if(!muted)music.play().catch(function(){})}catch(e){}}
+var muteBtn=document.getElementById('mute');function paintMute(){muteBtn.textContent=muted?'✕':'♪';muteBtn.setAttribute('aria-pressed',muted?'true':'false')}paintMute();
+muteBtn.onclick=function(){muted=!muted;ls('tt_muted',muted?'1':'0');paintMute();if(music){if(muted)music.pause();else music.play().catch(function(){})}};
+window.addEventListener('message',function(e){var d=e.data||{};if(d.tt==='mute'){muted=!!d.muted;paintMute();if(music&&muted)music.pause()}});
+
+/* ---------- input ---------- */
+function press(){ac();if(S.paused)return;if(S.mode==='title'||S.mode==='over'){reset();S.mode='play';sfx('coin');startMusic();return}startDrop()}
+addEventListener('keydown',function(e){var k=e.key;if(k==='ArrowLeft'||k==='a'||k==='A')keys.l=1;else if(k==='ArrowRight'||k==='d'||k==='D')keys.r=1;
+  else if(k===' '||k==='Enter'||k==='ArrowDown'||k==='s'||k==='S'){e.preventDefault();if(S.paused&&pendingReveal){closeReveal();return}press()}
+  else if(k==='Escape'){if(pendingReveal)closeReveal();document.getElementById('binder').classList.remove('show');S.paused=false}
+  else if(k==='m'||k==='M')muteBtn.click();else if(k==='b'||k==='B')document.getElementById('binderBtn').click();
+  if(k.indexOf('Arrow')===0)e.preventDefault()});
+addEventListener('keyup',function(e){var k=e.key;if(k==='ArrowLeft'||k==='a'||k==='A')keys.l=0;else if(k==='ArrowRight'||k==='d'||k==='D')keys.r=0});
+function hold(id,key){var b=document.getElementById(id);function on(e){e.preventDefault();padHold[key]=1;b.classList.add('on');ac()}function off(){padHold[key]=0;b.classList.remove('on')}
+  b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointerleave',off);b.addEventListener('pointercancel',off)}
+hold('pl','l');hold('pr','r');
+document.getElementById('pd').addEventListener('pointerdown',function(e){e.preventDefault();press()});
+// tap / drag on the glass: aim at the finger, release the finger to drop
+var drag=null;
+cv.addEventListener('pointerdown',function(e){ac();if(S.mode!=='play'){press();return}if(claw.st!=='idle'||S.paused)return;var r=cv.getBoundingClientRect();drag={x:(e.clientX-r.left)/r.width*W,y:(e.clientY-r.top)/r.height*H,moved:0};cv.setPointerCapture(e.pointerId)});
+cv.addEventListener('pointermove',function(e){if(!drag)return;var r=cv.getBoundingClientRect(),nx=(e.clientX-r.left)/r.width*W;drag.moved+=Math.abs(nx-drag.x);drag.x=nx});
+cv.addEventListener('pointerup',function(){if(!drag)return;var d=drag;drag=null;if(d.y>BOX.floor)return;if(d.moved<6&&Math.abs(d.x-claw.x)<30)startDrop();else if(d.moved>=6)startDrop()});
+var GP={l:0,r:0},gpPrev=false;
+function pollPad(){GP.l=GP.r=0;if(!window.ArcadePad)return;var ps=ArcadePad.pads();if(!ps.length)return;var p=ArcadePad.read(ps[0]);if(!p)return;GP.l=p.left?1:0;GP.r=p.right?1:0;var btn=p.a||p.start;if(btn&&!gpPrev){if(S.paused&&pendingReveal)closeReveal();else if(S.paused)document.querySelector('[data-x=closeb]')&&document.querySelector('[data-x=closeb]').click();else press()}gpPrev=btn;if(p.y&&!S.yPrev)document.getElementById('binderBtn').click();S.yPrev=p.y}
+
+/* ---------- draw ---------- */
+function rr(x0,y0,w,h,r){x.beginPath();x.moveTo(x0+r,y0);x.arcTo(x0+w,y0,x0+w,y0+h,r);x.arcTo(x0+w,y0+h,x0,y0+h,r);x.arcTo(x0,y0+h,x0,y0,r);x.arcTo(x0,y0,x0+w,y0,r);x.closePath()}
+var halftone=(function(){var p=document.createElement('canvas');p.width=p.height=18;var q=p.getContext('2d');q.fillStyle='rgba(255,62,165,.16)';q.beginPath();q.arc(9,9,3.2,0,6.28);q.fill();return x.createPattern(p,'repeat')})();
+function drawCab(t){
+  var g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#ffb3dc');g.addColorStop(1,'#ff7cc4');x.fillStyle=g;x.fillRect(0,0,W,H);
+  // glass box back wall
+  var bg=x.createLinearGradient(0,BOX.top,0,BOX.floor);bg.addColorStop(0,'#3a1a7a');bg.addColorStop(1,'#7b2ca8');x.fillStyle=bg;rr(BOX.l,BOX.top-40,BOX.r-BOX.l,BOX.floor-BOX.top+40,18);x.fill();
+  x.save();x.clip();x.fillStyle=halftone;x.fillRect(BOX.l,BOX.top-40,BOX.r-BOX.l,BOX.floor-BOX.top+40);
+  // marquee lights
+  for(var i=0;i<14;i++){var on=((t*6|0)+i)%3===0;x.fillStyle=on?'#ffe14d':'#ff3ea5';x.beginPath();x.arc(BOX.l+22+i*38.5,BOX.top-24,6,0,6.28);x.fill()}
+  // floating kanji on the back wall
+  x.globalAlpha=.16;x.fillStyle='#fff';x.font='400 120px "Dela Gothic One"';x.textAlign='center';x.fillText('景品',340,420+Math.sin(t)*6);x.globalAlpha=1;
+  x.restore();
+  // chute
+  x.fillStyle='#16082e';x.fillRect(CHUTE.l,CHUTE.wallTop,CHUTE.r-CHUTE.l,BOX.floor-CHUTE.wallTop+40);
+  x.fillStyle='#ffe14d';x.strokeStyle='#0b0b12';x.lineWidth=4;rr(CHUTE.r-2,CHUTE.wallTop-6,14,BOX.floor-CHUTE.wallTop+6,5);x.fill();x.stroke();
+  x.fillStyle='#ffe14d';x.font='400 20px "Dela Gothic One"';x.textAlign='center';x.fillText('PRIZE',90,CHUTE.wallTop+34);x.font='400 14px "Dela Gothic One"';x.fillText('景品口',90,CHUTE.wallTop+56);
+  x.strokeStyle='rgba(255,225,77,.7)';x.setLineDash([8,8]);x.lineDashOffset=-t*30;x.strokeRect(CHUTE.l+10,CHUTE.wallTop+70,CHUTE.r-CHUTE.l-20,40);x.setLineDash([]);
+  // floor
+  x.fillStyle='#ff9fd2';x.fillRect(CHUTE.r+10,BOX.floor,BOX.r-CHUTE.r-10,10);
+  // rail
+  x.fillStyle='#d9d9e8';x.strokeStyle='#0b0b12';x.lineWidth=4;rr(BOX.l+6,RAIL-12,BOX.r-BOX.l-12,16,8);x.fill();x.stroke();
+}
+function drawCap(c){
+  var R=RAR[c.k];x.save();x.translate(c.x,c.y);x.rotate(c.rot*.15);
+  if(c.k==='grail'){x.shadowColor='#ffe14d';x.shadowBlur=24}
+  // bottom half (white), top half (tinted, translucent)
+  x.beginPath();x.arc(0,0,c.r,0,Math.PI);x.closePath();x.fillStyle='#fff';x.fill();
+  x.shadowBlur=0;
+  x.beginPath();x.arc(0,0,c.r,Math.PI,6.2832);x.closePath();x.fillStyle=R.col[0];x.globalAlpha=.88;x.fill();x.globalAlpha=1;
+  // what's inside
+  if(c.k==='crew'&&c.crew&&c.crew.im.complete&&c.crew.im.naturalWidth){x.save();x.beginPath();x.arc(0,0,c.r-3,0,6.2832);x.clip();x.drawImage(c.crew.im,-c.r*.85,-c.r*.95,c.r*1.7,c.r*1.7);x.restore()}
+  else{x.fillStyle=R.col[1];x.font='400 '+(c.r*.9|0)+'px "Dela Gothic One"';x.textAlign='center';x.textBaseline='middle';x.fillText(c.k==='grail'?'★':'?',0,-c.r*.28)}
+  x.strokeStyle='#0b0b12';x.lineWidth=3.5;x.beginPath();x.arc(0,0,c.r,0,6.2832);x.stroke();
+  x.beginPath();x.moveTo(-c.r,0);x.lineTo(c.r,0);x.stroke();
+  x.fillStyle='rgba(255,255,255,.75)';x.beginPath();x.ellipse(-c.r*.38,-c.r*.5,c.r*.22,c.r*.12,-.6,0,6.28);x.fill();
+  x.restore();
+  if(c.k==='grail'){var s=(S.t*3+c.sp)%1;x.fillStyle='rgba(255,255,255,'+(1-s)+')';star(c.x+c.r*.6,c.y-c.r*.7,6+s*6)}
+}
+function star(sx,sy,r){x.beginPath();for(var i=0;i<8;i++){var a=i*Math.PI/4,rr2=i%2?r*.35:r;x.lineTo(sx+Math.cos(a)*rr2,sy+Math.sin(a)*rr2)}x.closePath();x.fill()}
+function drawClaw(){
+  var cx=claw.x,cy=claw.y;
+  // trolley
+  x.fillStyle='#ff3ea5';x.strokeStyle='#0b0b12';x.lineWidth=4;rr(cx-26,RAIL-18,52,26,8);x.fill();x.stroke();
+  x.strokeStyle='#333';x.lineWidth=3;x.beginPath();x.moveTo(cx,RAIL+8);x.lineTo(cx,cy);x.stroke();
+  x.fillStyle='#e8e8f4';x.strokeStyle='#0b0b12';x.lineWidth=4;rr(cx-20,cy-4,40,22,8);x.fill();x.stroke();
+  var o=claw.open;x.lineWidth=7;x.lineCap='round';
+  [-1,1].forEach(function(s){x.strokeStyle='#0b0b12';x.beginPath();x.moveTo(cx+s*12,cy+16);x.lineTo(cx+s*(22+o*22),cy+40);x.lineTo(cx+s*(10+o*20),cy+60);x.stroke();
+    x.strokeStyle='#cfd2e6';x.lineWidth=3;x.beginPath();x.moveTo(cx+s*12,cy+16);x.lineTo(cx+s*(22+o*22),cy+40);x.lineTo(cx+s*(10+o*20),cy+60);x.stroke();x.lineWidth=7});
+  // aim line while idle
+  if(claw.st==='idle'&&S.mode==='play'){x.strokeStyle='rgba(255,225,77,.55)';x.lineWidth=2;x.setLineDash([6,8]);x.beginPath();x.moveTo(cx,cy+64);x.lineTo(cx,surfaceUnder(cx));x.stroke();x.setLineDash([])}
+}
+function hud(){
+  var y0=BOX.floor+18;x.fillStyle='#0b0b12';rr(20,y0,W-40,H-y0-18,18);x.fill();
+  x.textAlign='left';x.fillStyle='#ffe14d';x.font='400 15px "Dela Gothic One"';x.fillText('PLAYS',40,y0+32);x.fillText('SCORE',190,y0+32);x.fillText('BEST',380,y0+32);
+  x.fillStyle='#fff';x.font='400 34px "Dela Gothic One"';x.fillText(S.coins,40,y0+72);x.fillText(S.score.toLocaleString('en-US'),190,y0+72);x.fillStyle='#22d3ee';x.fillText(S.best.toLocaleString('en-US'),380,y0+72);
+  x.font='500 14px "Space Grotesk"';x.fillStyle='#bbb';x.fillText('Crew '+binder.crew.length+'/'+CREW.length+'  ·  '+(S.combo>1?'COMBO ×'+S.combo:'Grail = KAWS-tier pull'),40,y0+108);
+  if(S.mode==='play'&&claw.st==='idle'){var tl=Math.max(0,Math.ceil(S.timer));x.textAlign='right';x.fillStyle=tl<=5?'#ff3ea5':'#fff';x.font='400 26px "Dela Gothic One"';x.fillText(tl,W-40,y0+106)}
+}
+function title(t,over_){
+  x.fillStyle='rgba(42,18,88,.78)';x.fillRect(0,0,W,H);
+  if(MOKO&&MOKO.complete&&MOKO.naturalWidth){var s=1+Math.sin(t*2)*.03;x.save();x.translate(W/2,330+Math.sin(t*1.6)*10);x.rotate(Math.sin(t)*.06);x.scale(s,s);x.drawImage(MOKO,-140,-188,280,375);x.restore()}
+  x.textAlign='center';x.fillStyle='#0b0b12';x.font='400 66px "Dela Gothic One"';x.fillText(over_?'GAME OVER':'GACHA RUSH',W/2+5,125);x.fillStyle='#ffe14d';x.fillText(over_?'GAME OVER':'GACHA RUSH',W/2,120);
+  x.font='400 22px "Dela Gothic One"';x.fillStyle='#ff3ea5';x.fillText(over_?'ゲームオーバー':'ガチャラッシュ · TOY TOKYO UFO CATCHER',W/2,156);
+  if(over_){x.fillStyle='#fff';x.font='400 30px "Dela Gothic One"';x.fillText('SCORE '+S.score.toLocaleString('en-US'),W/2,566);x.font='500 17px "Space Grotesk"';x.fillStyle='#ddd';x.fillText('Crew '+binder.crew.length+' / '+CREW.length+' · '+binder.pulls.length+' pulls in your binder',W/2,596)}
+  else{x.fillStyle='#fff';x.font='500 17px "Space Grotesk"';x.fillText('10 plays. Grab a capsule, drop it in the chute.',W/2,560);x.fillText('Every capsule is a real Toy Tokyo pull — or crew.',W/2,584)}
+  if((t*2|0)%2===0){x.fillStyle='#22d3ee';x.font='400 28px "Dela Gothic One"';x.fillText(over_?'PRESS START · PLAY AGAIN':'PRESS START',W/2,640)}
+  x.font='500 14px "Space Grotesk"';x.fillStyle='#ccc';x.fillText('← → aim · SPACE drop · or tap the glass · controller ready',W/2,790);
+}
+function frame(t){
+  x.clearRect(0,0,W,H);drawCab(t);
+  caps.forEach(function(c){if(c!==claw.held)drawCap(c)});
+  if(claw.held)drawCap(claw.held);
+  drawClaw();
+  parts.forEach(function(p){x.globalAlpha=Math.max(0,Math.min(1,p.l));x.fillStyle=p.c;if(p.star)star(p.x,p.y,p.s);else x.fillRect(p.x,p.y,p.s,p.s)});x.globalAlpha=1;
+  // glass glare
+  x.fillStyle='rgba(255,255,255,.07)';x.beginPath();x.moveTo(BOX.r-140,BOX.top-30);x.lineTo(BOX.r-90,BOX.top-30);x.lineTo(BOX.r-230,BOX.floor);x.lineTo(BOX.r-280,BOX.floor);x.fill();
+  hud();
+  if(S.msgT>0){x.textAlign='center';x.font='400 46px "Dela Gothic One"';x.fillStyle='#0b0b12';x.fillText(S.msg,W/2+4,334);x.fillStyle='#fff';x.fillText(S.msg,W/2,330)}
+  if(S.mode==='title')title(t,false);else if(S.mode==='over')title(t,true);
+}
+var last=0;
+function loop(ms){var t=ms/1000,dt=Math.min(.033,t-(last||t));last=t;S.t=t;pollPad();
+  if(!S.paused){if(S.mode==='play')stepClaw(dt);phys(dt,S.mode!=='play');parts.forEach(function(p){p.vy+=900*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.l-=dt*.9});parts=parts.filter(function(p){return p.l>0});if(S.msgT>0)S.msgT-=dt}
+  frame(t);requestAnimationFrame(loop)}
+reset();S.coins=10;
+(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(function(){requestAnimationFrame(loop)});
+window.__tt={S:S,claw:claw,press:press,startDrop:startDrop,binder:function(){return binder},win:win,get caps(){return caps}};
+})();
+</script>
+</body>
+</html>

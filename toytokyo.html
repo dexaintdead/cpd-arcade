@@ -1,0 +1,512 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- Toy Tokyo × ContentPad — interactive collector landing (concept for Toy Tokyo, build 2026100702-tt v1.1)
+     Portals open real Toy Tokyo collections and product pages; Gacha Rush (toy-tokyo-catcher.html) is embedded from the
+     ContentPad Arcade; the theme "Second Avenue Gacha" and every character are original ContentPad Studio work.
+     Catalog snapshot lives in toytokyo-data.js. -->
+<title>Toy Tokyo · Gacha World — 25 years on Second Avenue</title>
+<meta name="description" content="Step into Toy Tokyo's Gacha World: warp portals into KAWS, BE@RBRICK, sofubi, blind boxes and space toys, play the Gacha Rush UFO catcher, and pull up to 91 Second Avenue.">
+<meta property="og:title" content="Toy Tokyo · Gacha World">
+<meta property="og:description" content="Warp portals, a UFO catcher full of real pulls, and 25 years of Toy Tokyo on Second Avenue.">
+<meta property="og:image" content="https://media.cpdblackbook.com/a2a988e8-fbbd-4510-8238-b1c311f61608/5f632fc8-2fbd-4cd4-bae8-9e8f842d56c3.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#2a1258">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0b0b12;--pink:#ff3ea5;--yel:#ffe14d;--cy:#22d3ee;--tan:#ff8a1c;--vio:#2a1258;--lil:#b78cff;--paper:#fff7fb;--D:'Dela Gothic One',system-ui,sans-serif;--B:'Space Grotesk',system-ui,sans-serif}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--vio);color:#fff;font-family:var(--B);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+img{display:block;max-width:100%}
+.disp{font-family:var(--D);font-weight:400;letter-spacing:.01em;line-height:.95}
+.wrap{width:100%;max-width:1200px;margin:0 auto;padding:0 16px}
+.sk{border:3px solid var(--ink);box-shadow:6px 6px 0 var(--ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 20px;border:3px solid var(--ink);border-radius:16px;font:700 16px var(--B);color:var(--ink);background:#fff;text-decoration:none;box-shadow:5px 5px 0 var(--ink);cursor:pointer;transition:transform .12s,box-shadow .12s}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:7px 7px 0 var(--ink)}
+.btn:active{transform:translate(4px,4px);box-shadow:1px 1px 0 var(--ink)}
+.btn.pk{background:var(--pink);color:#fff}.btn.yl{background:var(--yel)}.btn.cy{background:var(--cy)}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001s!important;animation-iteration-count:1!important;transition:none!important}}
+
+/* ---------- gate ---------- */
+#gate{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 40%,#5b22b0,#2a1258 60%,#140733);text-align:center;transition:opacity .6s,visibility .6s}
+#gate.gone{opacity:0;visibility:hidden}
+#gate .cap{width:min(46vw,210px);aspect-ratio:1;margin:0 auto 22px;border-radius:50%;border:5px solid var(--ink);background:linear-gradient(180deg,var(--pink) 0 50%,#fff 50% 100%);position:relative;box-shadow:8px 8px 0 var(--ink);animation:wob 2.6s ease-in-out infinite;cursor:pointer}
+#gate .cap::after{content:"";position:absolute;left:-5px;right:-5px;top:calc(50% - 3px);height:6px;background:var(--ink)}
+#gate .cap img{position:absolute;inset:6% 8% 18%;width:84%;height:auto;object-fit:contain;filter:drop-shadow(0 6px 0 rgba(0,0,0,.25))}
+@keyframes wob{0%,100%{transform:rotate(-6deg) translateY(0)}50%{transform:rotate(6deg) translateY(-10px)}}
+#gate h1{font-size:clamp(40px,10vw,84px);margin:0;color:var(--yel);text-shadow:5px 5px 0 var(--ink)}
+#gate .jp{font:400 clamp(16px,4vw,22px) var(--D);color:var(--pink);margin:8px 0 18px}
+#gate p{margin:0 auto 22px;max-width:440px;color:#e9dcff}
+#gate .row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+#gate small{display:block;margin-top:22px;color:#b9a6e6}
+
+/* ---------- top bar ---------- */
+.bar{position:fixed;left:0;right:0;top:0;z-index:50;padding:10px 0;background:linear-gradient(180deg,rgba(20,7,51,.7),rgba(20,7,51,0));transition:background .3s,box-shadow .3s}
+.bar.solid{background:rgba(42,18,88,.86);backdrop-filter:blur(10px);box-shadow:0 3px 0 var(--ink)}
+.bar .wrap{display:flex;align-items:center;gap:12px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;min-width:0}
+.brand .logo{width:46px;height:46px;border-radius:50%;background:#fff;border:3px solid var(--ink);display:grid;place-items:center;overflow:hidden;flex:none}
+.brand .logo img{width:100%;height:100%;object-fit:contain}
+.brand b{font:400 20px var(--D);white-space:nowrap}
+.brand span{font:500 12px var(--B);color:#e3d4ff;white-space:nowrap}
+.nav{margin-left:auto;display:flex;gap:6px;align-items:center}
+.nav a.l{font:700 14px var(--B);text-decoration:none;padding:10px 12px;border-radius:12px}
+.nav a.l:hover{background:rgba(255,255,255,.12)}
+.snd{width:46px;height:46px;border-radius:14px;border:3px solid var(--ink);background:var(--yel);color:var(--ink);cursor:pointer;display:flex;align-items:flex-end;justify-content:center;gap:3px;padding:10px 0;box-shadow:3px 3px 0 var(--ink);flex:none}
+.snd i{width:4px;background:var(--ink);border-radius:2px;height:30%;animation:eq 1s ease-in-out infinite}
+.snd i:nth-child(2){animation-delay:-.3s}.snd i:nth-child(3){animation-delay:-.6s}.snd i:nth-child(4){animation-delay:-.15s}
+.snd.off i{animation:none;height:18%}.snd.off{background:#fff}
+@keyframes eq{0%,100%{height:25%}50%{height:90%}}
+.shop{display:none}
+@media (min-width:860px){.shop{display:inline-flex}}
+@media (max-width:859px){.nav a.l{display:none}.brand span span{display:none}}
+
+/* ---------- hero ---------- */
+.hero{position:relative;min-height:100svh;overflow:hidden;isolation:isolate;display:flex;align-items:flex-end}
+.layer{position:absolute;inset:0;will-change:transform;pointer-events:none}
+.bgimg{position:absolute;inset:-6%;background:#2a1258 center 40%/cover no-repeat;transform:scale(1.04)}
+.hero::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(180deg,rgba(42,18,88,.15) 0,rgba(42,18,88,0) 40%,rgba(42,18,88,.82) 88%,var(--vio) 100%)}
+.halftone{position:absolute;inset:0;z-index:1;pointer-events:none;background-image:radial-gradient(rgba(255,255,255,.14) 1.2px,transparent 1.6px);background-size:12px 12px;mix-blend-mode:overlay}
+.float{position:absolute;filter:drop-shadow(0 14px 0 rgba(11,11,18,.35));animation:bob var(--d,6s) ease-in-out infinite;animation-delay:var(--dl,0s)}
+.float img{width:100%;height:auto}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(var(--r1,-6deg))}50%{transform:translateY(-22px) rotate(var(--r2,6deg))}}
+.capf{position:absolute;border-radius:50%;border:3px solid var(--ink);background:linear-gradient(180deg,var(--c) 0 50%,#fff 50%);box-shadow:inset -8px -10px 0 rgba(0,0,0,.08);animation:bob var(--d,7s) ease-in-out infinite;animation-delay:var(--dl,0s)}
+.capf::after{content:"";position:absolute;left:-3px;right:-3px;top:calc(50% - 1.5px);height:3px;background:var(--ink)}
+.capf::before{content:"";position:absolute;left:18%;top:14%;width:26%;height:14%;border-radius:50%;background:rgba(255,255,255,.7);transform:rotate(-30deg)}
+.kanji{position:absolute;font:400 22px var(--D);color:var(--ink);background:var(--yel);border:3px solid var(--ink);border-radius:12px;padding:6px 10px;box-shadow:4px 4px 0 var(--ink);animation:bob var(--d,5s) ease-in-out infinite;animation-delay:var(--dl,0s);white-space:nowrap}
+.scrim{position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(ellipse 75% 62% at 22% 78%,rgba(20,7,51,.82),rgba(20,7,51,.45) 45%,transparent 75%)}
+.moko{position:absolute;right:max(-30px,3vw);bottom:9vh;width:clamp(220px,34vw,470px);z-index:2;filter:drop-shadow(0 22px 0 rgba(11,11,18,.4))}
+.moko img{animation:ride 3.2s ease-in-out infinite;transform-origin:50% 90%}
+@keyframes ride{0%,100%{transform:translateY(0) rotate(-4deg)}35%{transform:translateY(-26px) rotate(3deg)}70%{transform:translateY(-8px) rotate(-1deg)}}
+.hcopy{position:relative;z-index:3;padding:0 0 118px;width:100%}
+.tag{display:inline-flex;gap:8px;align-items:center;font:700 13px var(--B);letter-spacing:.08em;text-transform:uppercase;background:var(--ink);color:var(--yel);padding:8px 12px;border-radius:99px;margin-bottom:16px}
+.tag i{width:8px;height:8px;border-radius:50%;background:var(--pink);animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.2}}
+.h1{font-size:clamp(44px,7.4vw,104px);margin:0;color:#fff;text-shadow:6px 6px 0 var(--ink);max-width:11ch}
+.h1 em{font-style:normal;color:var(--yel);display:inline-block;transform:rotate(-2deg)}
+.h1 .pk{color:var(--pink)}
+.hsub{font:500 clamp(16px,2vw,20px)/1.45 var(--B);max-width:520px;margin:18px 0 24px;color:#f4ecff;text-shadow:0 2px 12px rgba(0,0,0,.5)}
+.hcta{display:flex;gap:12px;flex-wrap:wrap}
+.ticker{position:absolute;left:0;right:0;bottom:0;z-index:4;background:var(--yel);border-top:3px solid var(--ink);border-bottom:3px solid var(--ink);overflow:hidden;transform:rotate(-1.2deg) translateY(-26px);transform-origin:center}
+.ticker .run{display:flex;width:max-content;animation:tick 34s linear infinite}
+.ticker span{font:400 20px var(--D);color:var(--ink);padding:12px 18px;white-space:nowrap}
+.ticker span b{color:var(--pink);font-weight:400}
+@keyframes tick{to{transform:translateX(-50%)}}
+@media (max-width:700px){.scrim{background:linear-gradient(180deg,transparent 30%,rgba(20,7,51,.8) 62%)}.moko{right:-40px;bottom:auto;top:96px;width:62vw;opacity:.95}.hcopy{padding-bottom:104px}.hide-sm{display:none}}
+
+/* ---------- section heads ---------- */
+section{position:relative}
+.sec{padding:96px 0}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:32px}
+.head .k{font:400 15px var(--D);color:var(--pink);letter-spacing:.06em}
+.head h2{font-size:clamp(38px,6.4vw,78px);margin:6px 0 0;text-shadow:5px 5px 0 var(--ink)}
+.head p{max-width:420px;margin:0;color:#e3d4ff;line-height:1.5}
+
+/* ---------- warp zone ---------- */
+#warp{background:radial-gradient(circle at 20% 10%,#4a1aa0,transparent 50%),radial-gradient(circle at 90% 80%,#7b1f86,transparent 45%),var(--vio)}
+.portals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (min-width:720px){.portals{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:1040px){.portals{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.portal{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:16px 10px 18px;border-radius:24px;background:rgba(255,255,255,.06);border:3px solid var(--ink);box-shadow:6px 6px 0 var(--ink);cursor:pointer;color:#fff;font:inherit;transition:transform .2s,background .2s;-webkit-tap-highlight-color:transparent;min-width:0}
+.portal:hover,.portal:focus-visible,.portal.in:hover,.portal.in:focus-visible{transform:translateY(-6px) rotate(-1deg);background:rgba(255,255,255,.12);outline:none}
+.ring{position:relative;width:min(100%,170px);aspect-ratio:1;border-radius:50%;padding:10px;background:conic-gradient(from 0deg,var(--c),#fff,var(--c),var(--ink),var(--c));animation:spin 6s linear infinite;border:3px solid var(--ink)}
+.portal:hover .ring{animation-duration:1.2s}
+.ring .in{width:100%;height:100%;border-radius:50%;overflow:hidden;border:3px solid var(--ink);background:radial-gradient(circle,#fff 0 30%,var(--c) 31% 36%,#2a1258 37% 46%,var(--c) 47% 52%,#140733 53%);animation:spin 6s linear infinite reverse;display:grid;place-items:center}
+.ring .in img{width:78%;height:78%;object-fit:contain;border-radius:50%;background:#fff;animation:spin 6s linear infinite}
+.portal:hover .ring .in,.portal:hover .ring .in img{animation-duration:1.2s}
+@keyframes spin{to{transform:rotate(360deg)}}
+.portal .n{font:400 clamp(17px,2.2vw,22px)/1.05 var(--D);overflow-wrap:anywhere}
+.portal .j{font:400 13px var(--D);color:var(--c)}
+.portal .ct{font:700 12px var(--B);color:#cfc0ef;text-transform:uppercase;letter-spacing:.06em}
+.portal .ext{position:absolute;top:10px;right:12px;font:700 12px var(--B);color:#cfc0ef}
+
+/* warp transition + drawer */
+#warpfx{position:fixed;inset:0;z-index:80;pointer-events:none;background:radial-gradient(circle at var(--wx,50%) var(--wy,50%),transparent 0,transparent var(--wr,0%),var(--wc,#ff3ea5) calc(var(--wr,0%) + 1%),var(--ink) calc(var(--wr,0%) + 8%));opacity:0}
+#drawer{position:fixed;inset:0;z-index:70;display:none;background:radial-gradient(circle at 50% 0,#5b22b0,#1d0b45 70%);overflow-y:auto;overscroll-behavior:contain}
+#drawer.show{display:block}
+#drawer .top{position:sticky;top:0;z-index:2;background:rgba(29,11,69,.9);backdrop-filter:blur(8px);border-bottom:3px solid var(--ink)}
+#drawer .top .wrap{display:flex;align-items:center;gap:12px;padding-top:12px;padding-bottom:12px}
+#drawer .top h3{margin:0;font-size:clamp(24px,5vw,40px);text-shadow:4px 4px 0 var(--ink);min-width:0;overflow-wrap:anywhere}
+#drawer .top .j{font:400 14px var(--D);color:var(--c)}
+#drawer .x{margin-left:auto;flex:none;width:50px;height:50px;border-radius:14px;border:3px solid var(--ink);background:#fff;color:var(--ink);font:700 22px var(--B);cursor:pointer;box-shadow:4px 4px 0 var(--ink)}
+.dintro{display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin:22px 0}
+.dintro p{margin:0;max-width:560px;color:#e9dcff;line-height:1.5}
+.prods{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding-bottom:60px}
+@media (min-width:720px){.prods{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:1040px){.prods{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.prod{display:flex;flex-direction:column;background:#fff;color:var(--ink);text-decoration:none;border:3px solid var(--ink);border-radius:18px;box-shadow:5px 5px 0 var(--ink);overflow:hidden;transition:transform .18s;animation:dealin .45s cubic-bezier(.2,1.4,.4,1) both;animation-delay:calc(var(--i)*55ms);min-width:0}
+.prod:hover{transform:translateY(-5px) rotate(.8deg)}
+@keyframes dealin{from{opacity:0;transform:translateY(40px) scale(.9)}}
+.prod .im{aspect-ratio:1;background:#fff;display:grid;place-items:center;border-bottom:3px solid var(--ink);position:relative}
+.prod .im img{width:92%;height:92%;object-fit:contain}
+.prod .badge{position:absolute;top:8px;left:8px;font:400 11px var(--D);padding:4px 8px;border:2px solid var(--ink);border-radius:99px;background:var(--yel)}
+.prod .badge.g{background:linear-gradient(90deg,#ffe14d,#ffb800)}.prod .badge.r{background:var(--pink);color:#fff}
+.prod .tx{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.prod .t{font:700 14px/1.3 var(--B);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.prod .p{font:400 16px var(--D);margin-top:auto}
+.prod .go{font:700 12px var(--B);color:#7a4ad6}
+
+/* ---------- game ---------- */
+#play{background:linear-gradient(180deg,var(--vio),#5a1d7a 50%,var(--vio))}
+.gamegrid{display:grid;gap:28px;align-items:center}
+@media (min-width:940px){.gamegrid{grid-template-columns:minmax(0,1fr) minmax(0,.9fr)}}
+.cab{position:relative;margin:0 auto;width:min(100%,520px)}
+.cab .screen{position:relative;aspect-ratio:600/820;border-radius:30px;overflow:hidden;border:4px solid var(--ink);box-shadow:10px 10px 0 var(--ink);background:#ffb3dc}
+.cab iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.cab .cover{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px;text-align:center;background:linear-gradient(180deg,rgba(42,18,88,.2),rgba(42,18,88,.85)),url() center/cover}
+.cab .cover img{width:62%}
+.cab .deco{position:absolute;width:110px;right:-34px;top:-40px;z-index:2;animation:bob 5s ease-in-out infinite;filter:drop-shadow(0 10px 0 rgba(11,11,18,.4))}
+.cab .deco2{position:absolute;width:96px;left:-30px;bottom:40px;z-index:2;animation:bob 6s ease-in-out infinite;animation-delay:-2s;filter:drop-shadow(0 10px 0 rgba(11,11,18,.4))}
+@media (pointer:coarse){.cab iframe{display:none}.cab .cover{display:flex}}
+@media (max-width:700px){.cab .deco{right:-4px;top:-46px;width:84px}.cab .deco2{left:-4px;width:76px}}
+html,body{overflow-x:clip}
+.howto{display:grid;gap:12px;margin:0 0 22px;padding:0;list-style:none}
+.howto li{display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,.07);border:3px solid var(--ink);border-radius:16px;padding:12px 14px;box-shadow:4px 4px 0 var(--ink)}
+.howto b.n{flex:none;width:34px;height:34px;border-radius:10px;background:var(--yel);color:var(--ink);border:3px solid var(--ink);display:grid;place-items:center;font:400 16px var(--D)}
+.howto span{line-height:1.45;color:#f0e8ff}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+.legend span{font:400 13px var(--D);color:var(--ink);padding:6px 12px;border:3px solid var(--ink);border-radius:99px}
+.feed{margin-top:18px}
+.feed h4{margin:0 0 8px;font:400 15px var(--D);color:var(--yel)}
+.feed .strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;min-height:72px}
+.feed .strip a{flex:0 0 66px;height:66px;border:3px solid var(--ink);border-radius:12px;overflow:hidden;background:#fff;animation:pop .45s cubic-bezier(.2,1.6,.4,1)}
+.feed .strip a img{width:100%;height:100%;object-fit:cover}
+.feed .empty{color:#cdb9f2;font-size:14px;align-self:center}
+@keyframes pop{from{transform:scale(.2)}}
+#gameov{position:fixed;inset:0;z-index:90;display:none;background:#2a1258}
+#gameov.show{display:block}
+#gameov iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+#gameov .x{position:absolute;z-index:2;left:max(10px,env(safe-area-inset-left));top:max(10px,env(safe-area-inset-top));width:44px;height:44px;border-radius:12px;border:3px solid var(--ink);background:#fff;color:var(--ink);font:700 20px var(--B);box-shadow:3px 3px 0 var(--ink)}
+
+/* ---------- crew ---------- */
+#crew{background:var(--paper);color:var(--ink);overflow:hidden}
+#crew .head h2{color:#fff;-webkit-text-stroke:0;text-shadow:5px 5px 0 var(--ink),-2px -2px 0 var(--ink),2px -2px 0 var(--ink),-2px 2px 0 var(--ink)}
+#crew .head p{color:#4a3a66}
+#crew .head .k{color:#c2187a}
+#crew::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,62,165,.18) 2px,transparent 2.4px);background-size:22px 22px;pointer-events:none}
+.crewrow{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (min-width:720px){.crewrow{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.cc{position:relative;background:#fff;border:3px solid var(--ink);border-radius:22px;box-shadow:6px 6px 0 var(--ink);padding:12px 12px 14px;text-align:center;transform-style:preserve-3d;transition:transform .15s;min-width:0}
+.cc .bx{aspect-ratio:1;border-radius:16px;border:3px solid var(--ink);display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,#fff 0 30%,var(--c) 75%);overflow:hidden}
+.cc .bx img{width:86%;height:86%;object-fit:contain;transition:transform .3s;transform:translateZ(30px)}
+.cc:hover .bx img{transform:scale(1.08) rotate(-4deg)}
+.cc .nm{font:400 20px var(--D);margin:10px 0 0}
+.cc .jp{font:400 13px var(--D);color:#c2187a}
+.cc .rl{font:500 13px var(--B);color:#5a4a72;margin-top:4px}
+.cc .odds{position:absolute;top:-10px;right:-8px;font:400 12px var(--D);background:var(--yel);border:3px solid var(--ink);border-radius:99px;padding:4px 9px;transform:rotate(8deg)}
+.cc.lead{grid-column:span 2;grid-row:span 2}
+.cc.lead .nm{font-size:32px}
+.pitch{position:relative;margin-top:30px;display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:var(--ink);color:#fff;border-radius:22px;padding:20px 22px}
+.pitch p{margin:0;max-width:640px;line-height:1.5}
+.pitch b{color:var(--yel)}
+
+/* ---------- arcade rail ---------- */
+#arcade{background:#140733}
+.games{display:grid;grid-template-columns:repeat(1,minmax(0,1fr));gap:16px}
+@media (min-width:640px){.games{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (min-width:1000px){.games{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.gc{display:block;text-decoration:none;color:#fff;border:3px solid var(--ink);border-radius:20px;overflow:hidden;background:#22104a;box-shadow:6px 6px 0 var(--ink);transition:transform .18s;min-width:0}
+.gc:hover{transform:translateY(-5px)}
+.gc .im{aspect-ratio:16/9;background:#000 center/cover no-repeat;border-bottom:3px solid var(--ink)}
+.gc .tx{padding:12px 14px 16px}
+.gc .t{font:400 19px/1.1 var(--D)}
+.gc .s{font:500 14px/1.4 var(--B);color:#cdbcf0;margin-top:6px}
+.gc .bd{display:inline-block;margin-top:10px;font:700 12px var(--B);color:var(--ink);background:var(--yel);border:2px solid var(--ink);padding:3px 8px;border-radius:99px}
+.gc .allg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:center;justify-items:center;padding:8px;background:linear-gradient(135deg,#22d3ee,#b78cff 50%,#ff3ea5)}
+.gc .allg img{width:78%;filter:drop-shadow(0 6px 0 rgba(11,11,18,.35))}
+.gc.here .im{background-color:#ffb3dc;background-size:contain}
+
+/* ---------- visit ---------- */
+#visit{min-height:80svh;display:flex;align-items:center;background:#2a1258 center/cover no-repeat;isolation:isolate}
+#visit::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(42,18,88,.88),rgba(42,18,88,.35) 70%,rgba(42,18,88,.1));z-index:-1}
+.store{max-width:520px;background:#fff;color:var(--ink);border:4px solid var(--ink);border-radius:26px;box-shadow:10px 10px 0 var(--ink);padding:24px}
+.store .k{font:400 14px var(--D);color:#c2187a}
+.store h2{font-size:clamp(36px,6vw,64px);margin:6px 0 14px}
+.store dl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 14px;margin:0 0 20px}
+.store dt{font:400 13px var(--D);color:#7a4ad6;padding-top:3px}
+.store dd{margin:0;font:500 16px/1.4 var(--B)}
+.store dd a{display:inline-flex;align-items:center;min-height:44px;font-weight:700}
+footer a{display:inline-block;padding:12px 2px}
+.store .row{display:flex;gap:10px;flex-wrap:wrap}
+
+footer{background:var(--ink);color:#bfb2da;padding:30px 0 calc(30px + env(safe-area-inset-bottom));font-size:13px;line-height:1.6}
+footer .wrap{display:flex;gap:14px 30px;flex-wrap:wrap;justify-content:space-between}
+footer a{color:#fff}
+#trail{position:fixed;inset:0;z-index:60;pointer-events:none}
+.reveal{opacity:0;transform:translateY(40px);transition:opacity .7s,transform .7s cubic-bezier(.2,1,.3,1)}
+.reveal.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+
+<div id="gate" role="dialog" aria-label="Enter Gacha World">
+  <div>
+    <div class="cap" id="gateCap" aria-hidden="true"><img id="gateMoko" alt=""></div>
+    <h1 class="disp">GACHA WORLD</h1>
+    <div class="jp">ガチャワールド · TOY TOKYO · 25 YEARS</div>
+    <p>Portals into the shop, a UFO catcher full of real pulls, and a custom soundtrack. Best with the sound on.</p>
+    <div class="row">
+      <button class="btn pk" id="enterSound" type="button">▶ Enter with sound</button>
+      <button class="btn" id="enterQuiet" type="button">Enter quietly</button>
+    </div>
+    <small>Toy Tokyo × ContentPad · concept preview</small>
+  </div>
+</div>
+
+<header class="bar" id="bar"><div class="wrap">
+  <a class="brand" href="#top" aria-label="Toy Tokyo, back to top">
+    <span class="logo"><img src="https://toytokyo.com/cdn/shop/files/BLACK_CIRCLE_01_744cbbf0-4f02-4dd1-9e00-773fea55afd8.png?width=200" alt="Toy Tokyo" onerror="this.replaceWith(Object.assign(document.createElement('b'),{textContent:'TT',style:'color:#0b0b12;font:400 16px Dela Gothic One'}))"></span>
+    <span><b>TOY TOKYO</b><br><span>× ContentPad</span></span>
+  </a>
+  <nav class="nav" aria-label="Page">
+    <a class="l" href="#warp">Warp Zone</a><a class="l" href="#play">Gacha Rush</a><a class="l" href="#crew">The Crew</a><a class="l" href="#visit">Visit</a>
+    <a class="btn yl shop" href="https://toytokyo.com/" target="_blank" rel="noopener" style="min-height:44px">Shop ↗</a>
+    <button class="snd off" id="snd" type="button" aria-label="Music on or off" aria-pressed="false"><i></i><i></i><i></i><i></i></button>
+  </nav>
+</div></header>
+
+<main id="top">
+<section class="hero" id="hero" aria-label="Toy Tokyo Gacha World">
+  <div class="layer" data-depth="0.15"><div class="bgimg" id="heroBg"></div></div>
+  <div class="halftone"></div>
+  <div class="layer" data-depth="0.4" id="capsLayer" style="z-index:1"></div>
+  <div class="layer" data-depth="0.7" id="crewLayer" style="z-index:2"></div>
+  <div class="layer" data-depth="0.9" id="kanjiLayer" style="z-index:2"></div>
+  <div class="scrim"></div>
+  <div class="moko" id="moko" data-depth="1.1"><img id="mokoImg" alt="MOKO, the Toy Tokyo × ContentPad mascot, skating"></div>
+  <div class="wrap hcopy">
+    <div class="tag"><i></i>91 Second Ave · East Village · NYC</div>
+    <h1 class="h1 disp"><em>25 YEARS</em> OF TOY <span class="pk">TOKYO</span></h1>
+    <p class="hsub">KAWS grails, BE@RBRICK, sofubi, blind boxes and Showa-era space toys. Jump through a portal, win a capsule, then pull up to the shop.</p>
+    <div class="hcta">
+      <a class="btn pk" href="#warp">Enter the warp zone ↓</a>
+      <a class="btn cy" href="#play">Play Gacha Rush</a>
+    </div>
+  </div>
+  <div class="ticker" aria-hidden="true"><div class="run" id="ticker"></div></div>
+</section>
+
+<section class="sec" id="warp">
+  <div class="wrap">
+    <div class="head reveal">
+      <div><div class="k">ワープゾーン · WARP ZONE</div><h2 class="disp">Pick a portal</h2></div>
+      <p>Every portal opens a live shelf from toytokyo.com. Tap a piece to go straight to its page, or warp into the full collection.</p>
+    </div>
+    <div class="portals" id="portals"></div>
+  </div>
+</section>
+
+<section class="sec" id="play">
+  <div class="wrap">
+    <div class="head reveal">
+      <div><div class="k">ガチャラッシュ · ARCADE</div><h2 class="disp">Gacha Rush</h2></div>
+      <p>The Toy Tokyo UFO catcher, built in the ContentPad Arcade. Every capsule in the machine is a real piece from the shop, or one of the crew.</p>
+    </div>
+    <div class="gamegrid">
+      <div class="cab reveal">
+        <img class="deco" id="deco1" alt="">
+        <img class="deco2" id="deco2" alt="">
+        <div class="screen">
+          <iframe id="gameFrame" title="Gacha Rush — Toy Tokyo UFO catcher" loading="lazy" allow="gamepad; autoplay; fullscreen" data-src="toy-tokyo-catcher.html?embed=1"></iframe>
+          <div class="cover" id="gameCover">
+            <img id="coverCab" alt="">
+            <button class="btn pk" id="playPhone" type="button">▶ Play full screen</button>
+          </div>
+        </div>
+      </div>
+      <div class="reveal">
+        <ul class="howto">
+          <li><b class="n">1</b><span><b>Aim the claw.</b> Arrow keys, a controller, or drag on the glass. You get 15 seconds before it drops itself.</span></li>
+          <li><b class="n">2</b><span><b>Drop and grab.</b> Line it up dead center for a better grip. Rare and grail capsules like to slip.</span></li>
+          <li><b class="n">3</b><span><b>Bring it to the chute.</b> Crack it open to see your pull. It's a real Toy Tokyo piece with a link to cop it.</span></li>
+          <li><b class="n">4</b><span><b>Fill your binder.</b> Collect all seven crew stickers for 5 bonus plays.</span></li>
+        </ul>
+        <div class="legend">
+          <span style="background:var(--yel)">CREW</span><span style="background:var(--cy)">COMMON · under $100</span><span style="background:var(--pink);color:#fff">RARE · $100+</span><span style="background:linear-gradient(90deg,#ffe14d,#ffb800)">★ GRAIL · $1,000+</span>
+        </div>
+        <a class="btn yl" href="https://arcade.contentpad.io/play.html?g=toy-tokyo-catcher" target="_blank" rel="noopener">Open in the ContentPad Arcade ↗</a>
+        <div class="feed"><h4>Your pulls</h4><div class="strip" id="pulls"><span class="empty">Win a capsule and it lands here.</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="crew">
+  <div class="wrap">
+    <div class="head reveal">
+      <div><div class="k">オリジナル · TOY TOKYO ORIGINALS</div><h2 class="disp">Meet the crew</h2></div>
+      <p>Seven original characters made for Toy Tokyo in ContentPad Studio. They live in the game today, and they're designed to drop as a real blind-box series next.</p>
+    </div>
+    <div class="crewrow" id="crewrow"></div>
+    <div class="pitch reveal">
+      <p><b>The idea:</b> a Toy Tokyo Originals blind box with 6 regulars and MOKO as the chase. Win them in Gacha Rush first, then buy them in the shop. Every series gets its own game drop.</p>
+      <a class="btn yl" href="#play">Collect them in the game</a>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="arcade">
+  <div class="wrap">
+    <div class="head reveal">
+      <div><div class="k">CONTENTPAD ARCADE</div><h2 class="disp">Keep playing</h2></div>
+      <p>Gacha Rush lives in the ContentPad Arcade with our other original games. They all play free in the browser, with controller support.</p>
+    </div>
+    <div class="games" id="games"></div>
+  </div>
+</section>
+
+<section class="sec" id="visit">
+  <div class="wrap">
+    <div class="store reveal">
+      <div class="k">IN NYC? PULL UP · 東京から二番街へ</div>
+      <h2 class="disp">Visit the shop</h2>
+      <dl>
+        <dt>WHERE</dt><dd id="sAddr">91 Second Avenue<br>between E. 5th &amp; E. 6th St, New York, NY 10003</dd>
+        <dt>HOURS</dt><dd id="sHours">Open daily 12:30 – 7 PM</dd>
+        <dt>CALL</dt><dd><a id="sPhone" href="tel:+12126735424">(212) 673-5424</a></dd>
+        <dt>FOLLOW</dt><dd><a href="https://www.instagram.com/toy_tokyo/" target="_blank" rel="noopener">@toy_tokyo</a></dd>
+      </dl>
+      <div class="row">
+        <a class="btn pk" id="sMap" href="https://www.google.com/maps/search/?api=1&amp;query=Toy+Tokyo+91+2nd+Ave+New+York+NY+10003" target="_blank" rel="noopener">Directions ↗</a>
+        <a class="btn" href="https://toytokyo.com/pages/store-location" target="_blank" rel="noopener">Store page ↗</a>
+        <a class="btn yl" href="https://toytokyo.com/" target="_blank" rel="noopener">Shop online ↗</a>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap">
+  <span>Concept by <a href="https://contentpad.io/" target="_blank" rel="noopener">ContentPad</a> for Toy Tokyo. MOKO and the crew, all art and the theme "Second Avenue Gacha" are original ContentPad Studio work. Products, names and photos belong to Toy Tokyo and their makers.</span>
+  <span><a href="https://toytokyo.com/" target="_blank" rel="noopener">toytokyo.com</a> · <a href="https://arcade.contentpad.io/" target="_blank" rel="noopener">ContentPad Arcade</a></span>
+</div></footer>
+
+<div id="warpfx"></div>
+<div id="drawer" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+  <div class="top"><div class="wrap"><div><div class="j" id="dJp"></div><h3 class="disp" id="dTitle"></h3></div><button class="x" id="dClose" type="button" aria-label="Close portal">✕</button></div></div>
+  <div class="wrap">
+    <div class="dintro"><p id="dBlurb"></p><a class="btn yl" id="dAll" target="_blank" rel="noopener">See the whole collection ↗</a></div>
+    <div class="prods" id="dProds"></div>
+  </div>
+</div>
+<div id="gameov"><button class="x" id="gameovX" type="button" aria-label="Close game">✕</button></div>
+<canvas id="trail" aria-hidden="true"></canvas>
+<audio id="theme" loop preload="none"></audio>
+
+<script src="toytokyo-data.js?v=2"></script>
+<script>
+(function(){
+'use strict';
+var TT=window.TT, M=TT.media, $=function(id){return document.getElementById(id)};
+var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function shop(i,w){return TT.cdn+i+(i.indexOf('?')>-1?'&':'?')+'width='+(w||500)}
+function money(p){return p>=10000?'Price on request':'$'+p.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+
+/* ---------- art ---------- */
+$('heroBg').style.backgroundImage='url("'+M+TT.art.hero+'")';
+$('visit').style.backgroundImage='url("'+M+TT.art.park+'")';
+$('mokoImg').src=$('gateMoko').src=M+TT.art.moko;
+$('coverCab').src=M+TT.art.catcher;
+$('deco1').src=M+TT.crew[5].img;$('deco2').src=M+TT.crew[1].img;
+
+// floating capsules + crew + kanji in the hero
+var capC=['#ff3ea5','#22d3ee','#ffe14d','#ff8a1c','#b78cff'];
+var capPos=[[6,18,70],[78,14,54],[22,62,46],[60,30,38],[88,58,64],[42,10,30],[12,40,34]];
+$('capsLayer').innerHTML=capPos.map(function(p,i){return'<div class="capf'+(i>4||i===2?' hide-sm':'')+'" style="left:'+p[0]+'%;top:'+p[1]+'%;width:'+p[2]+'px;height:'+p[2]+'px;--c:'+capC[i%5]+';--d:'+(5+i)+'s;--dl:-'+i+'s"></div>'}).join('');
+var crewPos=[[3,22,9],[70,8,8],[48,14,7],[88,30,7],[30,30,6],[58,52,6]];
+$('crewLayer').innerHTML=TT.crew.slice(1).map(function(c,i){var p=crewPos[i];return'<div class="float'+(i>2?' hide-sm':'')+'" style="left:'+p[0]+'%;top:'+p[1]+'%;width:clamp(64px,'+p[2]+'vw,140px);--d:'+(5.5+i*.7)+'s;--dl:-'+(i*1.3)+'s;--r1:'+(-8+i*3)+'deg;--r2:'+(6-i*2)+'deg"><img alt="" src="'+M+c.img+'"></div>'}).join('');
+var kj=[['限定',40,17],['レア',86,48],['新着',22,11],['おもちゃ',63,19],['東京',91,13]];
+$('kanjiLayer').innerHTML=kj.map(function(k,i){return'<div class="kanji'+(i>1?' hide-sm':'')+'" style="left:'+k[1]+'%;top:'+k[2]+'%;transform:rotate('+(i%2?6:-6)+'deg);--d:'+(4+i)+'s;--dl:-'+i+'s;background:'+['#ffe14d','#ff3ea5','#22d3ee','#fff','#ff8a1c'][i]+'">'+k[0]+'</div>'}).join('');
+var tick=['KAWS','BE@RBRICK','SOFUBI','MEDICOM TOY','RON ENGLISH','BLIND BOX','FUNKO','MEZCO','NECA','SPACE TOYS','TIN TOY','ANIME','PRINTS'];
+var trow=tick.map(function(t){return'<span>'+t+' <b>✦</b></span>'}).join('');$('ticker').innerHTML=trow+trow;
+
+/* ---------- parallax ---------- */
+var layers=[].slice.call(document.querySelectorAll('[data-depth]')),mx=0,my=0,cx=0,cy=0,sy=0;
+addEventListener('pointermove',function(e){if(e.pointerType==='touch')return;mx=e.clientX/innerWidth-.5;my=e.clientY/innerHeight-.5},{passive:true});
+addEventListener('deviceorientation',function(e){if(e.gamma==null)return;mx=Math.max(-.5,Math.min(.5,e.gamma/60));my=Math.max(-.5,Math.min(.5,(e.beta-40)/60))},{passive:true});
+function para(){cx+=(mx-cx)*.06;cy+=(my-cy)*.06;sy=scrollY;
+  if(sy<innerHeight*1.2)layers.forEach(function(l){var d=+l.getAttribute('data-depth');l.style.transform='translate3d('+(-cx*40*d)+'px,'+(-cy*30*d+sy*d*.35)+'px,0)'});
+  $('bar').classList.toggle('solid',sy>40);requestAnimationFrame(para)}
+if(!reduce)requestAnimationFrame(para);else addEventListener('scroll',function(){$('bar').classList.toggle('solid',scrollY>40)},{passive:true});
+
+/* ---------- sparkle trail (desktop) ---------- */
+(function(){var c=$('trail'),x=c.getContext('2d'),P=[],cols=['#ffe14d','#ff3ea5','#22d3ee','#fff'];if(reduce||matchMedia('(pointer:coarse)').matches){c.remove();return}
+  function sz(){c.width=innerWidth*devicePixelRatio;c.height=innerHeight*devicePixelRatio;x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0)}sz();addEventListener('resize',sz);
+  var lx=0,ly=0;addEventListener('pointermove',function(e){var d=Math.hypot(e.clientX-lx,e.clientY-ly);if(d<14)return;lx=e.clientX;ly=e.clientY;P.push({x:lx,y:ly,vx:(Math.random()-.5)*1.5,vy:-Math.random()*1.5,l:1,c:cols[P.length%4],r:3+Math.random()*4})},{passive:true});
+  (function f(){x.clearRect(0,0,innerWidth,innerHeight);P.forEach(function(p){p.x+=p.vx;p.y+=p.vy;p.vy+=.06;p.l-=.025;x.globalAlpha=Math.max(0,p.l);x.fillStyle=p.c;x.beginPath();for(var i=0;i<8;i++){var a=i*Math.PI/4,r=i%2?p.r*.4:p.r;x.lineTo(p.x+Math.cos(a)*r,p.y+Math.sin(a)*r)}x.fill()});P=P.filter(function(p){return p.l>0});requestAnimationFrame(f)})()})();
+
+/* ---------- music ---------- */
+var theme=$('theme'),snd=$('snd'),musicOn=false;
+function setMusic(on){musicOn=on;snd.classList.toggle('off',!on);snd.setAttribute('aria-pressed',on?'true':'false');ls('tt_land_music',on?'1':'0');
+  if(on){if(!theme.src)theme.src=M+TT.music;theme.volume=0;var p=theme.play();if(p&&p.catch)p.catch(function(){setMusic(false)});var v=0,iv=setInterval(function(){v=Math.min(.55,v+.05);theme.volume=v;if(v>=.55)clearInterval(iv)},80)}else theme.pause();
+  var gf=$('gameFrame');try{gf.contentWindow&&gf.contentWindow.postMessage({tt:'mute',muted:!on},location.origin==='null'?'*':location.origin)}catch(e){}}
+snd.onclick=function(){setMusic(!musicOn)};
+document.addEventListener('visibilitychange',function(){if(document.hidden&&musicOn)theme.pause();else if(!document.hidden&&musicOn)theme.play().catch(function(){})});
+
+/* ---------- gate ---------- */
+function enter(withSound){$('gate').classList.add('gone');document.body.style.overflow='';if(withSound)setMusic(true);loadGame()}
+document.body.style.overflow='hidden';
+$('enterSound').onclick=function(){enter(true)};$('enterQuiet').onclick=function(){enter(false)};$('gateCap').onclick=function(){enter(true)};
+addEventListener('keydown',function(e){if(!$('gate').classList.contains('gone')&&(e.key==='Enter'||e.key===' ')){e.preventDefault();enter(true)}});
+
+/* ---------- portals + drawer ---------- */
+var cols=TT.collections;
+$('portals').innerHTML=cols.map(function(c,i){var n=(c.items||[]).length,pic=n?shop(c.items[0].i,300):M+TT.crew[i%TT.crew.length].img;
+  return'<button class="portal reveal" type="button" data-i="'+i+'" style="--c:'+c.c+'" aria-label="Open the '+esc(c.name)+' portal">'+(n?'':'<span class="ext">↗</span>')+
+  '<div class="ring"><div class="in"><img alt="" loading="lazy" src="'+esc(pic)+'"></div></div><div class="n">'+esc(c.name)+'</div><div class="j">'+esc(c.jp)+'</div><div class="ct">'+(n?n+' pieces inside':'Warp to the shop')+'</div></button>'}).join('');
+var lastFocus=null;
+function warp(e,color,cb){var fx=$('warpfx');if(reduce){cb();return}var r=e&&e.currentTarget?e.currentTarget.getBoundingClientRect():{left:innerWidth/2,top:innerHeight/2,width:0,height:0};
+  fx.style.setProperty('--wx',(r.left+r.width/2)+'px');fx.style.setProperty('--wy',(r.top+r.height/2)+'px');fx.style.setProperty('--wc',color);
+  var t0=performance.now();boop(color);(function f(t){var k=Math.min(1,(t-t0)/520);fx.style.opacity=k<.5?k*2:1;fx.style.setProperty('--wr',(k<.5?(1-k*2)*60:(k-.5)*2*140)+'%');if(k<.5)requestAnimationFrame(f);else{if(!cb.done){cb.done=1;cb()}if(k<1)requestAnimationFrame(f);else fx.style.opacity=0}})(t0)}
+function openPortal(i,e){var c=cols[i];lastFocus=e&&e.currentTarget;
+  if(!c.items||!c.items.length){warp(e,c.c,function(){window.open(c.url,'_blank','noopener')});return}
+  warp(e,c.c,function(){var d=$('drawer');d.style.setProperty('--c',c.c);$('dJp').textContent=c.jp+' · PORTAL';$('dTitle').textContent=c.name;$('dBlurb').textContent=c.b;$('dAll').href=c.url;
+    $('dProds').innerHTML=c.items.map(function(it,k){var tier=it.p>=1000?'<span class="badge g">★ GRAIL</span>':it.p>=100?'<span class="badge r">RARE</span>':'';
+      return'<a class="prod" style="--i:'+k+'" href="https://toytokyo.com/products/'+esc(it.h)+'" target="_blank" rel="noopener"><div class="im">'+tier+'<img alt="'+esc(it.t)+'" loading="lazy" src="'+esc(shop(it.i,500))+'"></div><div class="tx"><div class="t">'+esc(it.t)+'</div><div class="p">'+money(it.p)+'</div><div class="go">View at Toy Tokyo ↗</div></div></a>'}).join('');
+    d.classList.add('show');d.scrollTop=0;document.body.style.overflow='hidden';$('dClose').focus()})}
+function closeDrawer(){$('drawer').classList.remove('show');document.body.style.overflow='';if(lastFocus)lastFocus.focus()}
+document.querySelectorAll('.portal').forEach(function(b){b.addEventListener('click',function(e){openPortal(+b.getAttribute('data-i'),e)})});
+$('dClose').onclick=closeDrawer;
+addEventListener('keydown',function(e){if(e.key==='Escape'){if($('drawer').classList.contains('show'))closeDrawer();if($('gameov').classList.contains('show'))closeGameOv()}});
+// tiny portal "whoosh"
+var AC=null;function boop(){if(!musicOn)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();var t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.setValueAtTime(180,t);o.frequency.exponentialRampToValueAtTime(1400,t+.35);g.gain.setValueAtTime(.12,t);g.gain.exponentialRampToValueAtTime(.001,t+.45);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+.5)}catch(e){}}
+
+/* ---------- game ---------- */
+var gameLoaded=false;
+function loadGame(){if(gameLoaded)return;var f=$('gameFrame');if(getComputedStyle(f).display==='none')return;gameLoaded=true;f.src=f.getAttribute('data-src')}
+var gio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting&&$('gate').classList.contains('gone'))loadGame()})},{rootMargin:'300px'});gio.observe($('play'));
+$('playPhone').onclick=function(){var ov=$('gameov'),f=document.createElement('iframe');f.title='Gacha Rush';f.allow='gamepad; autoplay; fullscreen';f.src='toy-tokyo-catcher.html?embed=1';ov.appendChild(f);ov.classList.add('show');document.body.style.overflow='hidden'};
+function closeGameOv(){var ov=$('gameov');ov.classList.remove('show');var f=ov.querySelector('iframe');if(f)f.remove();document.body.style.overflow=''}
+$('gameovX').onclick=closeGameOv;
+var pulls=[];
+window.addEventListener('message',function(e){if(e.origin!==location.origin&&location.origin!=='null')return;var d=e.data||{};
+  if(d.arcade==='toytokyo'&&d.event==='pull'){var st=$('pulls');
+    if(d.handle){var it=null;cols.forEach(function(c){(c.items||[]).forEach(function(x){if(x.h===d.handle)it=x})});
+      if(it){pulls.unshift(it);st.innerHTML=pulls.slice(0,20).map(function(p){return'<a href="https://toytokyo.com/products/'+esc(p.h)+'" target="_blank" rel="noopener" title="'+esc(p.t)+'"><img alt="" src="'+esc(shop(p.i,160))+'"></a>'}).join('')}}}});
+
+/* ---------- crew ---------- */
+var odds=['CHASE 1:24','1:6','1:6','1:6','1:6','1:6','1:6'];
+$('crewrow').innerHTML=TT.crew.map(function(c,i){return'<div class="cc reveal'+(i===0?' lead':'')+'" style="--c:'+c.c+'"><span class="odds">'+odds[i]+'</span><div class="bx"><img alt="'+esc(c.name)+'" loading="lazy" src="'+M+c.img+'"></div><div class="nm">'+esc(c.name)+'</div><div class="jp">'+esc(c.jp)+'</div><div class="rl">'+esc(c.role)+'</div></div>'}).join('');
+if(!reduce&&!matchMedia('(pointer:coarse)').matches)document.querySelectorAll('.cc').forEach(function(el){el.addEventListener('pointermove',function(e){var r=el.getBoundingClientRect(),px=(e.clientX-r.left)/r.width-.5,py=(e.clientY-r.top)/r.height-.5;el.style.transform='perspective(700px) rotateY('+(px*16)+'deg) rotateX('+(-py*16)+'deg)'});el.addEventListener('pointerleave',function(){el.style.transform=''})});
+
+/* ---------- arcade rail (live catalog from the Arcade) ---------- */
+function renderGames(){var g=(window.ARCADE_GAMES||[]).filter(function(x){return x.status==='live'&&!x.rating&&x.slug!=='toy-tokyo-catcher'});
+  var here='<a class="gc here" href="#play"><div class="im" style="background-image:url(\''+M+TT.art.catcher+'\')"></div><div class="tx"><div class="t">Gacha Rush</div><div class="s">The Toy Tokyo UFO catcher. Real pulls, crew stickers, a binder.</div><span class="bd">You are here</span></div></a>';
+  $('games').innerHTML=here+g.slice(0,5).map(function(x){return'<a class="gc" href="https://arcade.contentpad.io/play.html?g='+encodeURIComponent(x.slug)+'" target="_blank" rel="noopener"><div class="im" style="background-image:url(\''+esc(x.cover)+'\')"></div><div class="tx"><div class="t">'+esc(x.title)+'</div><div class="s">'+esc(x.tagline)+'</div><span class="bd">'+esc(x.genre||'Game')+'</span></div></a>'}).join('')+
+  '<a class="gc" href="https://arcade.contentpad.io/" target="_blank" rel="noopener"><div class="im allg">'+TT.crew.slice(1,7).map(function(c){return'<img alt="" loading="lazy" src="'+M+c.img+'">'}).join('')+'</div><div class="tx"><div class="t">All games ↗</div><div class="s">The full ContentPad Arcade.</div><span class="bd">arcade.contentpad.io</span></div></a>'}
+var gs=document.createElement('script');gs.src='https://arcade.contentpad.io/games.js?v=tt1';gs.onload=renderGames;gs.onerror=renderGames;document.body.appendChild(gs);
+
+/* ---------- reveal on scroll ---------- */
+var rio=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');rio.unobserve(e.target)}})},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(function(el,i){el.style.transitionDelay=(i%4)*70+'ms';rio.observe(el)});
+})();
+</script>
+</body>
+</html>
