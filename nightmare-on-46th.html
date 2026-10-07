@@ -120,15 +120,15 @@
       bio: 'Read palms on 46th since before the restaurants. She saw tonight coming.', q: 'I already saw how this ends, sweetheart.', win: 'The cards never lie.' },
     glow: { n: 'GLOW', t: 'The Disco Spirit', col: '#5ee0ff', h: 296, hp: 920, spd: 360, pw: 0.98, sp: 'beam', spn: 'STAYIN\' LIGHT', su: 'MIRRORBALL',
       bio: 'Danced into the light in 1979 and never left the floor.', q: 'I\'ve been dancing since \'79. You think you can stop the music?', win: 'Never stop the music.' },
-    maverick: { n: 'MAVERICK', t: 'Skater, Secret Guest', col: '#ff4fb3', h: 286, hp: 1000, spd: 340, pw: 1.0, sp: 'dash', spn: 'KICKFLIP RUSH', su: 'SKYLINE',
+    maverick: { n: 'MAVERICK', t: 'Skater, Guest of Honor', col: '#ff4fb3', h: 286, hp: 1000, spd: 340, pw: 1.0, sp: 'dash', spn: 'KICKFLIP RUSH', su: 'SKYLINE',
       bio: 'ContentPad\'s favorite skater crashed the party in his skeleton hoodie.', q: 'Let\'s skate, let\'s fight, let\'s go!', win: 'Too easy. Who\'s next?' },
     headliner: { n: 'THE HEADLINER', t: 'The Demon DJ', col: '#ff1a1a', h: 340, hp: 1450, spd: 270, pw: 1.18, sp: 'disc', spn: 'SAW BLADE', su: 'THE DROP',
       bio: 'Nobody booked him. Nobody can stop him. He feeds on the dance floor.', q: 'The night is MINE. Nobody leaves the floor.', win: 'Encore? There is no encore.' }
   };
-  var CAST = ['vexa', 'stitch', 'ratking', 'jack', 'madame', 'glow'];
+  var CAST = ['vexa', 'stitch', 'ratking', 'jack', 'madame', 'glow', 'maverick']; // Maverick is playable from the start (2026-10-06); only The Headliner is a secret
   // v4 pace: heavier gravity with a harder jump (same height, half the hang time), faster walks, runs and backdashes
   var GRAV = 3400, JUMP_V = -1180, WALK = 1.28, RUN = 2.15;
-  var SECRET = ['maverick', 'headliner'];
+  var SECRET = ['headliner'];
   var STAGE_FOR = ['harbor', 'street', 'subway', 'street', 'harbor', 'subway'];   // arcade ladder stages; the boss is on the rooftop
   var STAGE_NAME = { harbor: 'HARBOR · DANCE FLOOR', street: 'WEST 46TH STREET', subway: 'THE TUNNELS', rooftop: 'ROOFTOP · 3 AM' };
 
@@ -563,7 +563,6 @@
   }
   function finishArcade() {
     var newly = [];
-    if (!unlocked.maverick) newly.push('MAVERICK');
     if (!unlocked.headliner) newly.push('THE HEADLINER');
     unlocked.maverick = 1; unlocked.headliner = 1;
     try { localStorage.setItem('n46_unlocked', JSON.stringify(unlocked)); } catch (e) {}
