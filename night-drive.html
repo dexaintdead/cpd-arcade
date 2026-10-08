@@ -86,7 +86,7 @@ button{font:inherit;color:inherit}
 .logo{text-align:center;margin:0 0 4px}
 .logo .a{display:block;font:400 clamp(22px,5.4vw,58px)/1 var(--wide);letter-spacing:.2em;padding-left:.2em;background:linear-gradient(180deg,#ffffff 0%,#dfe9ff 40%,#8fa6c8 52%,#f4f7ff 64%,#b8c6de 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 rgba(0,0,0,.55)) drop-shadow(0 0 22px rgba(127,178,255,.25))}
 .logo .b{display:block;margin-top:-.05em;font:400 clamp(54px,11vw,128px)/1.1 var(--script);color:#ffc98c;text-shadow:0 0 8px rgba(255,190,120,.7),0 0 28px rgba(255,140,40,.55),0 0 60px rgba(255,120,30,.35);transform:rotate(-4deg)}
-.sub{text-align:center;color:#ffe2bf;font:400 clamp(10px,1.3vw,12.5px) var(--wide);letter-spacing:.42em;margin:6px 0 24px;opacity:.9}
+.sub{text-align:center;color:#ffe2bf;font:400 clamp(10px,1.3vw,12.5px) var(--wide);letter-spacing:.42em;margin:22px 0 24px;opacity:.9}
 .menu{display:grid;gap:9px;max-width:360px;margin:0 auto}
 .mi{display:flex;align-items:center;justify-content:center;gap:10px;padding:13px 20px;border-radius:10px;border:1px solid rgba(255,226,191,.25);background:rgba(8,10,20,.62);font:400 clamp(11px,1.4vw,13px) var(--wide);letter-spacing:.2em;text-transform:uppercase;cursor:pointer;transition:transform .12s,box-shadow .12s,border-color .12s,background .12s;outline:none;text-decoration:none;color:#fff;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 .mi:hover,.mi.sel,.mi:focus-visible{border-color:#ffc98c;background:linear-gradient(90deg,rgba(255,154,60,.32),rgba(127,178,255,.16));box-shadow:0 0 0 1px rgba(255,201,140,.6) inset,0 0 24px rgba(255,154,60,.35);transform:translateY(-1px)}
@@ -799,7 +799,7 @@ button{font:inherit;color:inherit}
     // match the shader sky to the photo's sky so the fade is invisible
     try {
       var c = cvs(64, 32), x = c.getContext('2d'); x.drawImage(img, 0, 0, 64, 32);
-      function row(v) { var d = x.getImageData(0, Math.round((1 - v) * 31), 64, 1).data, r = 0, g = 0, b = 0; for (var i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; } return new THREE.Color(r / 16 / 255, g / 16 / 255, b / 16 / 255); }
+      function row(v) { var d = x.getImageData(0, Math.round((1 - v) * 31), 64, 1).data, r = 0, g = 0, b = 0; for (var i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; } return new THREE.Color(r / 64 / 255, g / 64 / 255, b / 64 / 255); }
       var top = row(0.97), mid = row(0.7);
       sky.material.uniforms.cTop.value.copy(top); sky.material.uniforms.cMid.value.lerp(mid, 0.85);
     } catch (e) {}
@@ -854,10 +854,17 @@ button{font:inherit;color:inherit}
   function palmGeo() {
     var m = new Merger();
     for (var i = 0; i < 5; i++) m.add(new THREE.CylinderGeometry(0.2 - i * 0.02, 0.26 - i * 0.02, 3.0, 5), mtx(i * i * 0.05, 1.5 + i * 2.9, 0), 0xffffff);
-    var topY = 14.6, topX = 0.85;
-    for (var k = 0; k < 9; k++) {
-      var a = k / 9 * Math.PI * 2, leaf = new THREE.ConeGeometry(0.5, 5.2, 3); leaf.rotateZ(Math.PI / 2 + 0.75); leaf.translate(-2.1, -0.9, 0); leaf.scale(1, 1, 0.25);
-      m.add(leaf, mtx(topX, topY, 0, a), 0xffffff);
+    var top = V3(0.85, 14.4, 0);
+    // fronds: drooping ribbons with a shallow V section, so they read as feathers from any side
+    for (var k = 0; k < 11; k++) {
+      var a = k / 11 * Math.PI * 2 + (k % 2) * 0.2, L = k % 3 === 0 ? 3.6 : 5.2, lift = k % 3 === 0 ? 0.9 : 0.35, ca = Math.cos(a), sa = Math.sin(a), prev = null;
+      for (var j = 0; j <= 5; j++) {
+        var t = j / 5, x = t * L, y = lift * t * L * 0.5 - t * t * L * 0.62, w = 0.75 * Math.sin(Math.PI * Math.min(1, t * 1.15)) + 0.04;
+        var spine = V3(top.x + ca * x, top.y + y, top.z + sa * x), side = V3(-sa, 0, ca).multiplyScalar(w / 2), drop = V3(0, -w * 0.35, 0);
+        var cur = { s: spine, l: spine.clone().add(side).add(drop), r: spine.clone().sub(side).add(drop) };
+        if (prev) { m.quad(prev.s, prev.l, cur.l, cur.s); m.quad(prev.r, prev.s, cur.s, cur.r); }
+        prev = cur;
+      }
     }
     return m.geo();
   }
@@ -1128,7 +1135,7 @@ button{font:inherit;color:inherit}
   var THEME_BUILD = {
     strip: function (scene, TR, th, rng, gy, dark, WALK) {
       var palms = spots(TR, rng, 15, WALK - 1.2, WALK - 0.6, WALK - 1.4, null, true).map(function (o) { o.rot = rng() * 6.28; o.sc = 0.9 + rng() * 0.45; o.p.y += 0.18; return o; });
-      scene.add(instanced(palmGeo(), new THREE.MeshBasicMaterial({ color: 0x120c16 }), palms));
+      scene.add(instanced(palmGeo(), new THREE.MeshBasicMaterial({ color: 0x120c16, side: THREE.DoubleSide }), palms));
       citySide(scene, TR, rng, gy, WALK, { every: 20, w: [12, 24], h: [5, 13], cols: [0xc8a890, 0xa8b0c0, 0xd8c0a0, 0x9890a0, 0xc09080], bright: 1.5, signs: [0, 1, 2, 3, 4, 5, 6, 14, 15], signP: 0.7, shopP: 0.7, parkGap: 0.45, people: 7 });
       billboards(scene, TR, rng, [0, 1, 2, 3, 4], 230, WALK + 6, WALK + 14, 15);
       marquee(scene, TR, rng, 140, 1, WALK); marquee(scene, TR, rng, 1250, -1, WALK);
@@ -1216,7 +1223,7 @@ button{font:inherit;color:inherit}
       ocean.rotation.x = -Math.PI / 2; ocean.position.set(300, gy + 1.0, -880); scene.add(ocean);
       var sand = new THREE.Mesh(new THREE.PlaneGeometry(1300, 70), new THREE.MeshLambertMaterial({ color: 0x8a7a68 })); sand.rotation.x = -Math.PI / 2; sand.position.set(260, gy + 1.2, -45); scene.add(sand);
       var palms = spots(TR, rng, 12, WALK - 1.2, WALK + 18, WALK - 1.4, null, true).map(function (o) { o.rot = rng() * 6.28; o.sc = 0.9 + rng() * 0.6; o.p.y = Math.max(o.p.y + 0.18, gy + 1.2); return o; });
-      scene.add(instanced(palmGeo(), new THREE.MeshBasicMaterial({ color: 0x0a0c14 }), palms));
+      scene.add(instanced(palmGeo(), new THREE.MeshBasicMaterial({ color: 0x0a0c14, side: THREE.DoubleSide }), palms));
       citySide(scene, TR, rng, gy, WALK, { every: 26, w: [18, 32], h: [10, 30], cols: [0xffc8d8, 0xb8f0e0, 0xffd8b8, 0xd8c8ff, 0xfff0c8, 0xc0e8ff], bright: 2.6, signs: [10, 11, 12, 8, 4, 0], signP: 0.85, shopP: 0.8, parkGap: 0.4, people: 6,
         filter: function (p) { return p.z > 25; } });
       billboards(scene, TR, rng, [0, 1, 3], 520, WALK + 8, WALK + 16, 34);
