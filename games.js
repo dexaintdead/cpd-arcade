@@ -1,10 +1,29 @@
-/* ContentPad Arcade — the game catalog (build 2026100803-nd).
+/* ContentPad Arcade — the game catalog (build 2026100804-ohf).
    House games live in this repo as <slug>.html at the top level and are listed here.
    Only status:'live' entries are shown. rating marks adult games (the game itself runs its own age gate).
    landing: the brand landing page that wraps the game, if it has one (listed under "Brand pages").
    2026-10-07: Arcade HQ → Games can switch any game to live / hidden / off without touching this
    file (gate.js asks the API). status here only says whether the game exists in the Arcade at all. */
 window.ARCADE_GAMES = [
+  {
+    slug: 'oak-hill-farm',
+    file: 'oak-hill-farm.html',
+    title: 'Oak Hill Farm: Farm Friends',
+    badge: 'New · Oak Hill Farm × ContentPad · for kids',
+    tagline: 'Feed the horses, brush the alpacas, collect the eggs and round up the goats. It\'s chore day at Oak Hill Farm!',
+    about: "Be a farmhand for a day at Oak Hill Farm in Holmdel, New Jersey, and meet the real animals who live there: Boots the Clydesdale and Nugget, the mini ponies Brunello, Molly and Rosie, Cookie and Paris the mules, Charlotte and Penelope the donkeys, the Highland cows Prosciutto, Pearl, George and Hazel, Lola the Jersey cow, Mo, Larry and Curley the curly black-faced sheep, the blue-eyed goats Armani, Speckles and Kiwi, the alpacas Gaby, Bianca, Amina and Tracey, Peter the Peacock, Rodney the show rooster and the special chickens of the Chicken Dome. Grab hay, carrots, apples, feed and water around the farm, drive the blue farm truck to haul hay, brush and pet your new friends, collect eggs and sell them at the Farm Stand, rake up the barn yard and decorate the farm for the Fall Festival. Eight story days, then a new day of chores every time you play. Every friend you meet goes into your Farm Friends album. No timers to beat and no way to lose. Made for kids.",
+    genre: 'Kids',
+    tags: ['Kids', 'Farm', 'Animals', 'Oak Hill Farm', 'Chores', 'Truck', 'Album', 'Controller'],
+    controls: [['← → ↑ ↓ / WASD / left stick / drag', 'Walk (or drive)'], ['Space / Enter / (A) / yellow button', 'Pick up, feed, pet, pour · hold to brush or rake'], ['Y / T / (X) / truck button', 'Hop in or out of the farm truck'], ['L / (Y) / 📖', 'Farm Friends album'], ['Esc / P / Start', 'Pause'], ['M', 'Sound']],
+    by: 'ContentPad Studios × Oak Hill Farm',
+    made: 'The animals are drawn from the Oak Hill Farm coloring book and brought to life in color in ContentPad Studio, with the barn, the Chicken Dome and the blue farm truck · theme "Chore Day at Oak Hill" made in ContentPad · code by Claude',
+    scoreLabel: 'Stars earned',
+    cover: 'https://arcade.contentpad.io/ohf/cover.jpg',
+    accent: '#8fd16a',
+    released: '2026-10-08',
+    controller: true, mobile: true,
+    status: 'live'
+  },
   {
     slug: 'night-drive',
     file: 'night-drive.html',
