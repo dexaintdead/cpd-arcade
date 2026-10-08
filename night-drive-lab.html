@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Yellowtail&family=Orbitron:wght@500;700;900&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
 <!--
   YESTERDAYLAND: NIGHT DRIVE · ContentPad Arcade (build 2026100803-nd: + photo wheels, traffic, Free Race, Hot Pursuit,
-  Drive 06 Las Vegas Strip 1986, and an intro film made in ContentPad with Seedance 2.5)
+  Drive 06 Las Vegas Strip 1986, and a street-racing intro film made in ContentPad with Seedance 2.5)
   A behind-the-car 3D racer set in the world of YESTERDAYLAND (Dex's show: period-correct 1980s night drives,
   "Go back for a while"). The five tracks are the show's Season 1 drives, in pilot order: Sunset Boulevard LA 1985,
   the Southern California freeway at midnight 1984, the desert Southwest 1985, rainy Manhattan 1984, Ocean Drive Miami 1986.
@@ -2994,10 +2994,12 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   }
 
   /* ════════════════ INTRO FILM ════════════════
-     Made in ContentPad: eight YESTERDAYLAND keyframes, Seedance 2.5 flowing each into the next as one unbroken night
-     (the radio, Sunset Boulevard, the freeway, the desert, Manhattan, Miami, Las Vegas, out into the desert). Plays once
-     on a first visit behind a "press any key" (so it can play with sound), then from the title menu. */
-  var FILM_SRC = ART_HOST + ART + '040c5298-b4dc-49c8-9d07-04a8c28b0ed8.mp4';   // 44 s, H.264 + AAC, ContentPad stitch of 7 Seedance 2.5 shots
+     Made in ContentPad: eight street-racing keyframes in the YESTERDAYLAND look (the game's own car photos as references),
+     each animated by Seedance 2.5 I2V as its own continuous action shot, then stitched. Each new film plays once behind a
+     "press any key" (so it can play with sound); the title menu replays it. */
+  // v2 (street racing): red-light standoff, launch, freeway duel, desert drift, Manhattan weave, Miami overtake,
+  // police on the Strip, the pack racing off toward the city. 45 s, H.264 + AAC, ContentPad stitch of 8 Seedance 2.5 I2V shots.
+  var FILM_ID = '8c57273d-213d-4479-829d-7feca824a360', FILM_SRC = ART_HOST + ART + FILM_ID + '.mp4';
   var INTRO = { on: false, gate: false };
   function filmShow(gate) {
     if (!FILM_SRC) return false;
@@ -3017,7 +3019,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     v.classList.add('on');
   }
   function filmEnd() {
-    if (!INTRO.on) return; INTRO.on = false; ls('nd_film_seen', '1');
+    if (!INTRO.on) return; INTRO.on = false; ls('nd_film_seen', FILM_ID);
     var f = $('film'), v = $('filmV'); f.classList.add('out');
     setTimeout(function () { try { v.pause(); } catch (e) {} f.hidden = true; f.classList.remove('out'); v.classList.remove('on'); $('filmLogo').classList.remove('on'); }, 1400);
     STATE = 'menu'; UI.show('sTitle', true);
@@ -3080,7 +3082,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 
   /* ── boot ── */
   UI.show('sTitle', true);
-  if (FILM_SRC && !ls('nd_film_seen')) filmShow(true);
+  if (FILM_SRC && ls('nd_film_seen') !== FILM_ID) filmShow(true);   // a new film plays once for everyone
   // photo-skinned cars build in the background; until one is ready that car is drawn the classic way
   Object.keys(CAR_PHOTOS).forEach(function (id) { buildPhotoCar(id).then(function () { if (UI.cur === 'sGarage') renderGarage(); }); });
   resize();
