@@ -1531,8 +1531,13 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
      and blended by surface direction, so from the chase camera you see the render itself. Transparent parts of a
      photo cut the shape (wheel arches, the gap under the car). Paint: neutral body pixels are recoloured to the
      chosen paint, keeping the photo's reflections and highlights; glass, tyres and lamps stay as rendered. */
+  // transparent cutouts (ContentPad remove_background) of the renders; base = the paint the photos were made in
   var CAR_PHOTOS = {
-    gull: { side: '5f8ff783-904c-4d30-a0ae-93776285607b.png', top: '5bfdadff-b534-46b7-9166-1c4f72b392f1.png', rear: '6b994876-399f-4d2e-b24b-e86662134a87.png', front: '3f351061-292f-4d89-8631-7192f10ac611.png', base: 8 }
+    hatch: { side: '68c0365d-caee-4d0b-81c6-a5bbc30e9efd.png', top: '625256e3-5bed-47a8-bef8-bd78c397eec2.png', rear: '4ddc03b6-3157-4046-8741-b88a201a8821.png', front: 'bdfa7f7b-9f7d-41da-a6ff-de9480118017.png', base: 8 },
+    muscle: { side: 'aea20e0c-ade3-4ce2-b82c-8a60be8f06f4.png', top: 'c5fac8ff-a988-46fc-9202-80e861d6f5d5.png', rear: '8dc2fcc2-8d60-4a55-84c2-634a2360691f.png', front: 'a0e4791e-675c-4e79-85c3-f4bc26e0eef0.png', base: 8 },
+    gull: { side: '38460c9d-7449-4371-bb5d-6fa3c4d30880.png', top: '64cce764-026e-499b-8223-799d6cb8963a.png', rear: '7f1f0611-3ad9-472a-bc63-14ed8d11ed0e.png', front: '9ab1bae4-42d1-45a0-841d-405f1c2c5c6a.png', base: 8 },
+    wedge: { side: '47de7af5-8ccd-4f4b-8c70-62edca7b9ca9.png', top: '203a6829-cd89-4521-87cb-5e17b08ebed3.png', rear: '0f3e3f4d-fb8c-47a4-b1dd-4654da8825f8.png', front: '3ccc9661-0911-47ea-a08d-d00ea076939b.png', base: 8 },
+    exotic: { side: '6145c18f-7563-49d6-b14f-1fbf3ba5b63c.png', top: '8cbe57b4-4f01-4062-a3eb-f74aef58c389.png', rear: '8147991a-9617-4847-b6fe-273ff07e1387.png', front: 'ed80275c-0992-4359-937c-91f1d65f100a.png', base: 8 }
   };
   var PHOTO = {};   // id → { atlas, rects, prof } once ready
   function loadImg(url) { return new Promise(function (res) { var im = new Image(); im.crossOrigin = 'anonymous'; var t = setTimeout(function () { res(null); }, 15000); im.onload = function () { clearTimeout(t); res(im); }; im.onerror = function () { clearTimeout(t); res(null); }; im.src = url; }); }
@@ -1542,15 +1547,19 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     x.drawImage(im, 0, 0); var d = x.getImageData(0, 0, W, H), p = d.data, bg = new Uint8Array(W * H), q = new Int32Array(W * H), qh = 0, qt = 0;
     function isBg(i) { var o = i * 4, r = p[o], g = p[o + 1], b = p[o + 2], mx = Math.max(r, g, b), mn = Math.min(r, g, b); return mn > 222 && mx - mn < 22; }
     function push(i) { if (!bg[i] && isBg(i)) { bg[i] = 1; q[qt++] = i; } }
-    for (var i = 0; i < W; i++) { push(i); push((H - 1) * W + i); }
-    for (i = 0; i < H; i++) { push(i * W); push(i * W + W - 1); }
-    while (qh < qt) { var k = q[qh++], cx = k % W, cy = (k - cx) / W; if (cx > 0) push(k - 1); if (cx < W - 1) push(k + 1); if (cy > 0) push(k - W); if (cy < H - 1) push(k + W); }
+    var transparent = p[3] < 20 && p[(W * H - 1) * 4 + 3] < 20;   // a cutout already: trust its alpha
+    if (transparent) { for (var a = 0; a < W * H; a++) if (p[a * 4 + 3] < 70) bg[a] = 1; }
+    else {
+      for (var i = 0; i < W; i++) { push(i); push((H - 1) * W + i); }
+      for (i = 0; i < H; i++) { push(i * W); push(i * W + W - 1); }
+      while (qh < qt) { var k = q[qh++], cx = k % W, cy = (k - cx) / W; if (cx > 0) push(k - 1); if (cx < W - 1) push(k + 1); if (cy > 0) push(k - W); if (cy < H - 1) push(k + W); }
+    }
     var x0 = W, x1 = 0, y0 = H, y1 = 0;
     for (var y = 0; y < H; y++) for (var xx = 0; xx < W; xx++) {
       var j = y * W + xx;
       if (bg[j]) { p[j * 4 + 3] = 0; continue; }
       // soften the rim: a pixel touching the background is half transparent
-      if ((xx > 0 && bg[j - 1]) || (xx < W - 1 && bg[j + 1]) || (y > 0 && bg[j - W]) || (y < H - 1 && bg[j + W])) p[j * 4 + 3] = 120;
+      if (!transparent && ((xx > 0 && bg[j - 1]) || (xx < W - 1 && bg[j + 1]) || (y > 0 && bg[j - W]) || (y < H - 1 && bg[j + W]))) p[j * 4 + 3] = 120;
       if (xx < x0) x0 = xx; if (xx > x1) x1 = xx; if (y < y0) y0 = y; if (y > y1) y1 = y;
     }
     x.putImageData(d, 0, 0);
@@ -1609,6 +1618,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     'varying vec3 vP; varying vec3 vN;',
     '#include <fog_pars_fragment>',
     'vec4 tap(vec4 r, vec2 uv){ uv = clamp(uv, 0.002, 0.998); return texture2D(atlas, r.xy + uv * r.zw); }',
+    'vec4 pm(vec4 t){ return vec4(t.rgb * t.a, t.a); }',
     'void main(){',
     ' vec3 n = normalize(vN); vec3 q = (vP - box0) / (box1 - box0);',
     ' vec4 side = tap(rSide, vec2(q.x, q.y));',
@@ -1617,7 +1627,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     ' vec4 front = tap(rFront, vec2(1.0 - q.z, q.y));',
     ' float ws = pow(abs(n.z), 3.0), wt = pow(max(n.y, 0.0), 3.0), wr = pow(max(-n.x, 0.0), 3.0), wf = pow(max(n.x, 0.0), 3.0), wb = pow(max(-n.y, 0.0), 3.0);',
     ' float sum = ws + wt + wr + wf + wb + 1e-4;',
-    ' vec4 c = (side * ws + top * wt + rear * wr + front * wf + vec4(0.02, 0.02, 0.025, 1.0) * wb) / sum;',
+    ' vec4 c = (pm(side) * ws + pm(top) * wt + pm(rear) * wr + pm(front) * wf + vec4(0.02, 0.02, 0.025, 1.0) * wb) / sum;',
     ' if (c.a < 0.45) discard;',
     ' vec3 col = c.rgb / max(c.a, 0.001);',
     ' float mx = max(col.r, max(col.g, col.b)), mn = min(col.r, min(col.g, col.b)), lum = dot(col, vec3(0.3, 0.59, 0.11)), sat = (mx - mn) / max(mx, 0.001);',
