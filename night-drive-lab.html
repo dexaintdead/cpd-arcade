@@ -1074,14 +1074,15 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   function citySide(scene, TR, rng, gy, WALK, opt) {
     var signT = atlas(SHOP_SIGNS, 512, 128), list = [], parked = new Merger(), people = new Merger();
     // ContentPad facades (YESTERDAYLAND renders, flat front elevations): most buildings wear one on the street side
-    var FAC = (opt.facades || []).map(function (f) { return { f: f, m: new Merger(), aspect: (f.aw || 1376) / ((f.ah || 768) * (1 - (f.top || 0))) }; });
+    var FAC = (opt.facades || []).map(facadeSet);
     // buildings shoulder to shoulder along each sidewalk, with the odd gap (lots, alleys)
     [-1, 1].forEach(function (sd) {
       for (var s = rng() * 8; s < TR.L - 4;) {
         var w = opt.w[0] + rng() * (opt.w[1] - opt.w[0]), f = frameAt(TR, s + w / 2), p0 = f.p.clone().addScaledVector(f.r, sd * (HALF + WALK + 0.3)), o = { p: p0, f: f, side: sd };
         var h = opt.h[0] + Math.pow(rng(), opt.hp || 1) * (opt.h[1] - opt.h[0]), d = 14 + rng() * 12, ok = rng() > (opt.gapP || 0.06);
         var fk = FAC.length && rng() < (opt.facadeP == null ? 0.85 : opt.facadeP) ? FAC[Math.floor(rng() * FAC.length)] : null;
-        if (fk) h = w / fk.aspect;
+        var hf = fk ? w / fk.aspect : 0;
+        if (fk) h = opt.facadeBase ? Math.max(h, hf + 4) : hf;
         [[0, d], [-w / 2, 0.2], [w / 2, 0.2], [-w / 2, d], [w / 2, d], [0, d / 2]].forEach(function (c) { var q = p0.clone().addScaledVector(f.t, c[0]).addScaledVector(f.r, sd * c[1]); if (TR.near(q.x, q.z) < HALF + WALK - 0.2) ok = false; });
         if (ok && opt.filter && !opt.filter(p0, f, sd)) ok = false;
         if (ok) {
@@ -1089,9 +1090,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
           var col = new THREE.Color(opt.cols[Math.floor(rng() * opt.cols.length)]).multiplyScalar(opt.bright || 1);
           if (fk) {
             // the photo on the street face, a hair in front of the box
-            var fr = p0.clone().addScaledVector(f.r, -sd * 0.05), a1 = fr.clone().addScaledVector(f.t, -w / 2), a2 = fr.clone().addScaledVector(f.t, w / 2), qq = sd < 0 ? [a1, a2] : [a2, a1], vt = 1 - (fk.f.top || 0);
-            fk.m.quad(qq[0], qq[1], qq[1].clone().add(V3(0, h, 0)), qq[0].clone().add(V3(0, h, 0)), 0xffffff, [[0, 0], [1, 0], [1, vt], [0, vt]]);
-            list.push(bld(o, w, h, d, col.multiplyScalar(0.7), { shop: 0, sign: rng() < 0.3 ? si : null, signW: 7, signY: h + 0.25 }));
+            facadeQuad(fk, p0, f, sd, w, hf);
+            list.push(bld(o, w, h, d, col.multiplyScalar(0.7), { shop: 0, sign: opt.facadeBase ? null : (rng() < 0.3 ? si : null), signW: 7, signY: h + 0.25 }));
           } else
           list.push(bld(o, w, h, d, col, { shop: rng() < opt.shopP ? [0xffffff, 0xffe8d0, 0xd8e4ff, 0xfff0e0][Math.floor(rng() * 4)] : 0, sign: si, signW: 8, signY: 4.3 + rng() * 1.2 }));
         }
@@ -1099,12 +1099,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       }
     });
     scene.add(buildingsMesh(list, rng, signT));
-    FAC.forEach(function (fk) {
-      if (fk.m.empty()) return;
-      var mat = new THREE.MeshBasicMaterial({ color: 0x15161c, side: THREE.DoubleSide });
-      scene.add(new THREE.Mesh(fk.m.geo(), mat));
-      loadArt(ART + fk.f.id, 1280).then(function (t) { if (!t) return; t.anisotropy = Math.min(8, MAXANI); mat.map = t; mat.color.setHex(0xffffff); mat.needsUpdate = true; });
-    });
+    FAC.forEach(function (fk) { facadeMesh(scene, fk); });
     // Parking: straight stretches get a run of parked cars along one curb. The wall moves in to the
     // cars for the length of the run (tapering at each end), so they are solid, not ghosts.
     for (var s = 170; s < TR.L - 200;) {
@@ -1152,7 +1147,19 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     m.quad(a, b, b.clone().add(V3(0, h, 0)), a.clone().add(V3(0, h, 0)), 0xffffff, atlasUV(t, 0));
     scene.add(new THREE.Mesh(m.geo(), new THREE.MeshBasicMaterial({ map: t, side: THREE.DoubleSide })));
   }
-  // ContentPad facade renders per drive (top: share of the image that is sky, cropped off)
+  // A facade set: one merged mesh per ContentPad render; quads carry the cropped part of the image.
+  function facadeSet(f) { var l = f.l || 0, r = f.r || 0, t = f.top || 0, b = f.b || 0; return { f: f, m: new Merger(), uv: [l, 1 - r, b, 1 - t], aspect: ((f.aw || 1376) * (1 - l - r)) / ((f.ah || 768) * (1 - t - b)) }; }
+  function facadeQuad(fk, p0, f, sd, w, h) {   // p0: middle of the street face at ground level; sd: which side of the road
+    var fr = p0.clone().addScaledVector(f.r, -sd * 0.05), a1 = fr.clone().addScaledVector(f.t, -w / 2), a2 = fr.clone().addScaledVector(f.t, w / 2), qq = sd < 0 ? [a1, a2] : [a2, a1], u = fk.uv;
+    fk.m.quad(qq[0], qq[1], qq[1].clone().add(V3(0, h, 0)), qq[0].clone().add(V3(0, h, 0)), 0xffffff, [[u[0], u[2]], [u[1], u[2]], [u[1], u[3]], [u[0], u[3]]]);
+  }
+  function facadeMesh(scene, fk) {
+    if (fk.m.empty()) return;
+    var mat = new THREE.MeshBasicMaterial({ color: 0x15161c, side: THREE.DoubleSide });
+    scene.add(new THREE.Mesh(fk.m.geo(), mat));
+    loadArt(ART + fk.f.id, 1280).then(function (t) { if (!t) return; t.anisotropy = Math.min(8, MAXANI); mat.map = t; mat.color.setHex(0xffffff); mat.needsUpdate = true; });
+  }
+  // ContentPad facade renders per drive (top / b / l / r: share of the image cropped off that edge)
   var FACADES = {
     strip: [
       { id: '233541d2-2091-4c98-995c-9e8e3ad25c6c.png', top: 0.12 },   // diner
@@ -1160,6 +1167,22 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       { id: '36e3ef3d-10b9-44d1-97e4-f050b6a36855.png', top: 0 },      // video store + arcade
       { id: 'f831a5da-5495-44e4-baa7-99854a00783b.png', top: 0.05 },   // Spanish-style lounge
       { id: 'eaba1140-7a75-4a8a-a22f-9e82dcd69d6a.png', top: 0.08 }    // electronics + offices
+    ],
+    nyc: [
+      { id: '75c871fa-c20a-459b-ae15-91ee28521d8a.png', aw: 1200, ah: 896, b: 0.03 },   // corner deli, fire escapes
+      { id: '37e3ba56-6768-48b3-8a10-dd5f075c0ee1.png', aw: 1200, ah: 896, b: 0.03 },   // theater entrance
+      { id: 'ec444fa9-5656-4d7e-8cb5-5bdb750bc900.png', aw: 1200, ah: 896, b: 0.03 },   // pizza shop + office lobby
+      { id: '7b8ebfb9-58c5-4773-8241-10da475fd3ee.png', aw: 1200, ah: 896, b: 0.05 }    // record shop + diner, tenement
+    ],
+    miami: [
+      { id: 'c70a0341-5f71-462a-b714-01b775b1358f.png', top: 0.03, l: 0.01, r: 0.01 },  // pink deco hotel
+      { id: 'd9fc4bf6-6986-4e71-9071-f1f124666599.png', top: 0.08, l: 0.14, r: 0.14 },  // mint tower hotel
+      { id: '17694cdc-1286-4362-bcc6-c0dfb80326b8.png', top: 0.06, l: 0.04, r: 0.04 },  // peach hotel bar
+      { id: '25a2374f-f0bb-4a2d-af8a-889db3bda11c.png', top: 0.02 }                     // lavender apartment hotel
+    ],
+    desert: [
+      { id: '9f0f2ab8-8469-48cd-bbc0-24dff6b67ee0.png', top: 0.27, b: 0.12 },           // diner
+      { id: '197934c8-dd42-4ac1-b873-4d45bd0e2b11.png', top: 0.08, b: 0.02 }            // motel
     ]
   };
   var THEME_BUILD = {
@@ -1219,17 +1242,20 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       scene.add(new THREE.Mesh(tp.geo(), new THREE.MeshLambertMaterial({ vertexColors: true })));
       var wg = new THREE.BufferGeometry(); wg.setAttribute('position', new THREE.Float32BufferAttribute(wires, 3)); scene.add(new THREE.LineSegments(wg, new THREE.LineBasicMaterial({ color: 0x1a1214 })));
       // the roadside stop: diner, motel and gas station near the start, with their signs lit
-      var stop = [], signT = atlas(SHOP_SIGNS, 512, 128);
-      [[60, 1, 22, 6, 0xd8c8a8, 13], [100, 1, 36, 5, 0xc8b8a0, 0], [150, 1, 18, 5, 0xe8e0d0, 3]].forEach(function (b) {
-        var f = frameAt(TR, b[0]), o = { p: f.p.clone().addScaledVector(f.r, b[1] * (HALF + 16)), f: f, side: b[1] };
+      var stop = [], signT = atlas(SHOP_SIGNS, 512, 128), DF = FACADES.desert.map(facadeSet);
+      [[60, 1, 26, 0, 13], [104, 1, 34, 1, 0], [600, -1, 26, 0, 3], [1900, 1, 30, 1, 0]].forEach(function (b) {
+        var f = frameAt(TR, b[0]), o = { p: f.p.clone().addScaledVector(f.r, b[1] * (HALF + 16)), f: f, side: b[1] }, fk = DF[b[3]], h = b[2] / fk.aspect;
         if (TR.near(o.p.x, o.p.z) < HALF + 10) return;
-        stop.push(bld(o, b[2], b[3], 12, b[4], { shop: 0xffe0b0, sign: b[5], signW: 10, signY: b[3] + 0.4 }));
+        o.p.y = Math.max(gy, o.p.y - 0.5);
+        facadeQuad(fk, o.p, f, b[1], b[2], h);
+        stop.push(bld(o, b[2], h, 12, 0x8a7a6a, { shop: 0, sign: b[4], signW: 10, signY: h + 0.4 }));
       });
       if (stop.length) scene.add(buildingsMesh(stop, rng, signT));
+      DF.forEach(function (fk) { facadeMesh(scene, fk); });
       billboards(scene, TR, rng, [5, 2, 1, 0], 600, 10, 30);
     },
     nyc: function (scene, TR, th, rng, gy, dark, WALK) {
-      citySide(scene, TR, rng, gy, WALK, { every: 13, w: [14, 24], h: [26, 150], hp: 1.6, cols: [0xa8a49c, 0x8c8880, 0xb09a88, 0x9a8a7a, 0x7a7c84], bright: 1.3, signs: [7, 6, 9, 3, 8, 15, 14, 2], signP: 0.8, shopP: 0.9, parkGap: 0.35, people: 5, umbrellas: 1, taxis: 0.45 });
+      citySide(scene, TR, rng, gy, WALK, { every: 13, w: [14, 24], h: [26, 150], hp: 1.6, facades: FACADES.nyc, facadeBase: true, facadeP: 0.75, cols: [0xa8a49c, 0x8c8880, 0xb09a88, 0x9a8a7a, 0x7a7c84], bright: 1.3, signs: [7, 6, 9, 3, 8, 15, 14, 2], signP: 0.8, shopP: 0.9, parkGap: 0.35, people: 5, umbrellas: 1, taxis: 0.45 });
       marquee(scene, TR, rng, 330, 1, WALK); marquee(scene, TR, rng, 1120, -1, WALK);
       // steam from the subway grates
       var steam = []; for (var s = 40; s < TR.L; s += 90 + rng() * 80) { var f = frameAt(TR, s), p = f.p.clone().addScaledVector(f.r, (rng() - 0.5) * 10); steam.push(p); }
@@ -1254,7 +1280,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       var sand = new THREE.Mesh(new THREE.PlaneGeometry(1300, 70), new THREE.MeshLambertMaterial({ color: 0x8a7a68 })); sand.rotation.x = -Math.PI / 2; sand.position.set(260, gy + 1.2, -45); scene.add(sand);
       var palms = spots(TR, rng, 12, WALK - 1.2, WALK + 18, WALK - 1.4, null, true).map(function (o) { o.rot = rng() * 6.28; o.sc = 0.9 + rng() * 0.6; o.p.y = Math.max(o.p.y + 0.18, gy + 1.2); return o; });
       scene.add(instanced(palmGeo(), new THREE.MeshBasicMaterial({ color: 0x0a0c14, side: THREE.DoubleSide }), palms));
-      citySide(scene, TR, rng, gy, WALK, { every: 26, w: [18, 32], h: [10, 30], cols: [0xffc8d8, 0xb8f0e0, 0xffd8b8, 0xd8c8ff, 0xfff0c8, 0xc0e8ff], bright: 2.6, signs: [10, 11, 12, 8, 4, 0], signP: 0.85, shopP: 0.8, parkGap: 0.4, people: 6,
+      citySide(scene, TR, rng, gy, WALK, { every: 26, w: [18, 32], h: [10, 30], facades: FACADES.miami, facadeP: 0.9, cols: [0xffc8d8, 0xb8f0e0, 0xffd8b8, 0xd8c8ff, 0xfff0c8, 0xc0e8ff], bright: 2.6, signs: [10, 11, 12, 8, 4, 0], signP: 0.85, shopP: 0.8, parkGap: 0.4, people: 6,
         filter: function (p) { return p.z > 25; } });
       billboards(scene, TR, rng, [0, 1, 3], 520, WALK + 8, WALK + 16, 34);
       return { ocean: ocean };
@@ -1631,8 +1657,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     ' if (c.a < 0.45) discard;',
     ' vec3 col = c.rgb / max(c.a, 0.001);',
     ' float mx = max(col.r, max(col.g, col.b)), mn = min(col.r, min(col.g, col.b)), lum = dot(col, vec3(0.3, 0.59, 0.11)), sat = (mx - mn) / max(mx, 0.001);',
-    ' float body = smoothstep(0.32, 0.12, sat) * smoothstep(0.1, 0.24, lum);',
-    ' vec3 re = paint * min(1.6, lum * 1.45) + vec3(pow(lum, 5.0) * 0.9);',
+    ' float body = smoothstep(0.5, 0.28, sat) * smoothstep(0.07, 0.2, lum) * (1.0 - step(col.g * 1.9, col.r) * step(0.35, col.r));',
+    ' vec3 re = paint * min(1.15, lum * 1.2) + vec3(pow(lum, 6.0) * 0.55);',
     ' col = mix(col, re, body * paintMix);',
     ' float red = step(0.45, col.r) * step(col.g * 1.7, col.r); col *= 1.0 + red * brake * 1.4;',
     ' col *= expo;',
