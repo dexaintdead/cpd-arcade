@@ -1,10 +1,14 @@
 /* ContentPad Arcade — the game catalog (build 2026100702-tt).
    House games live in this repo as <slug>.html at the top level and are listed here.
-   Only status:'live' entries are shown. rating marks adult games (the game itself runs its own age gate). */
+   Only status:'live' entries are shown. rating marks adult games (the game itself runs its own age gate).
+   landing: the brand landing page that wraps the game, if it has one (listed under "Brand pages").
+   2026-10-07: Arcade HQ → Games can switch any game to live / hidden / off without touching this
+   file (gate.js asks the API). status here only says whether the game exists in the Arcade at all. */
 window.ARCADE_GAMES = [
   {
     slug: 'toy-tokyo-catcher',
     file: 'toy-tokyo-catcher.html',
+    landing: { url: 'toytokyo.html', title: 'Toy Tokyo · Gacha World', brand: 'Toy Tokyo' },
     title: 'Gacha Rush: Toy Tokyo UFO Catcher',
     badge: 'New · Toy Tokyo × ContentPad · real pulls',
     tagline: 'Grab a capsule. Every one is a real Toy Tokyo pull, or crew.',
@@ -66,6 +70,7 @@ window.ARCADE_GAMES = [
   {
     slug: 'nightmare-on-46th',
     file: 'nightmare-on-46th.html',
+    landing: { url: 'nightmare.html', title: 'Harbor NYC · Halloween', brand: 'Dream Hospitality' },
     title: 'Nightmare on 46th Street',
     badge: 'v5 · throws, launchers, juggles, EX moves, a move list',
     tagline: 'Six legends. One cursed DJ. Survive till 3 AM.',

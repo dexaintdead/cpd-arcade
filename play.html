@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script src="/gate.js?v=1" data-game-param="g"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <!-- Arcade as an app: saved to the Home Screen it runs full screen with no browser bars (2026-10-05) -->
 <link rel="manifest" href="/manifest.webmanifest">
@@ -42,7 +43,7 @@
 </div></footer>
 
 <script src="gamepad.js?v=1"></script>
-<script src="games.js?v=17"></script>
+<script src="games.js?v=18"></script>
 <script src="arcade.js?v=3"></script>
 <script src="account.js?v=6"></script>
 <script>
@@ -50,7 +51,7 @@
   'use strict';
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   var slug = (new URLSearchParams(location.search).get('g') || '').replace(/[^a-z0-9-]/g, '');
-  var g = (window.ARCADE_GAMES || []).filter(function (x) { return x.slug === slug && x.status === 'live'; })[0];
+  var g = (window.ARCADE_GAMES || []).filter(function (x) { return x.slug === slug && x.status === 'live' && (!window.ArcadeStatus || ArcadeStatus.playable(x.slug)); })[0];
   var main = document.getElementById('main');
   if (!g) { main.innerHTML = '<section class="sec"><h2 class="disp chrome">Game not found</h2><p style="color:var(--dim)">That game isn\'t in the Arcade. <a href="./" style="color:var(--ice)">See all games</a>.</p></section>'; return; }
   document.title = g.title + ' · ContentPad Arcade';

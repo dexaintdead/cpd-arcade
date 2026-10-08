@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Not available · ContentPad Arcade</title>
+<meta name="theme-color" content="#02030d">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/arcade.css?v=4">
+<style>
+.off{min-height:calc(100vh - 160px);display:grid;place-items:center;text-align:center;padding:40px 16px}
+.off .box{max-width:520px}
+.off h1{font-size:clamp(26px,5vw,40px);line-height:1.1;margin:0 0 12px}
+.off p{color:var(--dim);font-size:16px;line-height:1.6;margin:0 0 22px}
+.off .btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div class="sky"></div><div class="scan"></div>
+<header class="bar"><div class="wrap">
+  <a class="logo" href="/" target="_top" aria-label="ContentPad Arcade home"><img src="https://contentpad.io/contentpad-logo-nav.png" alt="ContentPad"><span class="arc chrome">ARCADE</span></a>
+</div></header>
+<main class="wrap off">
+  <div class="box">
+    <h1 class="disp chrome" id="h">This game isn't available right now</h1>
+    <p>It's been taken out of the Arcade for now. There's plenty more to play.</p>
+    <div class="btns"><a class="btn play" href="/" target="_top">▶ See all games</a></div>
+  </div>
+</main>
+<footer><div class="wrap">
+  <span>© 2026 ContentPad Studios</span>
+  <span><a href="https://contentpad.io/" target="_top">contentpad.io</a></span>
+</div></footer>
+<script src="/games.js?v=18"></script>
+<script>
+(function () {
+  var slug = (new URLSearchParams(location.search).get('g') || '').replace(/[^a-z0-9-]/g, '');
+  var g = (window.ARCADE_GAMES || []).filter(function (x) { return x.slug === slug; })[0];
+  if (g) { document.getElementById('h').textContent = g.title + " isn't available right now"; document.title = g.title + ' · not available · ContentPad Arcade'; }
+})();
+</script>
+</body>
+</html>

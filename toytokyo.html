@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script src="/gate.js?v=1" data-game="toy-tokyo-catcher"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <!-- Toy Tokyo × ContentPad — interactive collector landing (concept for Toy Tokyo, build 2026100702-tt v1.1)
      Portals open real Toy Tokyo collections and product pages; Gacha Rush (toy-tokyo-catcher.html) is embedded from the
@@ -497,7 +498,7 @@ $('crewrow').innerHTML=TT.crew.map(function(c,i){return'<div class="cc reveal'+(
 if(!reduce&&!matchMedia('(pointer:coarse)').matches)document.querySelectorAll('.cc').forEach(function(el){el.addEventListener('pointermove',function(e){var r=el.getBoundingClientRect(),px=(e.clientX-r.left)/r.width-.5,py=(e.clientY-r.top)/r.height-.5;el.style.transform='perspective(700px) rotateY('+(px*16)+'deg) rotateX('+(-py*16)+'deg)'});el.addEventListener('pointerleave',function(){el.style.transform=''})});
 
 /* ---------- arcade rail (live catalog from the Arcade) ---------- */
-function renderGames(){var g=(window.ARCADE_GAMES||[]).filter(function(x){return x.status==='live'&&!x.rating&&x.slug!=='toy-tokyo-catcher'});
+function renderGames(){var g=(window.ARCADE_GAMES||[]).filter(function(x){return x.status==='live'&&!x.rating&&x.slug!=='toy-tokyo-catcher'&&(!window.ArcadeStatus||ArcadeStatus.listed(x.slug))});
   var here='<a class="gc here" href="#play"><div class="im" style="background-image:url(\''+M+TT.art.catcher+'\')"></div><div class="tx"><div class="t">Gacha Rush</div><div class="s">The Toy Tokyo UFO catcher. Real pulls, crew stickers, a binder.</div><span class="bd">You are here</span></div></a>';
   $('games').innerHTML=here+g.slice(0,5).map(function(x){return'<a class="gc" href="https://arcade.contentpad.io/play.html?g='+encodeURIComponent(x.slug)+'" target="_blank" rel="noopener"><div class="im" style="background-image:url(\''+esc(x.cover)+'\')"></div><div class="tx"><div class="t">'+esc(x.title)+'</div><div class="s">'+esc(x.tagline)+'</div><span class="bd">'+esc(x.genre||'Game')+'</span></div></a>'}).join('')+
   '<a class="gc" href="https://arcade.contentpad.io/" target="_blank" rel="noopener"><div class="im allg">'+TT.crew.slice(1,7).map(function(c){return'<img alt="" loading="lazy" src="'+M+c.img+'">'}).join('')+'</div><div class="tx"><div class="t">All games ↗</div><div class="s">The full ContentPad Arcade.</div><span class="bd">arcade.contentpad.io</span></div></a>'}
