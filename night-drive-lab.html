@@ -1072,7 +1072,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 
   /* ── per-drive dressing ── */
   function citySide(scene, TR, rng, gy, WALK, opt) {
-    var signT = atlas(SHOP_SIGNS, 512, 128), list = [], parked = new Merger(), people = new Merger();
+    var signT = atlas(SHOP_SIGNS, 512, 128), list = [], parked = new Merger(), people = new Merger(), parkList = [];
     // ContentPad facades (YESTERDAYLAND renders, flat front elevations): most buildings wear one on the street side
     var FAC = (opt.facades || []).map(facadeSet);
     // buildings shoulder to shoulder along each sidewalk, with the odd gap (lots, alleys)
@@ -1080,7 +1080,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       for (var s = rng() * 8; s < TR.L - 4;) {
         var w = opt.w[0] + rng() * (opt.w[1] - opt.w[0]), f = frameAt(TR, s + w / 2), p0 = f.p.clone().addScaledVector(f.r, sd * (HALF + WALK + 0.3)), o = { p: p0, f: f, side: sd };
         var h = opt.h[0] + Math.pow(rng(), opt.hp || 1) * (opt.h[1] - opt.h[0]), d = 14 + rng() * 12, ok = rng() > (opt.gapP || 0.06);
-        var fk = FAC.length && rng() < (opt.facadeP == null ? 0.85 : opt.facadeP) ? FAC[Math.floor(rng() * FAC.length)] : null;
+        var fk = FAC.length && rng() < (opt.facadeP == null ? 0.94 : opt.facadeP) ? FAC[Math.floor(rng() * FAC.length)] : null;
         var hf = fk ? w / fk.aspect : 0;
         if (fk) h = opt.facadeBase ? Math.max(h, hf + 4) : hf;
         [[0, d], [-w / 2, 0.2], [w / 2, 0.2], [-w / 2, d], [w / 2, d], [0, d / 2]].forEach(function (c) { var q = p0.clone().addScaledVector(f.t, c[0]).addScaledVector(f.r, sd * c[1]); if (TR.near(q.x, q.z) < HALF + WALK - 0.2) ok = false; });
@@ -1111,7 +1111,9 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
         var prof = CIV[Math.floor(rng() * CIV.length)], taxi = opt.taxis && rng() < opt.taxis, cm = c + prof.L / 2;
         if (cm + prof.L / 2 > s + len - 3) break;
         var f = frameAt(TR, cm), pc = f.p.clone().addScaledVector(f.r, sd * (HALF - 1.15));
-        addCarToMerger(parked, prof, frameMtx(pc, f.t, f.r, rng() < 0.85 ? 0 : Math.PI), taxi ? 0xffc61a : CIVCOL[Math.floor(rng() * CIVCOL.length)], taxi);
+        var PM = frameMtx(pc, f.t, f.r, rng() < 0.85 ? 0 : Math.PI), pcol = taxi ? 0xffc61a : CIVCOL[Math.floor(rng() * CIVCOL.length)];
+        addCarToMerger(parked, prof, PM, pcol, taxi);
+        parkList.push({ m: PM, col: pcol, model: rng() < 0.5 ? 'hatch' : rng() < 0.6 ? 'muscle' : 'gull' });
         c += prof.L + 1.0 + rng() * 2.5;
       }
       for (var i = 0; i < TR.n; i++) { var si = i * TR.step; if (si < s || si > s + len) continue; var wgt = clamp(Math.min(si - s, s + len - si) / 7, 0, 1); arr[i] = Math.min(arr[i], HALF - 2.35 * wgt); }
@@ -1123,7 +1125,12 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       if (TR.near(pp.x, pp.z) < HALF + 0.5) continue;
       addPerson(people, pp, Math.atan2(fp.t.x, fp.t.z) + (rng() < 0.5 ? 0 : Math.PI), rng, opt.umbrellas);
     }
-    if (!parked.empty()) scene.add(new THREE.Mesh(parked.geo(), new THREE.MeshPhongMaterial({ vertexColors: true, shininess: 60, specular: 0x444444 })));
+    if (!parked.empty()) {
+      // drawn the classic way at once, swapped for photo cars as soon as those are built
+      var procParked = new THREE.Mesh(parked.geo(), new THREE.MeshPhongMaterial({ vertexColors: true, shininess: 60, specular: 0x444444 }));
+      scene.add(procParked);
+      Promise.all(['hatch', 'muscle', 'gull'].map(buildPhotoCar)).then(function () { if (photoParked(scene, parkList)) { scene.remove(procParked); procParked.geometry.dispose(); } });
+    }
     if (!people.empty()) scene.add(new THREE.Mesh(people.geo(), new THREE.MeshLambertMaterial({ vertexColors: true })));
   }
   function billboards(scene, TR, rng, idx, every, dMin, dMax, baseH) {
@@ -1255,7 +1262,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       billboards(scene, TR, rng, [5, 2, 1, 0], 600, 10, 30);
     },
     nyc: function (scene, TR, th, rng, gy, dark, WALK) {
-      citySide(scene, TR, rng, gy, WALK, { every: 13, w: [14, 24], h: [26, 150], hp: 1.6, facades: FACADES.nyc, facadeBase: true, facadeP: 0.75, cols: [0xa8a49c, 0x8c8880, 0xb09a88, 0x9a8a7a, 0x7a7c84], bright: 1.3, signs: [7, 6, 9, 3, 8, 15, 14, 2], signP: 0.8, shopP: 0.9, parkGap: 0.35, people: 5, umbrellas: 1, taxis: 0.45 });
+      citySide(scene, TR, rng, gy, WALK, { every: 13, w: [14, 24], h: [26, 150], hp: 1.6, facades: FACADES.nyc, facadeBase: true, facadeP: 0.97, cols: [0xa8a49c, 0x8c8880, 0xb09a88, 0x9a8a7a, 0x7a7c84], bright: 1.3, signs: [7, 6, 9, 3, 8, 15, 14, 2], signP: 0.8, shopP: 0.9, parkGap: 0.35, people: 5, umbrellas: 1, taxis: 0.45 });
       marquee(scene, TR, rng, 330, 1, WALK); marquee(scene, TR, rng, 1120, -1, WALK);
       // steam from the subway grates
       var steam = []; for (var s = 40; s < TR.L; s += 90 + rng() * 80) { var f = frameAt(TR, s), p = f.p.clone().addScaledVector(f.r, (rng() - 0.5) * 10); steam.push(p); }
@@ -1280,8 +1287,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       var sand = new THREE.Mesh(new THREE.PlaneGeometry(1300, 70), new THREE.MeshLambertMaterial({ color: 0x8a7a68 })); sand.rotation.x = -Math.PI / 2; sand.position.set(260, gy + 1.2, -45); scene.add(sand);
       var palms = spots(TR, rng, 12, WALK - 1.2, WALK + 18, WALK - 1.4, null, true).map(function (o) { o.rot = rng() * 6.28; o.sc = 0.9 + rng() * 0.6; o.p.y = Math.max(o.p.y + 0.18, gy + 1.2); return o; });
       scene.add(instanced(palmGeo(), new THREE.MeshBasicMaterial({ color: 0x0a0c14, side: THREE.DoubleSide }), palms));
-      citySide(scene, TR, rng, gy, WALK, { every: 26, w: [18, 32], h: [10, 30], facades: FACADES.miami, facadeP: 0.9, cols: [0xffc8d8, 0xb8f0e0, 0xffd8b8, 0xd8c8ff, 0xfff0c8, 0xc0e8ff], bright: 2.6, signs: [10, 11, 12, 8, 4, 0], signP: 0.85, shopP: 0.8, parkGap: 0.4, people: 6,
-        filter: function (p) { return p.z > 25; } });
+      citySide(scene, TR, rng, gy, WALK, { every: 26, w: [18, 32], h: [10, 30], facades: FACADES.miami, facadeP: 0.97, cols: [0xffc8d8, 0xb8f0e0, 0xffd8b8, 0xd8c8ff, 0xfff0c8, 0xc0e8ff], bright: 2.6, signs: [10, 11, 12, 8, 4, 0], signP: 0.85, shopP: 0.8, parkGap: 0.4, people: 6,
+        filter: function (p) { return p.z > 6; } });
       billboards(scene, TR, rng, [0, 1, 3], 520, WALK + 8, WALK + 16, 34);
       return { ocean: ocean };
     }
@@ -1635,8 +1642,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   }
   var PHOTO_VERT = [
     '#include <fog_pars_vertex>',
-    'varying vec3 vP; varying vec3 vN;',
-    'void main(){ vP = position; vN = normal; vec4 mvPosition = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mvPosition;',
+    'attribute vec3 lpos; attribute vec3 lnrm; varying vec3 vP; varying vec3 vN;',
+    'void main(){ vP = lpos; vN = lnrm; vec4 mvPosition = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mvPosition;',
     '#include <fog_vertex>',
     '}'].join('\n');
   var PHOTO_FRAG = [
@@ -1691,20 +1698,48 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       for (j = 0; j < R; j++) { var a = s * R + j, b = s * R + (j + 1) % R; if (e) idx.push(ci, a, b); else idx.push(ci, b, a); }
     });
     var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals();
-    g.computeBoundingBox();
+    g.setAttribute('lpos', g.attributes.position.clone()); g.setAttribute('lnrm', g.attributes.normal.clone());   // the projection always works in the car's own space
+    g.computeBoundingBox(); g.keep = true;
     return { geo: g, H: H, Wd: Wd, box: g.boundingBox };
+  }
+  function photoMaterial(data, built, paintHex, mix, opt) {
+    var u = THREE.UniformsUtils.merge([THREE.UniformsLib.fog, {
+      atlas: { value: null }, rSide: { value: data.side }, rTop: { value: data.top }, rRear: { value: data.rear }, rFront: { value: data.front },
+      box0: { value: built.box.min }, box1: { value: built.box.max }, paint: { value: new THREE.Color(paintHex) }, paintMix: { value: mix },
+      brake: { value: 0 }, opacity: { value: opt.ghost ? 0.35 : 1 }, expo: { value: opt.expo || 1 }
+    }]);
+    u.atlas.value = data.tex;
+    return new THREE.ShaderMaterial({ uniforms: u, vertexShader: PHOTO_VERT, fragmentShader: PHOTO_FRAG, fog: true, transparent: !!opt.ghost, depthWrite: !opt.ghost });
+  }
+  // Parked cars: every photo car of one model and colour merged into one mesh (world positions, own-space projection)
+  function photoParked(scene, list) {
+    var groups = {};
+    list.forEach(function (it) { if (!PHOTO[it.model]) return; var k = it.model + ':' + it.col; (groups[k] = groups[k] || []).push(it); });
+    var keys = Object.keys(groups); if (!keys.length) return false;
+    keys.forEach(function (k) {
+      var items = groups[k], id = items[0].model, data = PHOTO[id], built = data.built || (data.built = photoGeometry(data, CAR[id].L)), src = built.geo;
+      var n = src.attributes.position.count, idx = src.index.array, P = [], N = [], LP = [], LN = [], I = [], v = new THREE.Vector3(), nm = new THREE.Matrix3();
+      items.forEach(function (it, j) {
+        nm.getNormalMatrix(it.m);
+        for (var i = 0; i < n; i++) {
+          v.fromBufferAttribute(src.attributes.position, i).applyMatrix4(it.m); P.push(v.x, v.y, v.z);
+          v.fromBufferAttribute(src.attributes.normal, i).applyMatrix3(nm).normalize(); N.push(v.x, v.y, v.z);
+          LP.push(src.attributes.lpos.getX(i), src.attributes.lpos.getY(i), src.attributes.lpos.getZ(i)); LN.push(src.attributes.lnrm.getX(i), src.attributes.lnrm.getY(i), src.attributes.lnrm.getZ(i));
+        }
+        for (i = 0; i < idx.length; i++) I.push(idx[i] + j * n);
+      });
+      var g = new THREE.BufferGeometry();
+      g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3));
+      g.setAttribute('lpos', new THREE.Float32BufferAttribute(LP, 3)); g.setAttribute('lnrm', new THREE.Float32BufferAttribute(LN, 3)); g.setIndex(I);
+      scene.add(new THREE.Mesh(g, photoMaterial(data, built, items[0].col, 1, { expo: 0.9 })));
+    });
+    return true;
   }
   function makePhotoCar(def, paintIdx, opt) {
     var data = PHOTO[def.id]; if (!data) return null;
     var built = data.built || (data.built = photoGeometry(data, def.L));
     var paint = PAINTS[paintIdx == null ? def.paint : paintIdx] || PAINTS[0];
-    var u = THREE.UniformsUtils.merge([THREE.UniformsLib.fog, {
-      atlas: { value: null }, rSide: { value: data.side }, rTop: { value: data.top }, rRear: { value: data.rear }, rFront: { value: data.front },
-      box0: { value: built.box.min }, box1: { value: built.box.max }, paint: { value: new THREE.Color(paint.c) }, paintMix: { value: paintIdx === data.base || (paintIdx == null && def.paint === data.base) ? 0 : 1 },
-      brake: { value: 0 }, opacity: { value: opt.ghost ? 0.35 : 1 }, expo: { value: opt.expo || 1 }
-    }]);
-    u.atlas.value = data.tex;
-    var m = new THREE.ShaderMaterial({ uniforms: u, vertexShader: PHOTO_VERT, fragmentShader: PHOTO_FRAG, fog: true, transparent: !!opt.ghost, depthWrite: !opt.ghost });
+    var m = photoMaterial(data, built, paint.c, paintIdx === data.base || (paintIdx == null && def.paint === data.base) ? 0 : 1, opt);
     var g = new THREE.Group(), body = new THREE.Mesh(built.geo, m); g.add(body);
     return { group: g, mat: m, H: built.H, Wd: built.Wd };
   }
