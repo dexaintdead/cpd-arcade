@@ -160,6 +160,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 .keys kbd{font:700 11px var(--hud);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.22);border-radius:6px;padding:3px 7px;color:#fff;white-space:nowrap}
 .carpick{display:flex;align-items:center;justify-content:center;gap:12px;margin:10px 0}
 .carpick b{min-width:230px;text-align:center;font:400 12.5px var(--wide);letter-spacing:.08em}
+@media (max-width:560px){.carpick{gap:8px}.carpick b{min-width:0;flex:1}.carpick .mi{padding:12px 14px}}
 /* touch */
 #touch{position:fixed;inset:0;z-index:9;pointer-events:none}
 #touch .steer{position:absolute;left:0;bottom:0;width:48%;height:62%;pointer-events:auto}
@@ -1442,9 +1443,9 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
         var w = 9 + rng() * 3, h = w / 2, H = 16 + rng() * 12, c = base.clone().add(V3(0, H, 0));
         // the sign spans across the road direction (r) with a face each way, so traffic both ways reads it the right way round
         var a = c.clone().addScaledVector(f.r, -w / 2), b = c.clone().addScaledVector(f.r, w / 2), uvk = atlasUV(sT, k % sT.n);
-        [[-1, a, b], [1, b, a]].forEach(function (fc) { var o = f.t.clone().multiplyScalar(fc[0] * 0.27), l = fc[1].clone().add(o), r2 = fc[2].clone().add(o); sm.quad(l, r2, r2.clone().add(V3(0, h, 0)), l.clone().add(V3(0, h, 0)), 0xffffff, uvk); });
+        [[-1, a, b], [1, b, a]].forEach(function (fc) { var o = f.t.clone().multiplyScalar(fc[0] * 0.42), l = fc[1].clone().add(o), r2 = fc[2].clone().add(o); sm.quad(l, r2, r2.clone().add(V3(0, h, 0)), l.clone().add(V3(0, h, 0)), 0xffffff, uvk); });
         [-1, 1].forEach(function (q) { var lp = c.clone().addScaledVector(f.r, q * w * 0.28); legs.add(new THREE.BoxGeometry(0.7, H, 0.7), mtx(lp.x, base.y + H / 2, lp.z), 0x3a3238); });
-        legs.add(new THREE.BoxGeometry(0.5, h + 0.6, w + 0.6), frameMtx(c.clone().add(V3(0, h / 2, 0)), f.t, f.r), 0x241c20);
+        legs.add(new THREE.BoxGeometry(0.4, h + 0.6, w + 0.6), frameMtx(c.clone().add(V3(0, h / 2, 0)), f.t, f.r), 0x241c20);
         // bulbs round the frame and a band of bulbs under it
         var per = 2 * (w + h), nb = Math.round(per / 0.45);
         for (var i = 0; i < nb; i++) {
@@ -1453,7 +1454,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
           else if (u < w + h) p = b.clone().add(V3(0, u - w, 0)).addScaledVector(f.r, 0.15);
           else if (u < 2 * w + h) p = b.clone().add(V3(0, h + 0.15, 0)).addScaledVector(f.r, -(u - w - h));
           else p = a.clone().add(V3(0, h - (u - 2 * w - h), 0)).addScaledVector(f.r, -0.15);
-          (i % 2 ? bA : bB).push(p.x, p.y, p.z);
+          var arr = i % 2 ? bA : bB; [-0.5, 0.5].forEach(function (q) { arr.push(p.x + f.t.x * q, p.y, p.z + f.t.z * q); });   // on both faces
         }
         for (var j = 0; j < 3; j++) for (var i2 = 0; i2 < 14; i2++) { var pb = c.clone().add(V3(0, -1.2 - j * 0.9, 0)).addScaledVector(f.r, (i2 / 13 - 0.5) * w * 0.5); ((i2 + j) % 2 ? bA : bB).push(pb.x, pb.y, pb.z); }
       }
