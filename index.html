@@ -35,7 +35,7 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","@id":"https://arcade.contentpad.io/#website","url":"https://arcade.contentpad.io/","name":"ContentPad Arcade","description":"Original browser games made in ContentPad's own creative studio. Free to play, with controller support and leaderboards.","inLanguage":"en","publisher":{"@type":"Organization","@id":"https://contentpad.io/#org","name":"ContentPad","url":"https://contentpad.io/"}}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="arcade.css?v=4">
+<link rel="stylesheet" href="arcade.css?v=5">
 <style>.lbgrid{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}.lbgrid .card h4 small{color:var(--mute);letter-spacing:.1em}
 /* Brand pages: the landing pages that wrap a game (2026-10-07) */
 .bp{position:relative}
@@ -131,6 +131,14 @@
       (g.controller ? '<span class="chip">🎮 Controller</span>' : '') + (g.mobile ? '<span class="chip">📱 Phone</span>' : '');
   }
   var sel = 0;
+  // Titles are never cut off: shrink the featured title until its longest word fits the panel.
+  function fitTitle() {
+    var h = document.querySelector('#info h1'); if (!h) return;
+    h.style.fontSize = ''; var size = parseFloat(getComputedStyle(h).fontSize), guard = 0;
+    while (h.scrollWidth > h.clientWidth + 1 && size > 14 && guard++ < 40) { size -= 1; h.style.fontSize = size + 'px'; }
+  }
+  addEventListener('resize', fitTitle);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitTitle);
   function show(i, blip) {
     if (!G.length) return;
     sel = (i + G.length) % G.length; var g = G[sel], b = best(g);
@@ -142,6 +150,7 @@
       '<div class="chips">' + chips(g) + '</div>' +
       '<div class="btns"><a class="btn play" href="' + href(g) + '">▶ Play</a>' + (b ? '<span class="btn ghost">' + esc(g.scoreLabel || 'Best') + ': ' + b + '</span>' : '') + '</div>' +
       (G.length > 1 ? '<div class="hint"><kbd>←</kbd><kbd>→</kbd> choose · <kbd>Enter</kbd> play · controller works too</div>' : '');
+    fitTitle();
     [].forEach.call(document.querySelectorAll('.ring'), function (r, k) { r.classList.toggle('sel', k === sel); r.setAttribute('aria-selected', k === sel); });
     var r = document.querySelectorAll('.ring')[sel]; if (r && blip) r.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
     if (blip && window.arcadeBlip) window.arcadeBlip(sel % 2 ? 990 : 880);

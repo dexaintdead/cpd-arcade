@@ -60,7 +60,7 @@ button{font:inherit;color:inherit}
 .nitro.on i{animation:nflash .12s steps(2) infinite}
 @keyframes nflash{50%{filter:brightness(1.6)}}
 .nlbl{font:700 10px var(--hud);letter-spacing:.3em;color:var(--ice);margin-top:4px}
-.hud .msg{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);font:900 clamp(22px,4.4vw,48px)/1.1 var(--hud);text-align:center;letter-spacing:.06em;white-space:nowrap;opacity:0;transition:opacity .25s}
+.hud .msg{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);font:900 clamp(20px,4.4vw,48px)/1.1 var(--hud);text-align:center;letter-spacing:.06em;width:max-content;max-width:94vw;opacity:0;transition:opacity .25s}
 .hud .msg.on{opacity:1}
 .hud .msg.warn{color:#ff6b6b;animation:blink .5s steps(2) infinite}
 .hud .msg small{display:block;font:700 clamp(12px,1.6vw,16px) var(--hud);letter-spacing:.24em;color:var(--ice);margin-top:8px}
@@ -68,7 +68,8 @@ button{font:inherit;color:inherit}
 .hud .tag{position:absolute;left:max(14px,env(safe-area-inset-left));bottom:10px;font:900 14px var(--hud);letter-spacing:.2em;padding:4px 10px;border-radius:6px;background:rgba(6,8,16,.6)}
 .hud .card{position:absolute;left:max(18px,env(safe-area-inset-left));bottom:max(18px,env(safe-area-inset-bottom));font-family:var(--wide);opacity:0;transition:opacity 1.2s}
 .hud .card.on{opacity:1}
-.hud .card b{display:block;font:400 clamp(14px,2vw,22px) var(--wide);letter-spacing:.24em;color:#fff}
+.hud .card{max-width:calc(100vw - 36px)}
+.hud .card b{display:block;font:400 clamp(11px,2vw,22px)/1.35 var(--wide);letter-spacing:.2em;color:#fff}
 .hud .card span{display:block;font:400 clamp(20px,3vw,34px)/1.2 var(--script);color:var(--amb);text-shadow:0 0 18px rgba(255,154,60,.55)}
 #count{position:fixed;inset:0;display:grid;place-items:center;z-index:8;pointer-events:none;font:900 clamp(80px,18vw,200px)/1 var(--hud);color:#fff;text-shadow:0 0 30px rgba(255,154,60,.8),0 6px 0 rgba(0,0,0,.5)}
 #count.go{color:#ffd29a}
@@ -141,6 +142,7 @@ button{font:inherit;color:inherit}
 /* results */
 .res{width:100%;border-collapse:collapse;margin:6px 0 4px;font:700 14px var(--hud)}
 .res td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.1);white-space:nowrap}
+.res td:nth-child(2){white-space:normal}
 .res td:first-child{width:44px;color:#ffd29a;font-size:18px}
 .res td.r{text-align:right;color:var(--ice)}
 .res tr.you{background:linear-gradient(90deg,rgba(255,154,60,.3),transparent)}
@@ -170,7 +172,7 @@ button{font:inherit;color:inherit}
 /* phones and tablets: keep the speedometer and the title card clear of the thumb controls */
 @media (pointer:coarse){
   .hud:not(.split) .spd{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 178px)}
-  .hud .card{left:50%;right:auto;bottom:auto;top:calc(max(10px,env(safe-area-inset-top)) + 108px);transform:translateX(-50%);text-align:center;white-space:nowrap}
+  .hud .card{left:50%;right:auto;bottom:auto;top:calc(max(10px,env(safe-area-inset-top)) + 108px);transform:translateX(-50%);text-align:center;width:max-content;max-width:calc(100vw - 32px)}
 }
 @media (max-width:860px){
   .gar{grid-template-columns:1fr;max-width:560px}
