@@ -1,4 +1,4 @@
-/* ContentPad Arcade — player accounts, cloud saves and leaderboards (build 2026100404-acct).
+/* ContentPad Arcade — player accounts, cloud saves and leaderboards (build 2026100801-acct: + Night Drive, time boards).
 
    Sign in with an email + 6-digit code. Progress then follows the player to any device:
    the Arcade page pulls the cloud save into this device's storage BEFORE the game loads,
@@ -25,6 +25,7 @@
   function lsj(k) { try { return JSON.parse(ls(k) || 'null'); } catch (e) { return null; } }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function fmt(n) { return Number(n || 0).toLocaleString(); }
+  function fmtTime(ms) { ms = Math.round(ms || 0); var m = Math.floor(ms / 60000), s = (ms % 60000) / 1000; return m + ':' + (s < 10 ? '0' : '') + s.toFixed(3); }
 
   // ── what each game keeps on this device ──────────────────────────────────
   var ADAPT = {
@@ -89,6 +90,23 @@
         cur.hands = Math.max(cur.hands || 0, d.hands || 0); cur.biggest = Math.max(cur.biggest || 0, d.biggest || 0);
         cur.bonus_at = Math.max(cur.bonus_at || 0, d.bonus_at || 0);
         ls('dad_casino', JSON.stringify(cur)); ls('arcade_best_dad-casino', String(cur.peak));
+        try { window.dispatchEvent(new Event('arcade:sync')); } catch (e) {}
+      }
+    },
+    // YESTERDAYLAND: Night Drive (2026-10-08): the wallet is lifetime earned and spent (both only go up), plus the
+    // garage, the drives opened, wins and lap records. The server merges; this adopts the merged save.
+    'night-drive': {
+      read: function () {
+        var s = lsj('nd_save') || {};
+        return { cash: s.cash || 0, earned: s.earned != null ? s.earned : (s.cash || 0), spent: s.spent || 0, cash_at: s.cash_at || 0, car: s.car || 'hatch', cars: s.cars || {},
+          unlocked: s.unlocked || 1, laps: s.laps || {}, wins: s.wins || 0, races: s.races || 0, podiums: s.podiums || {} };
+      },
+      empty: function (d) { return !d.earned && !d.races && !Object.keys(d.laps || {}).length; },
+      write: function (d) {
+        if (!d) return;
+        var cur = lsj('nd_save') || {};
+        ['cash', 'earned', 'spent', 'cash_at', 'car', 'cars', 'unlocked', 'laps', 'wins', 'races', 'podiums'].forEach(function (k) { if (d[k] != null) cur[k] = d[k]; });
+        ls('nd_save', JSON.stringify(cur)); ls('arcade_best_night-drive', String(cur.wins || 0));
         try { window.dispatchEvent(new Event('arcade:sync')); } catch (e) {}
       }
     }
@@ -341,8 +359,10 @@
         if (!j.ok) { el.innerHTML = '<div class="lb-empty">' + (j.error === 'offline' ? 'Leaderboards are switching on soon.' : 'Couldn\'t load the leaderboard.') + '</div>'; return; }
         cur = j.board;
         var pick = (o.picker && j.boards.length > 1) ? '<select class="lb-sel" aria-label="Leaderboard">' + j.boards.map(function (b) { return '<option value="' + esc(b.id) + '"' + (b.id === cur ? ' selected' : '') + '>' + esc(b.title) + '</option>'; }).join('') + '</select>' : '';
-        var rows = j.entries.map(function (e) { return '<li class="' + (e.you ? 'you' : '') + '"><span class="n">' + e.rank + '</span><span class="nm">' + esc(e.name) + (e.you ? ' · you' : '') + '</span><b>' + (o.prefix || '') + fmt(Math.round(e.score)) + '</b></li>'; }).join('');
-        if (j.you && !j.entries.some(function (e) { return e.you; })) rows += '<li class="gap">· · ·</li><li class="you"><span class="n">' + j.you.rank + '</span><span class="nm">' + esc(state.player ? state.player.name : 'You') + ' · you</span><b>' + (o.prefix || '') + fmt(Math.round(j.you.score)) + '</b></li>';
+        // time boards (lap records) come back in ms with unit 'time'
+        var show = j.unit === 'time' ? fmtTime : function (n) { return (o.prefix || '') + fmt(Math.round(n)); };
+        var rows = j.entries.map(function (e) { return '<li class="' + (e.you ? 'you' : '') + '"><span class="n">' + e.rank + '</span><span class="nm">' + esc(e.name) + (e.you ? ' · you' : '') + '</span><b>' + show(e.score) + '</b></li>'; }).join('');
+        if (j.you && !j.entries.some(function (e) { return e.you; })) rows += '<li class="gap">· · ·</li><li class="you"><span class="n">' + j.you.rank + '</span><span class="nm">' + esc(state.player ? state.player.name : 'You') + ' · you</span><b>' + show(j.you.score) + '</b></li>';
         el.innerHTML = pick + (rows ? '<ol class="lb">' + rows + '</ol>' : '<div class="lb-empty">No scores yet. Be the first.</div>') +
           (!state.player ? '<button class="btn ghost acct-cta" type="button">Sign in to get on the board</button>' : '');
         var s = el.querySelector('select'); if (s) s.addEventListener('change', function () { cur = s.value; paint(); });

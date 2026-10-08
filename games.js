@@ -1,10 +1,29 @@
-/* ContentPad Arcade — the game catalog (build 2026100702-tt).
+/* ContentPad Arcade — the game catalog (build 2026100801-nd).
    House games live in this repo as <slug>.html at the top level and are listed here.
    Only status:'live' entries are shown. rating marks adult games (the game itself runs its own age gate).
    landing: the brand landing page that wraps the game, if it has one (listed under "Brand pages").
    2026-10-07: Arcade HQ → Games can switch any game to live / hidden / off without touching this
    file (gate.js asks the API). status here only says whether the game exists in the Arcade at all. */
 window.ARCADE_GAMES = [
+  {
+    slug: 'night-drive',
+    file: 'night-drive.html',
+    title: 'YESTERDAYLAND: Night Drive',
+    badge: 'New · from the world of YESTERDAYLAND · 2 players',
+    tagline: 'Go back for a while. Five night drives, 1984 to 1986. Race them.',
+    about: "A behind-the-car 3D racer set in YESTERDAYLAND, the show about places you remember and times you never actually lived. Race the show's five Season 1 drives in order: Sunset Boulevard in Los Angeles at dusk, 1985; the Southern California freeway at midnight, 1984; the desert Southwest, 1985; rainy Manhattan, 1984; and Ocean Drive, Miami, 1986. Grand Prix puts you against five rivals, and a top-3 finish opens the next drive. Time Trial races your own ghost for the lap-record boards. 2 Players splits the screen. Win cash, then buy and upgrade five original period cars in the Garage: engine, tires, nitro and paint. Hold drift through a corner and let go for a turbo kick.",
+    genre: 'Racing',
+    tags: ['Racing', '3D', 'YESTERDAYLAND', '2 players', 'Split screen', 'Time trial', 'Garage', 'Controller'],
+    controls: [['↑ / W / RT / (A)', 'Gas'], ['↓ / S / LT / (B)', 'Brake and reverse'], ['← → / A D / left stick', 'Steer'], ['Space / (X) (Y)', 'Nitro'], ['Shift / RB LB', 'Drift: hold through a corner, let go for a turbo'], ['C / Select', 'Camera'], ['Esc / P / Start', 'Pause'], ['M', 'Sound'], ['Touch', 'Gas is automatic: slide to steer, Brake / Nitro / Drift on the right']],
+    by: 'ContentPad Studios · YESTERDAYLAND',
+    made: 'Track stills, title and horizon panoramas made in ContentPad Studio with the YESTERDAYLAND show bible · cars, music, sound and code by Claude',
+    scoreLabel: 'Race wins',
+    cover: 'https://media.cpdblackbook.com/a2a988e8-fbbd-4510-8238-b1c311f61608/a31bcb5b-75b6-4c8b-811c-b601f36c44aa.jpg',
+    accent: '#ffae5c',
+    released: '2026-10-08',
+    controller: true, mobile: true,
+    status: 'live'
+  },
   {
     slug: 'toy-tokyo-catcher',
     file: 'toy-tokyo-catcher.html',
