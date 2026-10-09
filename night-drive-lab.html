@@ -396,7 +396,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 <script>
 (function () {
   'use strict';
-  var GAME_ID = 'night-drive', BUILD = '2026100804-nd';
+  var GAME_ID = 'night-drive', BUILD = '2026100901-nd';
   var $ = function (id) { return document.getElementById(id); };
   var EMBED = false; try { EMBED = window.top !== window; } catch (e) { EMBED = true; }
   function post(type, extra) { try { if (EMBED) window.parent.postMessage(Object.assign({ arcade: type, game: GAME_ID }, extra || {}), '*'); } catch (e) {} }
@@ -1772,8 +1772,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       }
       if (ev && imp > 3) {
         if (A.human != null || B.human != null) ev.push([imp > 14 ? 'crash' : 'bump', A.human != null ? A : B, imp]);
-        if (A.cop && !A.block) { A.dmg = (A.dmg || 0) + imp * (B.human != null ? 3.6 : B.cop ? 0.3 : 1.2); if (B.human != null) A.hitBy = B; }
-        if (B.cop && !B.block) { B.dmg = (B.dmg || 0) + imp * (A.human != null ? 3.6 : A.cop ? 0.3 : 1.2); if (A.human != null) B.hitBy = A; }
+        if (A.cop) copHit(A, imp, B, ev);
+        if (B.cop) copHit(B, imp, A, ev);
         // remember who hit whom, so a rival you put into the wall counts as your takedown
         if (A.human != null && B.human == null) { B.hitBy = A; B.hitT = TR.now || 0; }
         if (B.human != null && A.human == null) { A.hitBy = B; A.hitT = TR.now || 0; }
@@ -2333,7 +2333,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
         if (oy < ox * 0.8) {
           var push = oy * (dd >= 0 ? 1 : -1); c.d -= push * (heavy < 1 ? 0.95 : 0.8); t.d += push * 0.2 * heavy; c.yaw -= push * 0.08; c.v *= 0.98;
           if (Math.abs(c.kd) < 3) c.kd -= Math.sign(dd || 1) * (heavy < 1 ? 3 : 1.2);
-          if (t.hitCd <= 0 && Math.abs(cvs - tvs) > 2) { t.hitCd = 0.5; ev.push(['bump', c, 5]); ev.push(['spark', c, 8]); if (c.cop) c.dmg = (c.dmg || 0) + 6; }
+          if (t.hitCd <= 0 && Math.abs(cvs - tvs) > 2) { t.hitCd = 0.5; ev.push(['bump', c, 5]); ev.push(['spark', c, 8]); if (c.cop) copHit(c, 2, null); }
           continue;
         }
         var sg = ds >= 0 ? 1 : -1, sep = ox + 0.05, closing = sg > 0 ? cvs - tvs : tvs - cvs;
@@ -2341,13 +2341,13 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
         if (Math.abs(dd) > 0.25) c.d -= Math.sign(dd) * 0.05;   // off-centre: slide off its corner instead of sticking
         if (closing <= 0) continue;
         // rivals are pros: on their own they only wreck in a big head-on; with you (or a cop) in the mix, like anyone
-        var pro = c.human == null && !c.cop && !(c.hitBy && R.t - (c.hitT || -9) < 3) && !c.kd && c.spinT <= 0;
+        var pro = c.cop || (c.human == null && !(c.hitBy && R.t - (c.hitT || -9) < 3) && !c.kd && c.spinT <= 0);
         if (sg > 0 && closing > (pro ? (t.dir < 0 ? 38 : 1e9) : heavy < 1 ? 20 : 25) && Math.abs(dd) < ly * 0.75) { ev.push(['wreck', c, closing, t.dir < 0 ? 'oncoming' : 'traffic']); t.stun = 2; t.v *= 0.3; t.yaw += (Math.random() - 0.5) * 0.9; t.hitCd = 1; continue; }
         if (sg > 0) c.v = Math.max(-4, Math.min(c.v, tvs - closing * 0.12)); else c.v = Math.max(c.v, tvs + closing * 0.3);
         if (t.dir > 0 && sg > 0) t.v += closing * 0.35 * heavy; else t.v *= 0.2;
         t.stun = 1.4;
         if (closing > 6) { c.yaw += (Math.random() < 0.5 ? -1 : 1) * Math.min(0.5, closing / 70); t.yaw += (Math.random() - 0.5) * 0.7 * heavy; }
-        if (t.hitCd <= 0) { t.hitCd = 0.6; ev.push([closing > 9 ? 'crash' : 'bump', c, closing]); ev.push(['spark', c, closing]); if (c.cop) c.dmg = (c.dmg || 0) + closing * 2; }
+        if (t.hitCd <= 0) { t.hitCd = 0.6; ev.push([closing > 9 ? 'crash' : 'bump', c, closing]); ev.push(['spark', c, closing]); if (c.cop) copHit(c, closing, null); }
       }
     }
   }
@@ -2411,7 +2411,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   function startWreck(R, c, power, cause) {
     if (c.wreck || c.block || c.inv > 0 || c.busted || (c.finished && c.human == null)) return;
     (R.wlog || (R.wlog = [])).push([c.human != null ? 'you' : c.cop ? 'cop' : 'ai', cause, (c.name || '').slice(0, 5), R.t.toFixed(0), (c.v * 1).toFixed(0), c.inv.toFixed(1), Math.round(power), c.hitBy && R.t - (c.hitT || -9) < 3 ? 'hit' : '', c.spinT > 0 || c.kd ? 'shoved' : '']);
-    if (c.cop) { c.dmg = 999; if (!c.hitBy && c.cop.lastTgt && c.cop.lastTgt.human != null && R.t - (c.cop.lastHit || -9) < 3) c.hitBy = c.cop.lastTgt; return; }
+    if (c.cop) { copHit(c, power || 10, null); return; }   // cruisers are built tough: a wall or a truck only dents them
     if (c.finished && c.human == null) return;
     c.wreck = { t: 0, dur: c.human != null ? 2.4 : 2.1, dir: Math.random() < 0.5 ? -1 : 1, lift: 1.1 + Math.min(1.4, (power || 20) / 30) };
     c.inp = { thr: 0, brk: 0, steer: 0, nitro: false, drift: false }; c.drift = 0; c.boost = false; c.turbo = 0; c.spinT = 0; c.visSpin = 0;
@@ -2475,7 +2475,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   var COP_NAMES = ['Unit 12', 'Unit 7', 'Unit 21', 'Unit 4', 'Unit 33', 'Unit 9', 'Unit 18', 'Unit 2', 'Unit 14', 'Unit 30'];
   function copCar(R, fast, name) {
     var def = fast ? INTERCEPTOR : COP, c = newCar(def, { eng: 0, tire: 0, nitro: 0 }, 3, name || COP_NAMES[R.pol.n++ % COP_NAMES.length], null);
-    c.base = stats(def, {}); c.dmg = 0;
+    c.base = stats(def, {}); c.dmg = 0; c.hp = fast ? 125 : 100; c.hitCd = 0;
     c.cop = { tgt: null, hold: 0, mode: 'chase', on: true, atk: null, atkT: 0, atkCd: 2, lostT: 0, cool: 0, lane: 0, cruise: 0, park: false, pass: {} };
     c.ai = { skill: fast ? 1.08 : 1.05, lane: 0, laneNow: 0, laneT: 3, nitroOn: false };
     c.mesh = makeCar(def, 3, { cop: true, beam: 0.36, expo: 1.18 }); R.W.S.scene.add(c.mesh);
@@ -2606,11 +2606,30 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       else if (c.v < vw - 1 && c.v < vt + 3) { c.inp.thr = 1; c.inp.brk = 0; if (vw - c.v > 12 && c.tank > 0.3) c.inp.nitro = true; }
     }
   }
+  // Cruisers are tough. Damage counts once per contact (not every physics step while touching), and almost all of
+  // it comes from you: a tap is about 3-4, a proper hit 10, so a cruiser takes ten solid hits (an
+  // interceptor more). Walls, traffic and rivals only dent them; other cruisers do nothing.
+  function copHit(c, imp, by, ev) {
+    if (!c.cop || c.block || c.wrecked || c.hitCd > 0 || imp < 2) return;
+    c.hitCd = 0.45;
+    var you = by && by.human != null, amt = you ? clamp(imp * 0.75, 3, 10) : by && by.cop ? 0 : clamp(imp * 0.1, 0.3, 2.5);
+    c.dmg = (c.dmg || 0) + amt;
+    if (you) { c.hitBy = by; c.hitT = TR_NOW.t; if (ev) ev.push(['copdmg', by, Math.min(100, Math.round(c.dmg / (c.hp || 100) * 100)), c]); }
+  }
+  var TR_NOW = { t: 0 };
   // a cruiser running into your back while it means it: a shove sideways, and off-centre it can spin you
   function rearRam(back, front, rel, dd, ev) {
     if (!back.cop || back.cop.tgt !== front || !back.cop.atk || rel < 2.5) return;
     front.kd += (Math.sign(front.d - back.d) || 1) * (2 + rel * 0.35);
     if (Math.abs(dd) > 0.7 && front.spinT <= 0 && front.v > 16 && Math.random() < 0.45) { front.spinT = 0.85; front.spinDir = dd > 0 ? 1 : -1; front.v *= 0.85; back.cop.atkCd = 5; if (ev) ev.push(['pit', front, rel, back]); }
+  }
+  // a beaten-up cruiser smokes: light from half damage, heavy near the end
+  function copSmoke(c) {
+    var k = (c.dmg || 0) / (c.hp || 100);
+    if (k < 0.5) return;
+    if (!c.dsmoke) { c.dsmoke = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW, color: 0x8a8a94, transparent: true, opacity: 0, depthWrite: false })); c.dsmoke.position.set(1.7, 1.2, 0); c.mesh.add(c.dsmoke); }
+    var pulse = 0.85 + Math.random() * 0.3; c.dsmoke.material.opacity = (0.15 + (k - 0.5) * 0.9) * pulse; c.dsmoke.scale.set(2.5 + k * 3, 2.5 + k * 3, 1);
+    c.dsmoke.material.color.setHex(k > 0.8 ? 0x4a4a52 : 0x8a8a94);
   }
   function wreckCop(R, c) {
     c.wrecked = true; c.inp = { thr: 0, brk: 0.4, steer: 0, nitro: false, drift: false }; c.ai = null; c.wreckT = 0;
@@ -2651,7 +2670,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       else c.bust = Math.max(0, (c.bust || 0) - h / (near ? 6 : 3));
       if (c.bust >= 1) bust(R, c);
     });
-    R.cars.forEach(function (c) { if (c.cop && !c.block && !c.wrecked && (c.dmg || 0) >= 100) wreckCop(R, c); });
+    R.cars.forEach(function (c) { if (!c.cop || c.block || c.wrecked) return; if (c.hitCd > 0) c.hitCd -= h; if ((c.dmg || 0) >= (c.hp || 100)) wreckCop(R, c); });
   }
   // every frame: Hot Pursuit spawning and heat, the roadblock, the siren, wrecked cruisers clearing away
   function policeTick(R, dt) {
@@ -2879,7 +2898,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     if (R.state === 'run') {
       var steps = Math.min(8, Math.ceil(dt * 120)), h = dt / steps;
       for (var k = 0; k < steps; k++) {
-        R.t += h; TR.now = R.t;
+        R.t += h; TR.now = R.t; TR_NOW.t = R.t;
         for (var i = 0; i < R.cars.length; i++) {
           var c = R.cars[i];
           if (c.gone || c.block) continue;
@@ -2923,7 +2942,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       // events
       R.ev.forEach(function (e) {
         var c = e[1], hi = c.human;
-        if (c.cop && e[0] === 'hit') c.dmg = (c.dmg || 0) + e[2] * 2.5;
+        if (c.cop && e[0] === 'hit') copHit(c, e[2], null);
+        if (e[0] === 'copdmg') { if (hi != null && e[2] < 100) popMsg(hi, 'COP HIT', 'damage ' + e[2] + '%'); emitSparks(R, e[3], 8, 0.8); return; }
         if (e[0] === 'wreck') { startWreck(R, c, e[2], e[3]); return; }
         if (e[0] === 'spark') { emitSparks(R, c, Math.min(26, 4 + e[2]), Math.min(1.5, e[2] / 14)); if (e[3]) emitSparks(R, e[3], 3, 0.6); return; }
         if (e[0] === 'scrape') { emitSparks(R, c, 3, 0.6); sfx('scrape', 0.6); return; }
@@ -2949,6 +2969,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var now = performance.now() / 1000;
     for (var j = 0; j < R.cars.length; j++) {
       var cc = R.cars[j]; if (cc.gone) continue; placeCar(cc, TR); wreckPose(cc); setLights(cc, cc.inp.brk > 0.1 && cc.v > 1);
+      if (cc.cop && !cc.block && !cc.wrecked) copSmoke(cc);
       if (cc.cop) { var bfx = cc.mesh.userData.fx; if (bfx.bar) { bfx.bar.on = (cc.cop.on || cc.block) && !cc.wrecked; bfx.bar.idle = !bfx.bar.on && !cc.wrecked && cc.cop.mode === 'patrol'; } flashBar(bfx, now + j * 0.13); }
     }
     stepSparks(R, dt);
