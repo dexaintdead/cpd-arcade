@@ -1,4 +1,4 @@
-/* Pregame Papers — shared look for the Arcade games (build 2026100901-pp) */
+/* Pregame Papers — shared look for the Arcade games (build 2026100902-pp) */
 :root{--ink:#0d0d10;--lime:#C6FF3D;--pink:#E321C9;--yel:#FFD84D;--cy:#7DE2F5;--cream:#FBF6EA;--navy:#16203A;--gold:#E8C463;--red:#C8102E;
   --D:'Archivo Black',system-ui,sans-serif;--A:'Anton',Impact,sans-serif;--B:Inter,system-ui,sans-serif;--M:'Space Mono',ui-monospace,monospace;--H:'Permanent Marker',cursive}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -6,7 +6,7 @@ html,body{margin:0;height:100%;background:var(--ink);color:#fff;font-family:var(
 body{overflow:hidden}
 button,input,textarea{font:inherit;color:inherit}
 .scr{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;overflow-y:auto;overflow-x:hidden;padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(20px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
-.hidden{display:none!important}
+.hidden,[hidden]{display:none!important}
 .scr.on{display:flex;animation:scrIn .25s ease-out}
 @keyframes scrIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .wrap{width:100%;max-width:980px;margin:0 auto}
