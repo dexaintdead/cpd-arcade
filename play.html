@@ -43,7 +43,7 @@
 </div></footer>
 
 <script src="gamepad.js?v=1"></script>
-<script src="games.js?v=21"></script>
+<script src="games.js?v=22"></script>
 <script src="arcade.js?v=3"></script>
 <script src="account.js?v=7"></script>
 <script>
@@ -60,7 +60,7 @@
   var src = g.file || (encodeURIComponent(g.slug) + '.html');
   main.innerHTML =
     '<div class="play-wrap"><div>' +
-      '<div class="stage" id="stage"><div class="fsbar" id="fsbar"><button type="button" id="fsExit">✕ Exit full screen</button><a href="./" id="fsHome">☰ All games</a></div><iframe id="game" title="' + esc(g.title) + '" allow="autoplay; fullscreen; gamepad" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock"></iframe></div>' +
+      '<div class="stage" id="stage"><div class="fsbar" id="fsbar"><button type="button" id="fsExit">✕ Exit full screen</button><a href="./" id="fsHome">☰ All games</a></div><iframe id="game" title="' + esc(g.title) + '" allow="autoplay; fullscreen; gamepad" allowfullscreen sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-downloads"></iframe></div>' +
       '<div class="stagebar"><h1 class="disp chrome">' + esc(g.title) + '</h1>' +
         '<button class="btn ghost" id="fs" type="button">⛶ Full screen</button>' +
         '<button class="btn ghost" id="share" type="button">Share</button></div>' +

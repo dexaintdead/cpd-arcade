@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script src="/gate.js?v=1" data-game="pregame-yearbook"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- Pregame Papers: The Unhinged Yearbook — Class of Bad Decisions · ContentPad Arcade (build 2026100901-pp v1)
+     The Arcade twin of the printable yearbook: same 44 superlatives (pp/pregame-data.js), played on one shared screen.
+     Each round: the superlative, a 3-2-1 VOTE countdown (everyone points), the host taps the winner (ties argue for 15 s),
+     the player on the winner's left draws their yearbook photo on screen in 60 s, the winner gives a quote, and the page
+     goes in the yearbook. Graduation crowns the Valedictorian of Bad Decisions; the finished yearbook saves as one image.
+     Posts {arcade:'start'|'over'|'exit'}; accepts {arcade:'key'} from the parent only (pp/pp-kit.js).
+     Score: yearbooks finished on this device → arcade_best_pregame-yearbook. Last yearbook kept in 'pp_yb_last'. 21+. -->
+<title>Pregame Papers: The Unhinged Yearbook</title>
+<meta name="theme-color" content="#16203A">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo+Black&family=Inter:wght@400;500;600;700;800&family=Permanent+Marker&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pp/pp.css?v=1">
+<style>
+body{background:var(--navy)}
+.scr{background:radial-gradient(ellipse at 30% 10%,#25345c 0,#16203A 55%,#0d1428 100%)}
+@media (max-width:700px){.scr{padding-top:58px}}
+.gold{color:var(--gold)}
+.ttl{font:400 clamp(48px,min(11vw,10.5vh),118px)/.88 var(--A);color:var(--gold);text-shadow:0 4px 0 #7a5a12;text-transform:uppercase;text-align:center;margin:10px 0 0}
+.ttl small{display:block;font-size:.34em;letter-spacing:.32em;text-shadow:none}
+#title,#sup,#tie,#grad,#page{justify-content:safe center!important}
+#title{text-align:center}
+#title .port{width:min(280px,62vw,34vh);aspect-ratio:836/830;border:7px solid var(--gold);border-radius:6px;background:url(pp/raccoon.webp) center/cover;box-shadow:0 10px 30px rgba(0,0,0,.5);margin:18px auto 0}
+.ribbon{display:inline-block;background:var(--red);color:#fff;font:400 clamp(18px,3.4vw,26px)/1 var(--A);letter-spacing:.06em;padding:10px 26px;transform:rotate(-2deg);box-shadow:0 6px 0 #7d0a1c;margin-top:-14px;position:relative}
+#title .menu{margin-top:24px;display:flex;flex-direction:column;gap:12px;width:min(380px,100%)}
+.btn{border-color:#0b1222;box-shadow:0 5px 0 #0b1222}
+.btn.pri{background:var(--gold)}
+.btn.red{background:var(--red);color:#fff}
+.btn:focus,.btn:focus-visible{outline-color:#7DE2F5}
+h2.hd{font:400 clamp(28px,5.4vw,46px)/1 var(--A);text-transform:uppercase;margin:6px 0 4px;text-align:center;color:#F4E7C4;letter-spacing:.01em}
+.kick{font:700 12px var(--M);letter-spacing:.16em;color:var(--gold);text-transform:uppercase;text-align:center}
+.seg{display:inline-flex;border:3px solid #0b1222;border-radius:12px;overflow:hidden;background:#fff}
+.seg button{border:0;background:#fff;color:#111;font:700 15px var(--B);padding:10px 14px;cursor:pointer}
+.seg button.on{background:var(--gold)}
+.seg button:focus{outline:3px solid var(--red);outline-offset:-3px}
+/* superlative */
+#sup{text-align:center}
+.supcard{background:var(--cream);color:var(--navy);border:4px solid #0b1222;border-radius:16px;padding:clamp(18px,4vw,40px);width:min(820px,100%);box-shadow:0 10px 0 rgba(0,0,0,.35);position:relative}
+.supcard .n{position:absolute;top:12px;left:16px;font:700 12px var(--M);color:var(--red);letter-spacing:.1em}
+.supcard .t{font:400 clamp(30px,min(6vw,7.5vh),64px)/.98 var(--A);text-transform:uppercase}
+.count{font:400 clamp(80px,min(22vw,24vh),200px)/1 var(--A);color:var(--gold);text-shadow:0 6px 0 #7a5a12;min-height:1em;margin:10px 0}
+.count.go{color:#fff;text-shadow:0 6px 0 var(--red)}
+.tally{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
+.tally span{background:rgba(255,255,255,.08);border:2px solid rgba(255,255,255,.15);border-radius:999px;padding:5px 12px;font:700 13px var(--B);color:#F4E7C4}
+.tally span i{font-style:normal;color:var(--gold);margin-left:5px}
+/* pick winner */
+.names{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;width:100%;margin-top:16px}
+.nm{border:3px solid #0b1222;border-radius:14px;background:#fff;color:var(--navy);font:400 22px var(--A);letter-spacing:.02em;text-transform:uppercase;min-height:70px;cursor:pointer;box-shadow:0 5px 0 #0b1222;padding:6px}
+.nm.sel{background:var(--gold)}
+.nm:focus{outline:4px solid #7DE2F5;outline-offset:3px}
+.timerbig{font:400 clamp(70px,18vw,160px)/1 var(--A);color:#fff;margin:6px 0}
+/* draw */
+#draw{padding-top:max(10px,env(safe-area-inset-top))}
+@media (max-width:700px){#draw{padding-top:56px}}
+.dhead{display:flex;align-items:center;justify-content:space-between;gap:12px;width:min(980px,100%);flex-wrap:wrap}
+.dhead .who{font:400 clamp(20px,3.6vw,30px)/1.05 var(--A);text-transform:uppercase;color:#F4E7C4}
+.dhead .who b{color:var(--gold);font-weight:400}
+.clock{font:400 44px/1 var(--A);color:var(--gold);min-width:84px;text-align:right}
+.clock.low{color:#ff5a5a;animation:pulse .5s infinite alternate}
+@keyframes pulse{to{transform:scale(1.12)}}
+.dwrap{display:flex;gap:16px;align-items:stretch;justify-content:center;width:min(980px,100%);margin-top:10px;flex:1;min-height:0}
+.board{position:relative;aspect-ratio:5/6;height:100%;max-height:calc(100vh - 170px);max-width:100%;background:#fff;border:4px dashed var(--navy);outline:6px solid var(--cream);border-radius:6px;touch-action:none}
+.board canvas{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;touch-action:none}
+.cursor{position:absolute;width:22px;height:22px;margin:-11px 0 0 -11px;border:3px solid var(--red);border-radius:50%;pointer-events:none;display:none}
+.tools{display:flex;flex-direction:column;gap:8px;align-items:center}
+.sw{width:42px;height:42px;border-radius:50%;border:3px solid #0b1222;cursor:pointer;box-shadow:0 3px 0 #0b1222}
+.sw.on{outline:4px solid #fff;outline-offset:2px}
+.sw:focus{outline:4px solid #7DE2F5;outline-offset:2px}
+.tb{width:52px;min-height:42px;border-radius:10px;border:3px solid #0b1222;background:#fff;color:#111;font:800 13px var(--B);cursor:pointer;box-shadow:0 3px 0 #0b1222}
+.tb.on{background:var(--gold)}
+.tb:focus{outline:3px solid #7DE2F5}
+@media (max-width:760px){.dwrap{flex-direction:column;align-items:center}.board{height:auto;width:min(100%,calc((100vh - 290px)*.833))}.tools{flex-direction:row;flex-wrap:wrap;justify-content:center}.sw{width:36px;height:36px}.tb{width:auto;padding:0 10px;min-height:36px}}
+/* page card */
+.ypage{background:#fff;color:var(--navy);border:3px solid var(--navy);border-radius:10px;padding:14px 16px 16px;width:min(380px,100%);box-shadow:0 10px 0 rgba(0,0,0,.35);position:relative;text-align:center}
+.ypage .n{position:absolute;top:8px;left:12px;font:700 10px var(--M);color:var(--red)}
+.ypage .ph{width:62%;aspect-ratio:5/6;margin:8px auto 10px;border:3px dashed var(--navy);border-radius:4px;background:#fafafa center/cover}
+.ypage .t{font:400 22px/1 var(--A);text-transform:uppercase;min-height:44px;display:flex;align-items:center;justify-content:center}
+.ypage .w{font:400 30px/1.1 var(--H);color:var(--red);margin-top:8px;word-break:break-word}
+.ypage .q{font:400 17px/1.25 var(--H);color:#333;margin-top:6px;word-break:break-word}
+#page .ypage{animation:flip .55s cubic-bezier(.2,1.3,.4,1)}
+@keyframes flip{from{transform:rotateY(80deg) scale(.8);opacity:0}to{transform:none;opacity:1}}
+.sip{margin-top:16px;font:700 15px var(--B);color:#F4E7C4;text-align:center;max-width:520px}
+.book{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;width:100%;margin-top:16px}
+.book .ypage{width:100%;box-shadow:0 6px 0 rgba(0,0,0,.3)}
+.book .ypage .t{font-size:18px;min-height:36px}.book .ypage .w{font-size:24px}.book .ypage .q{font-size:14px}
+/* certificate */
+.cert{background:#fffdf5;color:var(--navy);border:10px double #B8912C;border-radius:6px;padding:clamp(18px,4vw,36px);width:min(640px,100%);text-align:center;box-shadow:0 10px 0 rgba(0,0,0,.35)}
+.cert .sm{font:700 11px var(--M);letter-spacing:.24em;color:#8a6a1a}
+.cert .nm2{font:400 clamp(34px,8vw,64px)/1.05 var(--H);color:var(--red);margin:8px 0}
+.cert .vt{font:400 clamp(34px,7vw,56px)/.95 var(--A);text-transform:uppercase}
+.cert .rc{width:140px;height:140px;border-radius:50%;border:5px solid #B8912C;background:url(pp/raccoon.webp) center/cover;margin:14px auto 6px}
+.hint2{color:#b9c2d8;font-size:14px;text-align:center;margin-top:8px}
+.qin{width:min(640px,100%);margin:18px auto 0}
+</style>
+</head>
+<body>
+<div class="topbar"><button data-mute aria-label="Sound">🔊</button><button data-quit>← Arcade</button></div>
+
+<section class="scr gate" id="gate">
+  <span class="logo">PREGAME <b>PAPERS</b></span>
+  <div class="age">21+</div>
+  <h2 class="hd">Adults only</h2>
+  <p>The Unhinged Yearbook is a crude party game for grown-ups. Every “sip” is optional: water, a dare, or nothing at all.</p>
+  <div class="row"><button class="btn pri" id="gYes" data-nav>I’M 21+ · LET ME IN</button><button class="btn ghost" id="gNo" data-nav>NOT TODAY</button></div>
+</section>
+
+<section class="scr" id="title">
+  <span class="logo">PREGAME <b>PAPERS</b></span>
+  <div class="ttl"><small>THE</small>UNHINGED YEARBOOK</div>
+  <div class="port"></div>
+  <div class="ribbon">CLASS OF BAD DECISIONS</div>
+  <div class="menu">
+    <button class="btn pri" data-nav id="tPlay">🎓 START THE YEARBOOK · 3–12 PLAYERS</button>
+    <button class="btn" data-nav id="tLast" hidden>📖 LAST YEARBOOK</button>
+    <button class="btn ghost" data-nav id="tHow">HOW TO PLAY</button>
+  </div>
+</section>
+
+<section class="scr" id="how">
+  <div class="wrap how" style="color:#F4E7C4">
+    <div class="kick">How to play</div>
+    <h2 class="hd">Welcome to the class nobody should have graduated from</h2>
+    <ol>
+      <li><b>Put this on the big screen</b> and add everyone in the room.</li>
+      <li><b>A superlative comes up.</b> “Most Likely to Sext Their Boss by Accident.” On <b>3, 2, 1, VOTE!</b> everyone points at who deserves it. No voting for yourself.</li>
+      <li><b>Tap whoever got the most fingers.</b> Tie? Tap them all: each gets 15 seconds to argue why they <i>don’t</i> deserve it, then vote again.</li>
+      <li><b>Draw their yearbook photo.</b> The player on the winner’s left gets 60 seconds on the screen (finger, mouse or controller). Unflattering is encouraged.</li>
+      <li><b>Yearbook quote.</b> The winner says it, somebody types it in, word for word. Then they take a sip (or the group picks a dare).</li>
+      <li><b>Graduation.</b> Most superlatives = <b>Valedictorian of Bad Decisions</b>, speech required. Fewest = “Most Likely to Be Hiding Something.” Then save the whole yearbook as one picture.</li>
+    </ol>
+    <h3>Got the printable?</h3>
+    <p>Same 44 superlatives as <b>The Unhinged Yearbook</b> book from Pregame Papers. Run superlatives here on the TV and pass the book’s Senior Pages, Class Will and Sign My Yearbook pages around the table.</p>
+    <div class="row" style="margin-top:18px"><button class="btn pri" data-nav id="howBack">GOT IT</button></div>
+  </div>
+</section>
+
+<section class="scr" id="setup">
+  <div class="wrap" style="max-width:660px">
+    <div class="kick">Class roster</div>
+    <h2 class="hd">Who’s graduating?</h2>
+    <p class="hint2" style="margin-bottom:16px">3 to 12 players, in seating order around the room (it decides who draws who). Names are remembered on this device.</p>
+    <div class="col">
+      <input class="txt" id="pName" maxlength="16" placeholder="Type a name, press Enter" autocomplete="off" data-nav data-autofocus enterkeyhint="done">
+      <button class="btn sm" data-nav id="pAdd">+ Add to the class</button>
+    </div>
+    <div class="chips" id="pList" style="margin:18px 0"></div>
+    <div class="row" style="margin-bottom:8px"><span class="lab" style="color:#b9c2d8">Superlatives:</span><div class="seg" id="segN"><button data-nav data-v="8">8</button><button data-nav data-v="12" class="on">12</button><button data-nav data-v="20">20</button><button data-nav data-v="44">All 44</button></div></div>
+    <div class="row" style="margin-bottom:18px"><span class="lab" style="color:#b9c2d8">Drawing time:</span><div class="seg" id="segT"><button data-nav data-v="45">45s</button><button data-nav data-v="60" class="on">60s</button><button data-nav data-v="90">90s</button><button data-nav data-v="0">No drawing</button></div></div>
+    <div class="row"><button class="btn ghost" data-nav id="sBack">Back</button><button class="btn pri" data-nav id="sGo" disabled>OPEN THE YEARBOOK →</button></div>
+  </div>
+</section>
+
+<section class="scr" id="sup">
+  <div class="kick" id="supKick">Superlative 1 of 12</div>
+  <div class="supcard" style="margin-top:12px"><span class="n" id="supN">#01</span><div class="t" id="supT">Most likely to…</div></div>
+  <div class="count" id="count"></div>
+  <div class="row" id="supBtns"><button class="btn" data-nav id="supSwap">🔀 Swap it</button><button class="btn" data-nav id="supOwn">✍️ Write our own</button><button class="btn pri" data-nav id="supGo" data-autofocus>3, 2, 1… VOTE!</button></div>
+  <div class="row hidden" id="supOwnRow" style="width:min(640px,100%);margin-top:6px"><input class="txt" id="supOwnIn" maxlength="80" placeholder="Most Likely to…" data-nav autocomplete="off"><button class="btn pri" data-nav id="supOwnOk">Use it</button></div>
+  <div class="tally" id="tally"></div>
+  <div class="row" style="margin-top:14px"><button class="btn ghost sm" data-nav id="supEnd">🎓 Graduate now</button></div>
+</section>
+
+<section class="scr" id="pickw">
+  <div class="wrap" style="text-align:center">
+    <div class="kick">Most fingers wins</div>
+    <h2 class="hd" id="pwT">Who got it?</h2>
+    <p class="hint2">Tap the winner, then confirm. A tie? Tap everyone tied.</p>
+    <div class="names" id="names"></div>
+    <div class="row" style="margin-top:18px"><button class="btn ghost" data-nav id="pwBack">Back</button><button class="btn pri" data-nav id="pwTie" disabled>TAP THE WINNER</button></div>
+  </div>
+</section>
+
+<section class="scr" id="tie">
+  <div class="wrap" style="text-align:center">
+    <div class="kick">Tie-breaker</div>
+    <h2 class="hd" id="tieWho">Dana, argue why you DON’T deserve it</h2>
+    <div class="timerbig" id="tieT">15</div>
+    <div class="row"><button class="btn" data-nav id="tieSkip">Next ▸</button></div>
+    <p class="hint2">When everyone has argued, vote again.</p>
+  </div>
+</section>
+
+<section class="scr" id="draw">
+  <div class="dhead"><div class="who" id="dWho"><b>Marcus</b> draws <b>Dana</b>’s yearbook photo</div><div class="clock" id="clock">60</div></div>
+  <div class="dwrap">
+    <div class="board" id="board"><canvas id="cv" width="600" height="720"></canvas><div class="cursor" id="cur"></div></div>
+    <div class="tools" id="tools"></div>
+  </div>
+</section>
+
+<section class="scr" id="quote">
+  <div class="wrap" style="text-align:center">
+    <div class="kick">Yearbook quote</div>
+    <h2 class="hd" id="qWho">Dana, say something for the yearbook</h2>
+    <p class="hint2">Somebody type it in exactly as they said it. No editing.</p>
+    <div class="col qin"><input class="txt" id="qIn" maxlength="90" placeholder="“…”" data-nav data-autofocus autocomplete="off" enterkeyhint="done"></div>
+    <div class="row" style="margin-top:16px"><button class="btn" data-nav id="qNone">“No comment.”</button><button class="btn pri" data-nav id="qOk">PRINT IT →</button></div>
+  </div>
+</section>
+
+<section class="scr" id="page">
+  <div class="kick" id="pgKick">Page 1</div>
+  <div style="margin-top:12px;perspective:900px;width:100%;display:flex;justify-content:center"><div id="pgCard"></div></div>
+  <div class="sip" id="pgSip"></div>
+  <div class="row" style="margin-top:16px"><button class="btn pri" data-nav id="pgNext" data-autofocus>NEXT SUPERLATIVE →</button></div>
+</section>
+
+<section class="scr" id="grad">
+  <div class="kick" style="margin-bottom:12px">Graduation day</div>
+  <div class="cert">
+    <span class="logo">PREGAME <b>PAPERS</b></span>
+    <div class="sm" style="margin-top:16px">THIS CERTIFIES THAT</div>
+    <div class="nm2" id="gName">Dana</div>
+    <div class="sm">HAVING WON THE MOST SUPERLATIVES AND THE LEAST RESPECT, IS HEREBY NAMED</div>
+    <div class="vt" style="margin-top:10px">Valedictorian of Bad Decisions</div>
+    <div class="rc"></div>
+    <div style="font:400 18px var(--H);color:var(--red)" id="gGpa">with a GPA of 4 superlatives</div>
+  </div>
+  <p class="sip" id="gHide"></p>
+  <div class="row" style="margin-top:14px"><button class="btn pri" data-nav id="gBook" data-autofocus>📖 SEE THE YEARBOOK</button></div>
+</section>
+
+<section class="scr" id="bookS">
+  <div class="wrap">
+    <div class="kick">Class of Bad Decisions</div>
+    <h2 class="hd">The Yearbook</h2>
+    <div class="row" style="margin-top:10px"><button class="btn pri" data-nav id="bkSave">📸 SAVE THE YEARBOOK</button><button class="btn" data-nav id="bkNew">NEW CLASS</button><button class="btn ghost" data-nav id="bkMenu">MAIN MENU</button></div>
+    <div class="book" id="book"></div>
+  </div>
+</section>
+
+<script src="gamepad.js?v=1"></script>
+<script src="pp/pregame-data.js?v=1"></script>
+<script src="pp/pp-kit.js?v=1"></script>
+<script>
+(function(){
+'use strict';
+var SLUG='pregame-yearbook',D=window.PREGAME,$=PP.$,$$=PP.$$,esc=PP.esc;
+var S={players:[],nRounds:12,drawT:60,deck:[],round:0,cur:'',curNo:0,pages:[],wins:{},sel:[],tieQ:[],winner:'',artist:'',drawing:null};
+PP.init({game:SLUG});
+var RAC=new Image();RAC.src='pp/raccoon.webp';
+
+/* ---------- title / setup ---------- */
+function lastBook(){try{var b=JSON.parse(PP.ls('pp_yb_last')||'null');return b&&b.pages&&b.pages.length?b:null}catch(e){return null}}
+function refreshTitle(){$('#tLast').hidden=!lastBook()}
+$('#tPlay').onclick=function(){S.players=PP.loadPlayers();renderPlayers();PP.show('setup')};
+$('#tHow').onclick=function(){PP.show('how')};
+$('#howBack').onclick=function(){PP.show('title')};
+$('#tLast').onclick=function(){var b=lastBook();if(!b)return;S.pages=b.pages;S.players=b.players||[];S.wins=b.wins||{};renderBook();PP.show('bookS')};
+PP.back('how',function(){PP.show('title')});PP.back('setup',function(){PP.show('title')});PP.back('title',function(){PP.quit()});
+function addPlayer(){var i=$('#pName'),v=i.value.trim().replace(/\s+/g,' ');if(!v)return false;if(S.players.length>=12){PP.toast('12 players max');return true}if(S.players.some(function(p){return p.toLowerCase()===v.toLowerCase()})){PP.toast(v+' is already in');i.select();return true}S.players.push(v);i.value='';PP.sfx('pop');renderPlayers();PP.savePlayers(S.players);i.focus();return true}
+function renderPlayers(){
+  $('#pList').innerHTML=S.players.map(function(p,i){return '<span class="chip">'+(i+1)+'. '+esc(p)+'<button data-nav data-rm="'+i+'" aria-label="Remove '+esc(p)+'">×</button></span>'}).join('')||'<span style="color:#8a93ab">Nobody yet</span>';
+  $$('[data-rm]').forEach(function(b){b.onclick=function(){S.players.splice(+b.dataset.rm,1);PP.savePlayers(S.players);renderPlayers();$('#pName').focus()}});
+  $('#sGo').disabled=S.players.length<3;
+}
+$('#pAdd').onclick=function(){addPlayer();$('#pName').focus()};
+PP.on('setup',{enter:function(){if($('#pName').value.trim())return addPlayer();if(S.players.length>=3)$('#sGo').click();return true}});
+function seg(id,cb){$$('#'+id+' button').forEach(function(b){b.onclick=function(){$$('#'+id+' button').forEach(function(x){x.classList.toggle('on',x===b)});cb(+b.dataset.v)}})}
+seg('segN',function(v){S.nRounds=v});seg('segT',function(v){S.drawT=v});
+$('#sBack').onclick=function(){PP.show('title')};
+$('#sGo').onclick=function(){
+  S.deck=PP.shuffle(D.superlatives.map(function(t,i){return{t:t,no:i+1}}));S.round=0;S.pages=[];S.wins={};S.players.forEach(function(p){S.wins[p]=0});
+  PP.post('start');nextSup();
+};
+
+/* ---------- superlative ---------- */
+function tallyHtml(){return S.players.map(function(p){return '<span>'+esc(p)+'<i>'+(S.wins[p]?'🏆'.repeat(Math.min(S.wins[p],5))+(S.wins[p]>5?'+':''):'·')+'</i></span>'}).join('')}
+function nextSup(){
+  if(S.round>=S.nRounds||!S.deck.length){graduate();return}
+  var c=S.deck.shift();S.cur=c.t;S.curNo=c.no;S.round++;
+  showSup();
+}
+function showSup(){
+  $('#supKick').textContent='Superlative '+S.round+' of '+Math.min(S.nRounds,S.round+S.deck.length);
+  $('#supN').textContent=S.curNo?'#'+String(S.curNo).padStart(2,'0'):'WRITE-IN';
+  $('#supT').textContent=S.cur;$('#count').textContent='';$('#count').className='count';
+  $('#supBtns').classList.remove('hidden');$('#supOwnRow').classList.add('hidden');
+  $('#tally').innerHTML=tallyHtml();
+  PP.show('sup','#supGo');PP.sfx('ding');
+}
+$('#supSwap').onclick=function(){if(!S.deck.length){PP.toast('That was the last one');return}S.deck.push({t:S.cur,no:S.curNo});var c=S.deck.shift();S.cur=c.t;S.curNo=c.no;showSup()};
+$('#supOwn').onclick=function(){$('#supOwnRow').classList.remove('hidden');var i=$('#supOwnIn');i.value='Most Likely to ';i.focus();i.setSelectionRange(i.value.length,i.value.length)};
+$('#supOwnOk').onclick=function(){var v=$('#supOwnIn').value.trim();if(v.length<6){PP.sfx('buzz');return}S.deck.push({t:S.cur,no:S.curNo});S.cur=v.slice(0,80);S.curNo=0;showSup()};
+PP.on('sup',{enter:function(){$('#supOwnOk').click();return true}});
+PP.back('sup',function(){PP.show('title')});
+$('#supEnd').onclick=function(){if(!S.pages.length){PP.toast('Play at least one superlative first');return}graduate()};
+var counting=false;
+$('#supGo').onclick=function(){
+  if(counting)return;counting=true;$('#supBtns').classList.add('hidden');$('#supOwnRow').classList.add('hidden');
+  var n=3,el=$('#count');PP.sfx('drum');
+  (function tick(){
+    if(n>0){el.className='count';el.textContent=n;PP.sfx('count');n--;setTimeout(tick,800)}
+    else{el.className='count go';el.textContent='VOTE!';PP.sfx('go');setTimeout(function(){counting=false;S.sel=[];renderNames();PP.show('pickw')},1300)}
+  })();
+};
+
+/* ---------- pick winner / tie ---------- */
+function pwBtn(){var b=$('#pwTie');b.disabled=!S.sel.length;b.textContent=S.sel.length>1?'IT’S A TIE ('+S.sel.length+') →':S.sel.length?'🏆 '+S.sel[0].toUpperCase()+' WINS →':'TAP THE WINNER';b.className='btn '+(S.sel.length>1?'red':'pri')}
+function renderNames(){
+  $('#pwT').textContent=S.cur;
+  $('#names').innerHTML=S.players.map(function(p,i){return '<button class="nm'+(S.sel.indexOf(p)>=0?' sel':'')+'" data-nav data-p="'+i+'">'+esc(p)+'</button>'}).join('');
+  $$('[data-p]').forEach(function(b){b.onclick=function(){
+    var p=S.players[+b.dataset.p],k=S.sel.indexOf(p);
+    if(k>=0){S.sel.splice(k,1);b.classList.remove('sel')}else{S.sel.push(p);b.classList.add('sel')}
+    PP.sfx('tick');pwBtn();
+  }});
+  pwBtn();
+}
+$('#pwBack').onclick=function(){showSup()};
+PP.back('pickw',function(){showSup()});
+$('#pwTie').onclick=function(){if(S.sel.length===1){winnerChosen(S.sel[0]);return}if(S.sel.length<2)return;S.tieQ=S.sel.slice();S.sel=[];nextTie()};
+var tieTimer=null;
+function nextTie(){
+  clearInterval(tieTimer);
+  if(!S.tieQ.length){renderNames();PP.show('pickw');PP.toast('Vote again! 3, 2, 1…');return}
+  var p=S.tieQ.shift(),t=15;$('#tieWho').textContent=p+', argue why you DON’T deserve it';$('#tieT').textContent=t;PP.show('tie','#tieSkip');PP.sfx('ding');
+  tieTimer=setInterval(function(){t--;$('#tieT').textContent=Math.max(t,0);if(t<=3&&t>0)PP.sfx('count');if(t<=0){clearInterval(tieTimer);PP.sfx('buzz');setTimeout(nextTie,600)}},1000);
+}
+$('#tieSkip').onclick=function(){nextTie()};
+PP.back('tie',function(){clearInterval(tieTimer);S.tieQ=[];renderNames();PP.show('pickw')});
+
+function winnerChosen(p){
+  S.winner=p;PP.sfx('star');
+  var i=S.players.indexOf(p);S.artist=S.players[(i+1)%S.players.length]; // the player to the winner's left (next in seating order)
+  if(S.drawT>0)startDraw();else{S.drawing=null;askQuote()}
+}
+
+/* ---------- drawing ---------- */
+var cv=$('#cv'),cx=cv.getContext('2d'),COLS=['#111111','#C8102E','#1f5fd1','#1b9e4b','#FFD84D','#E321C9','#8B5A2B','#f2c7a5','#ffffff'],ink={c:'#111111',w:8},strokes=[],cur=null,clockT=null,left=0;
+function clearCv(){cx.fillStyle='#fff';cx.fillRect(0,0,cv.width,cv.height)}
+function redraw(){clearCv();strokes.forEach(drawStroke)}
+function drawStroke(s){cx.strokeStyle=s.c;cx.lineWidth=s.w;cx.lineCap='round';cx.lineJoin='round';cx.beginPath();s.p.forEach(function(q,i){if(i)cx.lineTo(q[0],q[1]);else cx.moveTo(q[0],q[1])});if(s.p.length===1)cx.lineTo(s.p[0][0]+.1,s.p[0][1]);cx.stroke()}
+function pos(e){var r=cv.getBoundingClientRect();return[(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height]}
+cv.addEventListener('pointerdown',function(e){if(left<=0)return;e.preventDefault();cv.setPointerCapture(e.pointerId);cur={c:ink.c,w:ink.w,p:[pos(e)]};strokes.push(cur);drawStroke(cur)});
+cv.addEventListener('pointermove',function(e){if(!cur)return;var p=pos(e),l=cur.p[cur.p.length-1];if(Math.abs(p[0]-l[0])+Math.abs(p[1]-l[1])<2)return;cur.p.push(p);cx.strokeStyle=cur.c;cx.lineWidth=cur.w;cx.lineCap='round';cx.beginPath();cx.moveTo(l[0],l[1]);cx.lineTo(p[0],p[1]);cx.stroke()});
+['pointerup','pointercancel','pointerleave'].forEach(function(ev){cv.addEventListener(ev,function(){cur=null})});
+function renderTools(){
+  var h=COLS.map(function(c){return '<button class="sw'+(ink.c===c?' on':'')+'" data-nav data-c="'+c+'" style="background:'+c+'" aria-label="Color"></button>'}).join('');
+  h+=[['S',4],['M',8],['L',18]].map(function(s){return '<button class="tb'+(ink.w===s[1]?' on':'')+'" data-nav data-w="'+s[1]+'">'+s[0]+'</button>'}).join('');
+  h+='<button class="tb" data-nav id="dUndo">↶ Undo</button><button class="tb" data-nav id="dClear">Clear</button><button class="tb on" data-nav id="dDone" style="background:#C6FF3D">Done ✓</button>';
+  $('#tools').innerHTML=h;
+  $$('[data-c]').forEach(function(b){b.onclick=function(){ink.c=b.dataset.c;$$('[data-c]').forEach(function(x){x.classList.toggle('on',x===b)})}});
+  $$('#tools [data-w]').forEach(function(b){b.onclick=function(){ink.w=+b.dataset.w;$$('#tools [data-w]').forEach(function(x){x.classList.toggle('on',x===b)})}});
+  $('#dUndo').onclick=function(){strokes.pop();redraw()};
+  $('#dClear').onclick=function(){strokes=[];redraw()};
+  $('#dDone').onclick=function(){endDraw()};
+}
+function startDraw(){
+  strokes=[];ink={c:'#111111',w:8};clearCv();renderTools();
+  $('#dWho').innerHTML='<b>'+esc(S.artist)+'</b> draws <b>'+esc(S.winner)+'</b>’s yearbook photo';
+  left=S.drawT;$('#clock').textContent=left;$('#clock').className='clock';
+  PP.show('draw','#dDone');gp.x=300;gp.y=300;
+  clearInterval(clockT);clockT=setInterval(function(){left--;$('#clock').textContent=Math.max(0,left);if(left<=10)$('#clock').className='clock low';if(left<=5&&left>0)PP.sfx('count');if(left<=0){PP.sfx('buzz');PP.toast('PENCILS DOWN!');endDraw()}},1000);
+}
+function endDraw(){clearInterval(clockT);left=0;cur=null;$('#cur').style.display='none';
+  var t=document.createElement('canvas');t.width=300;t.height=360;t.getContext('2d').drawImage(cv,0,0,300,360);S.drawing=t.toDataURL('image/jpeg',0.72);askQuote()}
+PP.back('draw',function(){endDraw();return true});
+/* controller drawing: left stick moves the pen, A draws while held, X next color, Y undo */
+var gp={x:300,y:300,down:false};
+PP.gpRaw=function(r){
+  if(PP.current()!=='draw'||left<=0)return;
+  var dx=Math.abs(r.lx)>0.15?r.lx:0,dy=Math.abs(r.ly)>0.15?r.ly:0;
+  if(r.left&&!dx)dx=-0.6;if(r.right&&!dx)dx=0.6;if(r.up&&!dy)dy=-0.6;if(r.down&&!dy)dy=0.6;
+  var moved=dx||dy;gp.x=Math.max(0,Math.min(cv.width,gp.x+dx*9));gp.y=Math.max(0,Math.min(cv.height,gp.y+dy*9));
+  var c=$('#cur');c.style.display='block';c.style.left=(gp.x/cv.width*100)+'%';c.style.top=(gp.y/cv.height*100)+'%';
+  if(r.a&&!gp.down){gp.down=true;cur={c:ink.c,w:ink.w,p:[[gp.x,gp.y]]};strokes.push(cur);drawStroke(cur)}
+  else if(r.a&&gp.down&&moved&&cur){var l=cur.p[cur.p.length-1];cur.p.push([gp.x,gp.y]);cx.strokeStyle=cur.c;cx.lineWidth=cur.w;cx.lineCap='round';cx.beginPath();cx.moveTo(l[0],l[1]);cx.lineTo(gp.x,gp.y);cx.stroke()}
+  else if(!r.a&&gp.down){gp.down=false;cur=null}
+};
+PP.on('draw',{
+  a:function(){return true}, // the pad's A draws (gpRaw); keyboard Enter/Space presses the focused tool
+  up:function(){return PP.gpActive()},down:function(){return PP.gpActive()},left:function(){return PP.gpActive()},right:function(){return PP.gpActive()},
+  x:function(){var i=COLS.indexOf(ink.c);ink.c=COLS[(i+1)%COLS.length];$$('[data-c]').forEach(function(x){x.classList.toggle('on',x.dataset.c===ink.c)});return true},
+  y:function(){strokes.pop();redraw();return true},
+  start:function(){endDraw();return true}
+});
+PP.gpActive=function(){return !!(window.ArcadePad&&ArcadePad.first()&&PP._padRecent())};
+var lastPad=0;PP._padRecent=function(){return performance.now()-lastPad<400};
+var _raw=PP.gpRaw;PP.gpRaw=function(r){if(r&&(r.any||Math.abs(r.lx)>.2||Math.abs(r.ly)>.2||r.up||r.down||r.left||r.right))lastPad=performance.now();_raw(r)};
+// keyboard on the draw screen: Enter/Space clicks the focused tool; arrows move between tools
+document.addEventListener('keydown',function(e){if(PP.current()!=='draw')return;if((e.key==='Enter'||e.key===' ')&&document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#tools')){e.preventDefault();document.activeElement.click()}},true);
+
+/* ---------- quote / page ---------- */
+function askQuote(){$('#qWho').textContent=S.winner+', say something for the yearbook';$('#qIn').value='';PP.show('quote')}
+function savePage(q){
+  var pg={t:S.cur,no:S.curNo,w:S.winner,by:S.drawing?S.artist:'',q:q,img:S.drawing};
+  S.pages.push(pg);S.wins[S.winner]=(S.wins[S.winner]||0)+1;
+  $('#pgKick').textContent='Page '+S.pages.length+' · into the yearbook';
+  $('#pgCard').innerHTML=cardHtml(pg,S.pages.length);
+  $('#pgSip').textContent='🍹 '+S.winner+' takes a sip, or the group picks a dare.';
+  $('#pgNext').textContent=S.round>=S.nRounds||!S.deck.length?'🎓 GRADUATION →':'NEXT SUPERLATIVE →';
+  persist();PP.show('page');PP.sfx('ding');PP.confetti(70);
+}
+function cardHtml(pg,i){return '<div class="ypage"><span class="n">#'+String(i).padStart(2,'0')+'</span><div class="ph" style="'+(pg.img?'background-image:url('+pg.img+')':'')+'"></div><div class="t">'+esc(pg.t)+'</div><div class="w">'+esc(pg.w)+'</div><div class="q">'+(pg.q?'“'+esc(pg.q)+'”':'“No comment.”')+'</div></div>'}
+$('#qOk').onclick=function(){savePage($('#qIn').value.trim().slice(0,90))};
+$('#qNone').onclick=function(){savePage('')};
+PP.on('quote',{enter:function(){$('#qOk').click();return true}});
+$('#pgNext').onclick=function(){nextSup()};
+PP.back('page',function(){nextSup()});
+function persist(){var b={players:S.players,wins:S.wins,pages:S.pages,at:Date.now()};try{localStorage.setItem('pp_yb_last',JSON.stringify(b))}catch(e){b.pages=b.pages.map(function(p){return Object.assign({},p,{img:null})});try{localStorage.setItem('pp_yb_last',JSON.stringify(b))}catch(e2){}}}
+
+/* ---------- graduation / book ---------- */
+function ranking(){return S.players.slice().sort(function(a,b){return (S.wins[b]||0)-(S.wins[a]||0)})}
+function graduate(){
+  var r=ranking(),top=S.wins[r[0]]||0,vals=r.filter(function(p){return (S.wins[p]||0)===top}),low=S.wins[r[r.length-1]]||0,hide=r.filter(function(p){return (S.wins[p]||0)===low});
+  $('#gName').textContent=vals.join(' & ');
+  $('#gGpa').textContent='with a GPA of '+top+' superlative'+(top===1?'':'s')+' and zero regrets';
+  $('#gHide').textContent=hide.length&&low<top?'Fewest superlatives: '+hide.join(', ')+'. You’re “Most Likely to Be Hiding Something.” The group has 2 minutes to figure out what. Valedictorian: 60-second speech, standing on a chair.':'Valedictorian: 60-second commencement speech, standing on a chair. Now.';
+  var n=PP.bump(SLUG);PP.post('over',{score:n});persist();
+  PP.show('grad');PP.sfx('win');PP.confetti(220);setTimeout(function(){PP.confetti(160)},800);
+}
+$('#gBook').onclick=function(){renderBook();PP.show('bookS')};
+PP.back('grad',function(){renderBook();PP.show('bookS')});
+function renderBook(){$('#book').innerHTML=S.pages.map(function(p,i){return cardHtml(p,i+1)}).join('')}
+$('#bkNew').onclick=function(){renderPlayers();PP.show('setup')};
+$('#bkMenu').onclick=function(){refreshTitle();PP.show('title')};
+PP.back('bookS',function(){refreshTitle();PP.show('title')});
+$('#bkSave').onclick=function(){exportBook()};
+
+function exportBook(){
+  var cols=3,cw=520,ch=700,g=28,head=420,n=S.pages.length,rows=Math.ceil(n/cols),W=cols*cw+(cols+1)*g,H=head+rows*(ch+g)+g+90;
+  var c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');
+  var grd=x.createLinearGradient(0,0,0,H);grd.addColorStop(0,'#25345c');grd.addColorStop(1,'#0d1428');x.fillStyle=grd;x.fillRect(0,0,W,H);
+  x.textAlign='center';x.fillStyle='#E8C463';x.font='400 44px Anton, Impact, sans-serif';x.fillText('THE',W/2,80);
+  var fs=130;x.font='400 '+fs+'px Anton, Impact, sans-serif';while(x.measureText('UNHINGED YEARBOOK').width>W-480&&fs>40){fs-=4;x.font='400 '+fs+'px Anton, Impact, sans-serif'}x.fillText('UNHINGED YEARBOOK',W/2,210);
+  x.fillStyle='#C8102E';x.fillRect(W/2-330,245,660,70);x.fillStyle='#fff';x.font='400 42px Anton, Impact, sans-serif';x.fillText('CLASS OF BAD DECISIONS',W/2,296);
+  var r=ranking(),top=S.wins[r[0]]||0,vals=r.filter(function(p){return (S.wins[p]||0)===top});
+  x.fillStyle='#F4E7C4';x.font='700 30px Inter, sans-serif';x.fillText('Valedictorian of Bad Decisions: '+vals.join(' & ')+' ('+top+')',W/2,375);
+  if(RAC.complete&&RAC.naturalWidth){x.save();x.beginPath();x.arc(120,170,95,0,7);x.clip();x.drawImage(RAC,25,75,190,190);x.restore();x.save();x.beginPath();x.arc(W-120,170,95,0,7);x.clip();x.drawImage(RAC,W-215,75,190,190);x.restore()}
+  var imgs=S.pages.map(function(p){if(!p.img)return null;var im=new Image();im.src=p.img;return im});
+  Promise.all(imgs.map(function(im){return im?new Promise(function(ok){if(im.complete)ok();else{im.onload=im.onerror=ok}}):null})).then(function(){
+    S.pages.forEach(function(p,i){
+      var cx0=g+(i%cols)*(cw+g),cy0=head+((i/cols)|0)*(ch+g);
+      x.fillStyle='#fff';x.fillRect(cx0,cy0,cw,ch);x.strokeStyle='#16203A';x.lineWidth=5;x.strokeRect(cx0,cy0,cw,ch);
+      x.fillStyle='#C8102E';x.font='700 20px "Space Mono", monospace';x.textAlign='left';x.fillText('#'+String(i+1).padStart(2,'0'),cx0+16,cy0+32);x.textAlign='center';
+      var pw=300,ph=360,px=cx0+(cw-pw)/2,py=cy0+40;x.fillStyle='#fafafa';x.fillRect(px,py,pw,ph);
+      if(imgs[i]&&imgs[i].naturalWidth)x.drawImage(imgs[i],px,py,pw,ph);
+      x.setLineDash([10,7]);x.strokeRect(px,py,pw,ph);x.setLineDash([]);
+      x.fillStyle='#16203A';x.font='400 34px Anton, Impact, sans-serif';wrap(p.t.toUpperCase(),cx0+cw/2,py+ph+48,cw-40,36,2);
+      x.fillStyle='#C8102E';x.font='400 40px "Permanent Marker", cursive';x.fillText(fit(p.w,cw-40),cx0+cw/2,cy0+ch-80);
+      x.fillStyle='#333';x.font='400 24px "Permanent Marker", cursive';wrap(p.q?'“'+p.q+'”':'“No comment.”',cx0+cw/2,cy0+ch-40,cw-40,26,1);
+    });
+    x.fillStyle='#E8C463';x.font='700 26px "Space Mono", monospace';x.textAlign='center';x.fillText('PREGAME PAPERS · ARCADE.CONTENTPAD.IO',W/2,H-40);
+    try{PP.saveImage(c,'unhinged-yearbook.png')}catch(e){PP.toast('Couldn’t save the picture here')}
+  });
+  function fit(s,w){while(x.measureText(s).width>w&&s.length>3)s=s.slice(0,-2)+'…';return s}
+  function wrap(s,cx,y,w,lh,maxL){var words=s.split(' '),line='',lines=[];words.forEach(function(wd){var t=line?line+' '+wd:wd;if(x.measureText(t).width>w&&line){lines.push(line);line=wd}else line=t});lines.push(line);if(lines.length>maxL){lines=lines.slice(0,maxL);lines[maxL-1]=fit(lines[maxL-1]+'…',w)}lines.forEach(function(l,k){x.fillText(l,cx,y+k*lh)})}
+}
+
+/* ---------- go ---------- */
+refreshTitle();
+PP.ageGate(function(){PP.show('title')});
+window.__yb={S:S,winnerChosen:winnerChosen,endDraw:endDraw,graduate:graduate,exportBook:exportBook};
+})();
+</script>
+</body>
+</html>

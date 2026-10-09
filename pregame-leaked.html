@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script src="/gate.js?v=1" data-game="pregame-leaked"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- Pregame Papers: Leaked — The Group Chat Game · ContentPad Arcade (build 2026100901-pp v1)
+     The Arcade twin of the printable "Leaked" book: same 16 chats (pp/pregame-data.js), played on one shared screen.
+     Party: players fill the blanks without seeing the chat, the chat plays out bubble by bubble (optional read-aloud),
+     then everyone votes Screenshot of the Night; first to 5 stars wins. Solo: chaos-fill or fill it yourself, then save a screenshot.
+     Posts {arcade:'start'|'over'|'exit'}; accepts {arcade:'key'} from the parent only (pp/pp-kit.js).
+     Score: leaks performed on this device → arcade_best_pregame-leaked. 21+. -->
+<title>Pregame Papers: Leaked — The Group Chat Game</title>
+<meta name="theme-color" content="#E321C9">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo+Black&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="pp/pp.css?v=1">
+<style>
+body{background:#111}
+#title{justify-content:safe center;text-align:center;background:linear-gradient(180deg,rgba(227,33,201,.35),rgba(13,13,16,.2) 40%,rgba(13,13,16,.92)),url(pp/leaked-bg.webp) center/cover no-repeat #E321C9}
+.big{font:400 clamp(72px,17vw,170px)/.85 var(--D);color:var(--lime);-webkit-text-stroke:5px #111;paint-order:stroke fill;text-shadow:7px 7px 0 #111;letter-spacing:-.02em;margin:14px 0 6px}
+.sub{display:inline-block;background:#111;color:#fff;font:400 clamp(16px,3vw,24px) var(--A);letter-spacing:.14em;padding:6px 16px}
+#title .menu{margin-top:26px;display:flex;flex-direction:column;gap:12px;width:min(360px,100%)}
+#title .foot{margin-top:18px;font:700 11px var(--M);letter-spacing:.12em;color:#fff;opacity:.85}
+h2.hd{font:400 clamp(26px,5vw,40px)/1 var(--D);margin:6px 0 4px;text-align:center}
+.kick{font:700 12px var(--M);letter-spacing:.16em;color:var(--pink);text-transform:uppercase;text-align:center}
+.panel{background:#1c1c22;border:2px solid #2e2e38;border-radius:18px;padding:16px;width:100%}
+/* pick */
+.leaks{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;width:100%;margin-top:14px}
+.lk{position:relative;text-align:left;border:3px solid #111;border-radius:16px;background:#fff;color:#111;padding:12px 14px 12px;cursor:pointer;box-shadow:0 5px 0 #000;min-height:96px;display:flex;flex-direction:column;gap:4px}
+.lk:focus{outline:4px solid var(--yel);outline-offset:3px}
+.lk .n{font:700 11px var(--M);color:var(--pink);letter-spacing:.1em}
+.lk b{font:400 17px/1.1 var(--D)}
+.lk small{font:600 12px var(--B);color:#666;margin-top:auto}
+.lk.done{background:#e9e9ee}
+.lk.done::after{content:'PLAYED';position:absolute;top:10px;right:10px;font:700 10px var(--M);background:#111;color:var(--lime);padding:2px 6px;border-radius:4px}
+.stars{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0 0}
+.stars span{background:#1c1c22;border:2px solid #333;border-radius:999px;padding:5px 12px;font:700 14px var(--B)}
+.stars span i{font-style:normal;color:var(--yel);margin-left:6px}
+.seg{display:inline-flex;border:3px solid #111;border-radius:12px;overflow:hidden;background:#fff}
+.seg button{border:0;background:#fff;color:#111;font:700 14px var(--B);padding:10px 14px;cursor:pointer}
+.seg button.on{background:var(--lime)}
+.seg button:focus{outline:3px solid var(--pink);outline-offset:-3px}
+/* cast */
+.castl{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;width:100%;margin:16px 0}
+.cr{display:flex;align-items:center;gap:12px;background:#fff;color:#111;border:3px solid #111;border-radius:14px;padding:10px 12px}
+.cr .r{font:700 11px var(--M);color:#777;letter-spacing:.08em}
+.cr .p{font:400 19px var(--D)}
+.av{width:44px;height:44px;border-radius:50%;flex:none;background:#ddd center/cover;border:2px solid #111;display:flex;align-items:center;justify-content:center;font:800 14px var(--B);color:#111}
+/* fill */
+#fill{justify-content:safe center;text-align:center;background:radial-gradient(ellipse at 50% 0,#3a0f35,#111 70%)}
+.prog{width:min(560px,100%);height:10px;border-radius:99px;background:#2a2a31;overflow:hidden;margin:0 auto 18px}
+.prog i{display:block;height:100%;background:var(--lime);width:0;transition:width .3s}
+.who{font:400 clamp(22px,4.4vw,34px) var(--D);color:#fff}
+.who em{font-style:normal;color:var(--lime)}
+.ask{font:400 clamp(40px,9vw,84px)/.95 var(--D);color:var(--pink);-webkit-text-stroke:2px #111;text-transform:uppercase;margin:10px 0 6px;word-break:break-word}
+.eg{color:#bbb;font:500 15px var(--B);min-height:22px}
+#fill .entry{width:min(560px,100%);margin:22px auto 0;display:flex;flex-direction:column;gap:12px}
+.hidden{display:none!important}
+/* reveal */
+#reveal{background:#0f0f13;overflow:hidden}
+@media (max-width:700px){.scr{padding-top:58px}}
+.phone{width:min(620px,100%);border:4px solid #fff;border-radius:34px;background:#fff;color:#111;overflow:hidden;margin-top:6px;display:flex;flex-direction:column;flex:1;min-height:0}
+.pbar{background:#f4f4f6;border-bottom:1.5px solid #ddd;padding:12px 18px;display:flex;align-items:center;gap:12px}
+.pbar .avs{display:flex}
+.pbar .avs .av{width:34px;height:34px;margin-left:-10px;border-width:2px;border-color:#fff}
+.pbar .avs .av:first-child{margin-left:0}
+.pbar .gn{font:800 17px var(--B)}
+.pbar .gs{font:600 12px var(--B);color:#888}
+.msgs{padding:10px 16px 18px;flex:1;display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain}
+.m{display:flex;gap:8px;margin-top:8px;align-items:flex-end;animation:pop .22s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.6) translateY(10px);opacity:0}to{transform:none;opacity:1}}
+.m.me{justify-content:flex-end}
+.m .av{width:34px;height:34px;font-size:11px}
+.bw{max-width:80%}
+.snd{font:700 10px var(--B);letter-spacing:.06em;text-transform:uppercase;color:#888;margin:0 0 2px 12px}
+.snd span{color:var(--pink)}
+.bub{background:#ECECEF;border-radius:20px;padding:9px 15px;font:500 17px/1.38 var(--B)}
+.me .bub{background:#DFF7C8}
+.w{display:inline-block;background:var(--pink);color:#fff;font-weight:800;padding:0 7px;border-radius:7px;margin:1px 0;line-height:1.35}
+.w sub{display:block;font:700 9px var(--M);letter-spacing:.04em;color:#ffd7f6;text-transform:uppercase;line-height:1;margin-top:-1px;padding-bottom:3px}
+.nobys .w sub{display:none}
+.sys{text-align:center;font:600 12px var(--B);color:#999;margin-top:10px}
+.typing{display:inline-flex;gap:4px;background:#ECECEF;border-radius:20px;padding:13px 15px}
+.typing i{width:8px;height:8px;border-radius:50%;background:#999;animation:blink 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes blink{0%,80%,100%{opacity:.3}40%{opacity:1}}
+.tapnext{margin-top:auto;padding-top:14px;text-align:center;font:700 12px var(--M);letter-spacing:.12em;color:#aaa}
+.rctl{width:min(620px,100%);display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:12px;flex:none}
+@media (max-height:560px){.rctl .btn.sm{display:none}}
+/* vote */
+.words{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;width:100%;margin-top:16px}
+.wb{border:3px solid #111;border-radius:14px;background:#fff;color:#111;padding:10px 14px;cursor:pointer;text-align:left;box-shadow:0 4px 0 #000;max-width:100%}
+.wb b{display:block;font:400 19px var(--D);color:var(--pink);word-break:break-word}
+.wb small{font:700 11px var(--M);color:#777;letter-spacing:.06em;text-transform:uppercase}
+.wb:focus{outline:4px solid var(--yel);outline-offset:3px}
+table.sb{width:min(560px,100%);border-collapse:collapse;margin-top:16px;font:700 17px var(--B)}
+table.sb td{padding:12px 14px;border-bottom:2px solid #2a2a31}
+table.sb td:last-child{text-align:right;color:var(--yel);letter-spacing:2px}
+table.sb tr.lead td:first-child::before{content:'👑 '}
+#win{justify-content:safe center;text-align:center;background:radial-gradient(ellipse at 50% 30%,#4a1043,#111 70%)}
+#win .big{font-size:clamp(54px,12vw,120px)}
+</style>
+</head>
+<body>
+<div class="topbar"><button data-mute aria-label="Sound">🔊</button><button data-quit>← Arcade</button></div>
+
+<section class="scr gate" id="gate">
+  <span class="logo">PREGAME <b>PAPERS</b></span>
+  <div class="age">21+</div>
+  <h2 class="hd">Adults only</h2>
+  <p>Leaked is a crude party game for grown-ups: swearing, sex jokes, bad decisions. Every “drink” is optional — a sip of water or a dare works too.</p>
+  <div class="row"><button class="btn pri" id="gYes" data-nav>I’M 21+ · LET ME IN</button><button class="btn ghost" id="gNo" data-nav>NOT TODAY</button></div>
+</section>
+
+<section class="scr" id="title">
+  <span class="logo">PREGAME <b>PAPERS</b></span>
+  <div class="big">LEAKED</div>
+  <div class="sub">THE GROUP CHAT GAME</div>
+  <div class="menu">
+    <button class="btn pri" data-nav id="tParty">🎉 PARTY MODE · 2–12 PLAYERS</button>
+    <button class="btn" data-nav id="tSolo">🎲 SOLO · LEAK IT YOURSELF</button>
+    <button class="btn ghost" data-nav id="tHow">HOW TO PLAY</button>
+  </div>
+  <div class="foot">PLAYS GREAT ON THE TV · PAIRS WITH THE PRINTABLE BOOK</div>
+</section>
+
+<section class="scr" id="how">
+  <div class="wrap how">
+    <div class="kick">How to play</div>
+    <h2 class="hd">Somebody leaked the group chats</h2>
+    <p>Sixteen of them. Each one has blanks, and you’re about to fill them with the worst words you can think of, without knowing what they’re for. Then the chat plays out on screen, and you perform it. Out loud. With voices.</p>
+    <h3>Party mode</h3>
+    <ol>
+      <li><b>Add the players.</b> Put this on the big screen.</li>
+      <li><b>Pick a leak.</b> The game casts real people from the room as MOM, THE EX, the GYM BRO…</li>
+      <li><b>Fill the blanks.</b> The screen asks each player in turn for a word: “Dana, give me a <i>body part</i>.” Nobody sees the chat yet. Stuck? Hit 🎲 for a random word.</li>
+      <li><b>Perform the leak.</b> Messages pop in one at a time (tap, Space or Ⓐ). Each cast member reads their own lines. Turn on 🗣 Read aloud if nobody’s brave.</li>
+      <li><b>Screenshot of the night.</b> Vote for the funniest word. Whoever gave it gets a ⭐. First to <b>5 stars</b> wins. Last place reads the next one as a voice memo.</li>
+    </ol>
+    <h3>Solo</h3>
+    <p>Chaos mode fills every blank with something unhinged from the word bank. Or fill it yourself. Then 📸 save the screenshot and send it to the real group chat.</p>
+    <h3>Got the printable?</h3>
+    <p>Same 16 chats as the <b>Leaked</b> book from Pregame Papers. Print the pages for the table, run the game on the TV, or mix them: the book’s 2 write-your-own pages are yours to fill.</p>
+    <div class="row" style="margin-top:18px"><button class="btn pri" data-nav id="howBack">GOT IT</button></div>
+  </div>
+</section>
+
+<section class="scr" id="setup">
+  <div class="wrap" style="max-width:640px">
+    <div class="kick">Party mode</div>
+    <h2 class="hd">Who’s in the group chat?</h2>
+    <p style="text-align:center;color:#bbb;margin:6px 0 16px">2 to 12 players. 3+ is better. Names are remembered on this device.</p>
+    <div class="col">
+      <input class="txt" id="pName" maxlength="16" placeholder="Type a name, press Enter" autocomplete="off" data-nav data-autofocus enterkeyhint="done">
+      <button class="btn sm" data-nav id="pAdd">+ Add player</button>
+    </div>
+    <div class="chips" id="pList" style="margin:18px 0"></div>
+    <div class="row"><button class="btn ghost" data-nav id="sBack">Back</button><button class="btn pri" data-nav id="sGo" disabled>START THE LEAKS →</button></div>
+  </div>
+</section>
+
+<section class="scr" id="pick">
+  <div class="wrap">
+    <div class="kick" id="pickKick">Pick a leak</div>
+    <h2 class="hd">Whose phone are we going through?</h2>
+    <div class="stars" id="pickStars"></div>
+    <div class="row" style="margin-top:14px" id="soloOpts"><span class="lab" style="color:#bbb">Fill the blanks:</span><div class="seg" id="fillMode"><button data-nav data-v="chaos" class="on">🎲 Chaos</button><button data-nav data-v="me">✍️ Myself</button></div></div>
+    <div class="leaks" id="leaks"></div>
+    <div class="row" style="margin-top:18px"><button class="btn ghost" data-nav id="pkBack">Back</button><button class="btn pink" data-nav id="pkRand">🎰 RANDOM LEAK</button></div>
+  </div>
+</section>
+
+<section class="scr" id="cast">
+  <div class="wrap">
+    <div class="kick" id="castKick">Leak #01</div>
+    <h2 class="hd" id="castTitle">Casting</h2>
+    <p style="text-align:center;color:#bbb;margin:6px 0 0">Each of these people reads their own lines when the chat plays.</p>
+    <div class="castl" id="castList"></div>
+    <div class="row"><button class="btn ghost" data-nav id="cBack">Back</button><button class="btn" data-nav id="cShuf">🔀 RESHUFFLE</button><button class="btn pri" data-nav id="cGo" data-autofocus>FILL THE BLANKS →</button></div>
+  </div>
+</section>
+
+<section class="scr" id="fill">
+  <div class="wrap">
+    <div class="prog"><i id="fProg"></i></div>
+    <div class="kick" id="fKick">Blank 1 of 12 · no peeking</div>
+    <div class="who" id="fWho"><em>Dana</em>, give me</div>
+    <div class="ask" id="fAsk">a body part</div>
+    <div class="eg" id="fEg"></div>
+    <div class="entry">
+      <input class="txt" id="fIn" maxlength="40" autocomplete="off" data-nav data-autofocus enterkeyhint="next" placeholder="Type it in">
+      <div class="chips hidden" id="fNames"></div>
+      <div class="row"><button class="btn" data-nav id="fRand">🎲 RANDOM</button><button class="btn pri" data-nav id="fOk">USE IT →</button></div>
+      <button class="btn ghost sm" data-nav id="fAll" style="align-self:center">Chaos-fill the rest</button>
+    </div>
+  </div>
+</section>
+
+<section class="scr" id="reveal">
+  <div class="phone" id="phone">
+    <div class="pbar"><div class="avs" id="rAvs"></div><div><div class="gn" id="rGroup">Group</div><div class="gs" id="rSub">4 people</div></div></div>
+    <div class="msgs" id="rMsgs"></div>
+  </div>
+  <div class="rctl" id="rCtl"></div>
+</section>
+
+<section class="scr" id="vote">
+  <div class="wrap">
+    <div class="kick">⭐ Screenshot of the night</div>
+    <h2 class="hd">Which word won the chat?</h2>
+    <p style="text-align:center;color:#bbb;margin:6px 0 0">Everyone points, majority rules. Whoever gave it gets a star.</p>
+    <div class="words" id="words"></div>
+    <div class="row" style="margin-top:18px"><button class="btn ghost" data-nav id="vSkip">No winner, everything sucked</button></div>
+  </div>
+</section>
+
+<section class="scr" id="board">
+  <div class="wrap" style="text-align:center">
+    <div class="kick">Scoreboard · first to 5 ⭐</div>
+    <h2 class="hd" id="bHead">Star to Dana</h2>
+    <table class="sb" id="sb" style="margin-left:auto;margin-right:auto"></table>
+    <div class="row" style="margin-top:22px"><button class="btn" data-nav id="bShot">📸 SAVE SCREENSHOT</button><button class="btn pri" data-nav id="bNext" data-autofocus>NEXT LEAK →</button></div>
+  </div>
+</section>
+
+<section class="scr" id="win">
+  <span class="logo">PREGAME <b>PAPERS</b></span>
+  <div class="kick" style="margin-top:20px">Five stars. Screenshot it.</div>
+  <div class="big" id="wName">DANA</div>
+  <h2 class="hd">wins the group chat</h2>
+  <p id="wLast" style="color:#ddd;max-width:520px;line-height:1.5"></p>
+  <div class="row" style="margin-top:20px"><button class="btn pri" data-nav id="wAgain">PLAY AGAIN</button><button class="btn ghost" data-nav id="wTitle">MAIN MENU</button></div>
+</section>
+
+<script src="gamepad.js?v=1"></script>
+<script src="pp/pregame-data.js?v=1"></script>
+<script src="pp/pp-kit.js?v=1"></script>
+<script>
+(function(){
+'use strict';
+var SLUG='pregame-leaked', D=window.PREGAME, $=PP.$, $$=PP.$$, esc=PP.esc;
+var AVK={wine:'1',dad:'dad',fedora:'fedora',glam:'glam',grandma:'grandma',gym:'gym',hungover:'hungover'};
+var TINTS=['#FFD84D','#7DE2F5','#FF9EC7','#B9F06A','#C9B6FF','#FFB067'];
+var IMG={};Object.keys(AVK).forEach(function(k){var im=new Image();im.src='pp/av-'+AVK[k]+'.webp';IMG[k]=im});
+var S={mode:'party',players:[],stars:{},played:{},leak:null,cast:{},blanks:[],order:[],bi:0,shown:0,fill:'chaos',speak:false,showBy:true,lastWinner:null};
+PP.init({game:SLUG});
+
+/* ---------- parsing ---------- */
+function parse(text){var out=[],re=/\[([^\]]+)\]/g,m,p=0;while((m=re.exec(text))){if(m.index>p)out.push({t:text.slice(p,m.index)});out.push({b:S.blanks.length});S.blanks.push({label:m[1],value:'',by:''});p=re.lastIndex}if(p<text.length)out.push({t:text.slice(p)});return out}
+function prepare(i){
+  var c=D.chats[i];S.leak=i;S.blanks=[];
+  S.group=parse(c.group);
+  S.msgs=c.msgs.map(function(m){return{who:m[0],tok:parse(m[1])}});
+}
+function labelText(l){return l==='PLAYER'?'a player’s name':l}
+function askText(l){if(l==='PLAYER')return 'a player’s name';if(/^plural/.test(l))return l;return (/^[aeiou]/i.test(l)?'an ':'a ')+l}
+function bankFor(l){if(l==='PLAYER')return S.players.length?S.players:['your ex','the host','Dana'];return D.bank[l]||D.bank.noun}
+
+/* ---------- title / setup ---------- */
+$('#tParty').onclick=function(){S.mode='party';S.players=PP.loadPlayers();renderPlayers();PP.show('setup')};
+$('#tSolo').onclick=function(){S.mode='solo';S.played={};renderPick();PP.show('pick')};
+$('#tHow').onclick=function(){PP.show('how')};
+$('#howBack').onclick=function(){PP.show('title')};
+PP.back('how',function(){PP.show('title')});
+PP.back('setup',function(){PP.show('title')});
+PP.back('title',function(){PP.quit()});
+function addPlayer(){var i=$('#pName'),v=i.value.trim().replace(/\s+/g,' ');if(!v)return false;if(S.players.length>=12){PP.toast('12 players max');return true}if(S.players.some(function(p){return p.toLowerCase()===v.toLowerCase()})){PP.toast(v+' is already in');i.select();return true}S.players.push(v);i.value='';PP.sfx('pop');renderPlayers();PP.savePlayers(S.players);i.focus();return true}
+function renderPlayers(){
+  $('#pList').innerHTML=S.players.map(function(p,i){return '<span class="chip">'+esc(p)+'<button data-nav data-rm="'+i+'" aria-label="Remove '+esc(p)+'">×</button></span>'}).join('')||'<span style="color:#888">No players yet</span>';
+  $$('[data-rm]').forEach(function(b){b.onclick=function(){S.players.splice(+b.dataset.rm,1);PP.savePlayers(S.players);renderPlayers();$('#pName').focus()}});
+  $('#sGo').disabled=S.players.length<2;
+}
+$('#pAdd').onclick=function(){addPlayer();$('#pName').focus()};
+PP.on('setup',{enter:function(){if($('#pName').value.trim())return addPlayer();if(S.players.length>=2){$('#sGo').click();return true}return true}});
+$('#sBack').onclick=function(){PP.show('title')};
+$('#sGo').onclick=function(){S.stars={};S.players.forEach(function(p){S.stars[p]=0});S.played={};renderPick();PP.post('start');PP.show('pick')};
+
+/* ---------- pick ---------- */
+function starsHtml(){if(S.mode!=='party')return '';return S.players.map(function(p){return '<span>'+esc(p)+'<i>'+('★'.repeat(S.stars[p]||0)||'·')+'</i></span>'}).join('')}
+function renderPick(){
+  $('#pickKick').textContent=S.mode==='party'?'Pick a leak · party mode':'Pick a leak · solo';
+  $('#pickStars').innerHTML=starsHtml();
+  $('#soloOpts').classList.toggle('hidden',S.mode!=='solo');
+  $('#leaks').innerHTML=D.chats.map(function(c,i){return '<button class="lk'+(S.played[i]?' done':'')+'" data-nav data-leak="'+i+'"><span class="n">LEAK #'+String(i+1).padStart(2,'0')+'</span><b>'+esc(c.title)+'</b><small>'+c.cast.length+' roles · '+'🌶️'.repeat(c.heat)+'</small></button>'}).join('');
+  $$('[data-leak]').forEach(function(b){b.onclick=function(){choose(+b.dataset.leak)}});
+}
+$$('#fillMode button').forEach(function(b){b.onclick=function(){S.fill=b.dataset.v;$$('#fillMode button').forEach(function(x){x.classList.toggle('on',x===b)})}});
+$('#pkRand').onclick=function(){var left=D.chats.map(function(c,i){return i}).filter(function(i){return !S.played[i]});if(!left.length){S.played={};left=D.chats.map(function(c,i){return i})}choose(PP.pick(left))};
+$('#pkBack').onclick=function(){PP.show(S.mode==='party'?'setup':'title')};
+PP.back('pick',function(){$('#pkBack').click()});
+function choose(i){
+  prepare(i);PP.sfx('pop');
+  if(S.mode==='party'){castRoles();renderCast();PP.show('cast')}
+  else if(S.fill==='chaos'){chaosFill(0);startReveal()}
+  else{S.order=S.blanks.map(function(){return 'You'});S.bi=0;askBlank();PP.show('fill')}
+}
+
+/* ---------- cast ---------- */
+function castRoles(){var c=D.chats[S.leak],ps=PP.shuffle(S.players),k=0;S.cast={};c.cast.forEach(function(r){S.cast[r[0]]=ps[k++%ps.length]})}
+function avHtml(role,key,i,cls){if(key)return '<div class="av'+(cls||'')+'" style="background-image:url(pp/av-'+AVK[key]+'.webp)"></div>';return '<div class="av'+(cls||'')+'" style="background:'+TINTS[i%6]+'">'+esc(initials(role))+'</div>'}
+function initials(role){var w=role.replace(/[^A-Za-z ]/g,'').split(' ').filter(function(x){return x&&!/^(THE|MY)$/i.test(x)});return (w.map(function(x){return x[0]}).join('')||role[0]).slice(0,2)}
+function renderCast(){
+  var c=D.chats[S.leak];
+  $('#castKick').textContent='Leak #'+String(S.leak+1).padStart(2,'0')+' · '+'🌶️'.repeat(c.heat);
+  $('#castTitle').textContent=c.title;
+  $('#castList').innerHTML=c.cast.map(function(r,i){return '<div class="cr">'+avHtml(r[0],r[1],i)+'<div><div class="r">'+esc(r[0])+'</div><div class="p">'+esc(S.cast[r[0]])+'</div></div></div>'}).join('');
+}
+$('#cShuf').onclick=function(){castRoles();renderCast();PP.sfx('tick')};
+$('#cBack').onclick=function(){PP.show('pick')};
+PP.back('cast',function(){PP.show('pick')});
+$('#cGo').onclick=function(){
+  // rotate through the players, starting with a random one
+  var ps=PP.shuffle(S.players),st=0;S.order=S.blanks.map(function(b,i){return ps[(st+i)%ps.length]});S.bi=0;askBlank();PP.show('fill');
+};
+
+/* ---------- fill ---------- */
+function askBlank(){
+  var b=S.blanks[S.bi],l=b.label,who=S.order[S.bi];
+  $('#fProg').style.width=(100*S.bi/S.blanks.length)+'%';
+  $('#fKick').textContent='Blank '+(S.bi+1)+' of '+S.blanks.length+' · no peeking';
+  $('#fWho').innerHTML=S.mode==='party'?'<em>'+esc(who)+'</em>, give me':'Give me';
+  $('#fAsk').textContent=askText(l);
+  var bank=bankFor(l),eg=PP.shuffle(bank).slice(0,2);
+  $('#fEg').textContent=l==='PLAYER'?'Pick someone in the room':('like “'+eg.join('” or “')+'”');
+  var nm=$('#fNames');
+  if(l==='PLAYER'&&S.players.length){nm.classList.remove('hidden');nm.innerHTML=S.players.map(function(p){return '<button class="btn sm" data-nav data-nm="'+esc(p)+'">'+esc(p)+'</button>'}).join('');$$('[data-nm]',nm).forEach(function(x){x.onclick=function(){commit(x.dataset.nm)}})}
+  else{nm.classList.add('hidden');nm.innerHTML=''}
+  var i=$('#fIn');i.value='';
+  setTimeout(function(){if(!PP.TOUCH)i.focus()},40);
+}
+function commit(v){v=String(v||'').trim().replace(/\s+/g,' ');if(!v){PP.sfx('buzz');$('#fIn').focus();return}var b=S.blanks[S.bi];b.value=v.slice(0,40);b.by=S.mode==='party'?S.order[S.bi]:'';PP.sfx('send');S.bi++;if(S.bi>=S.blanks.length){startReveal()}else askBlank()}
+$('#fOk').onclick=function(){commit($('#fIn').value)};
+$('#fRand').onclick=function(){commit(PP.pick(bankFor(S.blanks[S.bi].label)))};
+$('#fAll').onclick=function(){chaosFill(S.bi);startReveal()};
+PP.on('fill',{enter:function(){$('#fOk').click();return true},x:function(){$('#fRand').click();return true}});
+PP.back('fill',function(){if(S.bi>0){S.bi--;askBlank()}else PP.show(S.mode==='party'?'cast':'pick')});
+function chaosFill(from){for(var i=from;i<S.blanks.length;i++){var b=S.blanks[i];b.value=PP.pick(bankFor(b.label));b.by=S.mode==='party'?(S.order[i]||'')+' 🎲':''}}
+
+/* ---------- reveal ---------- */
+var typingT=null;
+function tokHtml(tok){return tok.map(function(x){if(x.t!=null)return esc(x.t);var b=S.blanks[x.b];return '<span class="w">'+esc(b.value)+(b.by?'<sub>'+esc(b.by)+'</sub>':'')+'</span>'}).join('')}
+function tokText(tok){return tok.map(function(x){return x.t!=null?x.t:S.blanks[x.b].value}).join('')}
+function roleOf(who){var c=D.chats[S.leak];for(var i=0;i<c.cast.length;i++)if(c.cast[i][0]===who)return{key:c.cast[i][1],i:i};return{key:null,i:0}}
+function startReveal(){
+  var c=D.chats[S.leak];
+  $('#rGroup').innerHTML=tokHtml(S.group);
+  $('#rSub').textContent=c.cast.length+' people · leaked';
+  $('#rAvs').innerHTML=c.cast.filter(function(r){return r[0]!=='ME'}).slice(0,4).map(function(r,i){return avHtml(r[0],r[1],c.cast.indexOf(r))}).join('');
+  $('#rMsgs').innerHTML='<div class="tapnext" id="tapn">TAP · SPACE · Ⓐ FOR THE NEXT MESSAGE</div>';
+  $('#phone').classList.toggle('nobys',!S.showBy);
+  S.shown=0;renderCtl(false);PP.show('reveal');
+  setTimeout(next,350);
+}
+function next(){
+  if(typingT)return;
+  if(S.shown>=S.msgs.length)return;
+  var m=S.msgs[S.shown],box=$('#rMsgs'),tap=$('#tapn');
+  if(m.who==='SYS'){S.shown++;var d=document.createElement('div');d.className='sys';d.innerHTML=tokHtml(m.tok);box.insertBefore(d,tap);done();return}
+  var me=m.who==='ME',ro=roleOf(m.who);
+  var t=document.createElement('div');t.className='m'+(me?' me':'');
+  t.innerHTML=(me?'':avHtml(m.who,ro.key,ro.i))+'<div class="typing"><i></i><i></i><i></i></div>';
+  box.insertBefore(t,tap);scrollEnd();PP.sfx('type');
+  typingT=setTimeout(function(){
+    typingT=null;S.shown++;
+    var cast=S.mode==='party'&&S.cast[m.who]?' · <span>'+esc(S.cast[m.who])+'</span>':'';
+    var whoLbl=me?(S.mode==='party'&&S.cast.ME?'<div class="snd" style="text-align:right;margin-right:12px">ME · <span>'+esc(S.cast.ME)+'</span></div>':''):'<div class="snd">'+esc(m.who)+cast+'</div>';
+    t.innerHTML=(me?'':avHtml(m.who,ro.key,ro.i))+'<div class="bw">'+whoLbl+'<div class="bub">'+tokHtml(m.tok)+'</div></div>';
+    PP.sfx(me?'send':'pop');scrollEnd();say(m);done();
+  },S.shown===0?350:Math.min(1100,380+tokText(m.tok).length*9));
+}
+function done(){if(S.shown>=S.msgs.length){$('#tapn').textContent='END OF LEAK';renderCtl(true);PP.bump(SLUG);PP.post('over',{score:+PP.ls('arcade_best_'+SLUG)||0})}}
+function scrollEnd(){var r=$('#rMsgs');setTimeout(function(){r.scrollTo({top:r.scrollHeight,behavior:'smooth'})},20)}
+function renderCtl(fin){
+  var h='';
+  if(!fin)h+='<button class="btn pri" data-nav id="rNext">NEXT MESSAGE ▸</button><button class="btn sm" data-nav id="rAll">Show all</button>';
+  else if(S.mode==='party')h+='<button class="btn pri" data-nav id="rVote">⭐ VOTE: SCREENSHOT OF THE NIGHT</button><button class="btn" data-nav id="rShot">📸 SAVE SCREENSHOT</button>';
+  else h+='<button class="btn pri" data-nav id="rShot">📸 SAVE SCREENSHOT</button><button class="btn" data-nav id="rReroll">🎲 REROLL WORDS</button><button class="btn" data-nav id="rNextLeak">NEXT LEAK →</button>';
+  h+='<button class="btn sm ghost" data-nav id="rSpeak">'+(S.speak?'🗣 Read aloud: ON':'🗣 Read aloud: OFF')+'</button>';
+  if(S.mode==='party')h+='<button class="btn sm ghost" data-nav id="rBy">'+(S.showBy?'Who said it: ON':'Who said it: OFF')+'</button>';
+  $('#rCtl').innerHTML=h;
+  var b;
+  if((b=$('#rNext')))b.onclick=next;
+  if((b=$('#rAll')))b.onclick=function(){if(typingT){clearTimeout(typingT);typingT=null;$('#rMsgs .m:last-of-type').remove()}var sp=S.speak;S.speak=false;var g=0;while(S.shown<S.msgs.length&&g++<40){var m=S.msgs[S.shown];S.shown++;appendStatic(m)}S.speak=sp;done();scrollEnd()};
+  if((b=$('#rVote')))b.onclick=function(){renderVote();PP.show('vote')};
+  if((b=$('#rShot')))b.onclick=shot;
+  if((b=$('#rReroll')))b.onclick=function(){chaosFill(0);startReveal()};
+  if((b=$('#rNextLeak')))b.onclick=function(){S.played[S.leak]=1;renderPick();PP.show('pick')};
+  $('#rSpeak').onclick=function(){S.speak=!S.speak;if(!S.speak&&window.speechSynthesis)speechSynthesis.cancel();this.textContent=S.speak?'🗣 Read aloud: ON':'🗣 Read aloud: OFF';if(S.speak&&!window.speechSynthesis)PP.toast('This browser can’t read aloud')};
+  if((b=$('#rBy')))b.onclick=function(){S.showBy=!S.showBy;$('#phone').classList.toggle('nobys',!S.showBy);this.textContent=S.showBy?'Who said it: ON':'Who said it: OFF'};
+  setTimeout(function(){var f=$('#rCtl .btn');if(f)f.focus({preventScroll:true})},fin?900:30);
+}
+function appendStatic(m){
+  var box=$('#rMsgs'),tap=$('#tapn');
+  if(m.who==='SYS'){var d=document.createElement('div');d.className='sys';d.innerHTML=tokHtml(m.tok);box.insertBefore(d,tap);return}
+  var me=m.who==='ME',ro=roleOf(m.who),t=document.createElement('div');t.className='m'+(me?' me':'');
+  var cast=S.mode==='party'&&S.cast[m.who]?' · <span>'+esc(S.cast[m.who])+'</span>':'';
+  t.innerHTML=(me?'':avHtml(m.who,ro.key,ro.i))+'<div class="bw">'+(me?'':'<div class="snd">'+esc(m.who)+cast+'</div>')+'<div class="bub">'+tokHtml(m.tok)+'</div></div>';
+  box.insertBefore(t,tap);
+}
+PP.on('reveal',{a:function(){var a=document.activeElement;if(a&&a.closest&&a.closest('#rCtl')&&a.id!=='rNext'){a.click();return true}if(S.shown<S.msgs.length){next();return true}return false},x:function(){shot();return true}});
+$('#phone').addEventListener('click',function(){if(S.shown<S.msgs.length)next()});
+PP.back('reveal',function(){if(window.speechSynthesis)speechSynthesis.cancel();PP.show('pick')});
+
+/* read aloud */
+var VOICES=[];function loadV(){if(!window.speechSynthesis)return;VOICES=speechSynthesis.getVoices().filter(function(v){return /^en/i.test(v.lang)})}
+if(window.speechSynthesis){loadV();speechSynthesis.onvoiceschanged=loadV}
+function say(m){
+  if(!S.speak||PP.muted||!window.speechSynthesis)return;
+  var ro=roleOf(m.who),u=new SpeechSynthesisUtterance(tokText(m.tok).replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu,''));
+  var idx=m.who==='ME'?5:ro.i;u.pitch=[1,0.7,1.35,0.85,1.6,1.1][idx%6];u.rate=[1.05,0.95,1.1,1,1.15,1.05][idx%6];
+  if(VOICES.length)u.voice=VOICES[(idx*3)%VOICES.length];
+  speechSynthesis.speak(u);
+}
+
+/* ---------- vote ---------- */
+function renderVote(){
+  $('#words').innerHTML=S.blanks.map(function(b,i){return '<button class="wb" data-nav data-w="'+i+'"><b>'+esc(b.value)+'</b><small>'+esc(labelText(b.label))+(b.by?' · '+esc(b.by.replace(' 🎲',''))+(b.by.indexOf('🎲')>0?' 🎲':''):'')+'</small></button>'}).join('');
+  $$('[data-w]').forEach(function(x){x.onclick=function(){award(S.blanks[+x.dataset.w])}});
+}
+$('#vSkip').onclick=function(){S.lastWinner=null;finishRound('Nobody gets a star. Brutal.')};
+PP.back('vote',function(){PP.show('reveal')});
+function award(b){
+  var p=(b.by||'').replace(' 🎲','');
+  if(!p||!(p in S.stars)){finishRound('That one came from the dice 🎲 No star.');return}
+  if(b.by.indexOf('🎲')>0){finishRound('That was a 🎲 random word. No star for '+p+'!');return}
+  S.stars[p]++;S.lastWinner=p;PP.sfx('star');PP.confetti(90);
+  if(S.stars[p]>=5){S.played[S.leak]=1;showWin(p);return}
+  finishRound('⭐ Star to '+p+' for “'+b.value+'”');
+}
+function finishRound(head){
+  S.played[S.leak]=1;$('#bHead').textContent=head;
+  var rows=S.players.slice().sort(function(a,b){return S.stars[b]-S.stars[a]});
+  var top=rows.length?S.stars[rows[0]]:0;
+  $('#sb').innerHTML=rows.map(function(p){return '<tr'+(S.stars[p]===top&&top>0?' class="lead"':'')+'><td>'+esc(p)+'</td><td>'+('★'.repeat(S.stars[p])||'—')+'</td></tr>'}).join('');
+  PP.show('board');
+}
+$('#bShot').onclick=shot;
+$('#bNext').onclick=function(){renderPick();PP.show('pick')};
+PP.back('board',function(){$('#bNext').click()});
+function showWin(p){
+  var rows=S.players.slice().sort(function(a,b){return S.stars[a]-S.stars[b]}),last=rows[0];
+  $('#wName').textContent=p.toUpperCase();
+  $('#wLast').textContent=(last&&last!==p)?'Last place: '+last+'. You have to read the next leak out loud as a voice memo and send it to the group. It never gets deleted.':'';
+  PP.show('win');PP.sfx('win');PP.confetti(220);setTimeout(function(){PP.confetti(160)},700);
+}
+$('#wAgain').onclick=function(){S.players.forEach(function(p){S.stars[p]=0});S.played={};renderPick();PP.show('pick')};
+$('#wTitle').onclick=function(){PP.show('title')};
+PP.back('win',function(){PP.show('title')});
+
+/* ---------- screenshot ---------- */
+function shot(){
+  var W=1080,P=48,c=document.createElement('canvas'),x=c.getContext('2d');
+  var F='Inter, system-ui, sans-serif',maxB=W*0.72;
+  function lay(tok,font,bold){ // returns lines of [{text,w,hi}]
+    x.font='500 34px '+F;var words=[];
+    tok.forEach(function(t){if(t.t!=null)t.t.split(/(\s+)/).forEach(function(s){if(s)words.push({s:s,hi:false})});else S.blanks[t.b].value.split(/(\s+)/).forEach(function(s){if(s)words.push({s:s,hi:true})})});
+    var lines=[[]],lw=0;
+    words.forEach(function(w){x.font=(w.hi?'800 ':'500 ')+'34px '+F;var ww=x.measureText(w.s).width+(w.hi?6:0);if(lw+ww>maxB-56&&lw>0&&w.s.trim()){lines.push([]);lw=0}if(!lines[lines.length-1].length&&!w.s.trim())return;lines[lines.length-1].push({s:w.s,w:ww,hi:w.hi});lw+=ww});
+    return lines;
+  }
+  var items=S.msgs.slice(0,Math.max(S.shown,1)).map(function(m){return{m:m,lines:m.who==='SYS'?null:lay(m.tok)}});
+  var H=200;items.forEach(function(it){H+=it.lines?(36+it.lines.length*48+30+14):60});H+=140;
+  c.width=W;c.height=H;
+  x.fillStyle='#fff';x.fillRect(0,0,W,H);
+  x.fillStyle='#f4f4f6';x.fillRect(0,0,W,150);x.fillStyle='#ddd';x.fillRect(0,150,W,2);
+  x.fillStyle='#111';x.font='800 42px '+F;x.textAlign='center';x.fillText(tokText(S.group),W/2,78);
+  x.fillStyle='#888';x.font='600 26px '+F;x.fillText(D.chats[S.leak].cast.length+' people · leaked',W/2,118);x.textAlign='left';
+  var y=190;
+  items.forEach(function(it){
+    var m=it.m;
+    if(!it.lines){x.fillStyle='#999';x.font='600 26px '+F;x.textAlign='center';x.fillText(tokText(m.tok),W/2,y+30);x.textAlign='left';y+=60;return}
+    var me=m.who==='ME',ro=roleOf(m.who);
+    var bw=Math.max.apply(null,it.lines.map(function(l){return l.reduce(function(a,b){return a+b.w},0)}))+56,bh=it.lines.length*48+30;
+    var bx=me?W-P-bw:P+76;
+    if(!me){x.fillStyle='#888';x.font='700 22px '+F;var lbl=m.who+(S.mode==='party'&&S.cast[m.who]?' · '+S.cast[m.who]:'');x.fillText(lbl.toUpperCase(),bx+14,y+24)}
+    var by=y+36;
+    if(!me){var im=IMG[ro.key];x.save();x.beginPath();x.arc(P+30,by+bh-30,30,0,7);x.closePath();x.clip();if(im&&im.complete&&im.naturalWidth)x.drawImage(im,P,by+bh-60,60,60);else{x.fillStyle=TINTS[ro.i%6];x.fill();x.fillStyle='#111';x.font='800 22px '+F;x.textAlign='center';x.fillText(initials(m.who),P+30,by+bh-22);x.textAlign='left'}x.restore()}
+    x.fillStyle=me?'#DFF7C8':'#ECECEF';rr(bx,by,bw,bh,28);x.fill();
+    var ly=by+15+36;
+    it.lines.forEach(function(l){var lx=bx+28;l.forEach(function(w){if(w.hi&&w.s.trim()){x.fillStyle='#E321C9';rr(lx-3,ly-32,w.w,44,8);x.fill();x.fillStyle='#fff';x.font='800 34px '+F;x.fillText(w.s,lx,ly)}else{x.fillStyle='#111';x.font='500 34px '+F;x.fillText(w.s,lx,ly)}lx+=w.w});ly+=48});
+    y=by+bh+14;
+  });
+  x.fillStyle='#111';x.fillRect(0,H-100,W,100);
+  x.fillStyle='#C6FF3D';x.font='400 40px "Archivo Black", '+F;x.fillText('LEAKED',P,H-38);
+  x.fillStyle='#fff';x.font='700 24px "Space Mono", monospace';x.textAlign='right';x.fillText('PREGAME PAPERS · ARCADE.CONTENTPAD.IO',W-P,H-44);x.textAlign='left';
+  function rr(a,b,w,h,r){x.beginPath();x.moveTo(a+r,b);x.arcTo(a+w,b,a+w,b+h,r);x.arcTo(a+w,b+h,a,b+h,r);x.arcTo(a,b+h,a,b,r);x.arcTo(a,b,a+w,b,r);x.closePath()}
+  try{PP.saveImage(c,'leaked-'+D.chats[S.leak].title.toLowerCase().replace(/[^a-z0-9]+/g,'-')+'.png')}catch(e){PP.toast('Couldn’t make the screenshot here')}
+}
+
+/* ---------- go ---------- */
+PP.ageGate(function(){PP.show('title')});
+window.__leaked={S:S,next:next,commit:commit,choose:choose,shot:shot};
+})();
+</script>
+</body>
+</html>

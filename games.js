@@ -1,10 +1,54 @@
-/* ContentPad Arcade — the game catalog (build 2026100804-ohf).
+/* ContentPad Arcade — the game catalog (build 2026100901-pp).
    House games live in this repo as <slug>.html at the top level and are listed here.
    Only status:'live' entries are shown. rating marks adult games (the game itself runs its own age gate).
    landing: the brand landing page that wraps the game, if it has one (listed under "Brand pages").
    2026-10-07: Arcade HQ → Games can switch any game to live / hidden / off without touching this
    file (gate.js asks the API). status here only says whether the game exists in the Arcade at all. */
 window.ARCADE_GAMES = [
+  {
+    slug: 'pregame-leaked',
+    file: 'pregame-leaked.html',
+    landing: { url: 'pregame-papers.html', title: 'Pregame Papers', brand: 'Pregame Papers' },
+    title: 'Pregame Papers: Leaked',
+    badge: 'New · The group chat game · party on the TV',
+    tagline: 'Somebody leaked the group chats. Fill the blanks blind, then perform them out loud.',
+    about: "The Arcade twin of the printable Leaked book from Pregame Papers. Sixteen fake group chats, from Mom learning emojis and the 2:14 AM ex to the HOA, the fantasy league punishment vote and the wedding speech draft. Put it on the TV and add your friends: the game casts real people in the room as each role, then asks everyone in turn for words (a body part, a celebrity, a player's name) without showing the chat. Then the chat plays out bubble by bubble with typing dots, and each cast member reads their own lines. Turn on read-aloud if nobody is brave. Vote the funniest word Screenshot of the Night; whoever gave it gets a star, and the first to five wins. Solo mode chaos-fills the blanks from an unhinged word bank or lets you fill them yourself. Every chat saves as a screenshot for the real group chat. Crude adult humor. 21+.",
+    genre: 'Party',
+    tags: ['21+', 'Party game', 'Pass and play', 'Group chat', 'Fill in the blanks', 'Pregame Papers', 'Printable', 'Controller'],
+    controls: [['Type / tap', 'Names and words'], ['Space / Enter / (A) / tap the phone', 'Next message'], ['🎲 / X / (X)', 'Random word'], ['← → ↑ ↓ / d-pad', 'Move between buttons'], ['Esc / (B)', 'Back'], ['M', 'Sound']],
+    by: 'ContentPad Studios · Pregame Papers',
+    made: 'The cover and the cast avatars made in ContentPad Studio · the chats are from the Pregame Papers printable · code by Claude',
+    scoreLabel: 'Leaks performed',
+    quietSync: true,
+    cover: 'https://arcade.contentpad.io/pp/cover-leaked.jpg',
+    accent: '#C6FF3D',
+    released: '2026-10-09',
+    rating: '21+',
+    controller: true, mobile: true,
+    status: 'live'
+  },
+  {
+    slug: 'pregame-yearbook',
+    file: 'pregame-yearbook.html',
+    landing: { url: 'pregame-papers.html', title: 'Pregame Papers', brand: 'Pregame Papers' },
+    title: 'Pregame Papers: The Unhinged Yearbook',
+    badge: 'New · Class of Bad Decisions · party on the TV',
+    tagline: 'Vote your friends into crude superlatives, draw their yearbook photo, crown the Valedictorian of Bad Decisions.',
+    about: "The Arcade twin of the printable Unhinged Yearbook from Pregame Papers. Put it on the big screen and add the class. A superlative comes up (Most Likely to Sext Their Boss by Accident, Best Situationship, Most Likely to Get Banned From a 24-Hour Diner), the countdown hits 3, 2, 1, VOTE, and everyone points. Tap the winner; a tie means fifteen seconds each to argue why you don't deserve it. The player on the winner's left gets sixty seconds to draw their yearbook photo on screen with a finger, a mouse or a controller, and the winner gives a quote for the page. 44 superlatives plus write your own. Graduation crowns the Valedictorian of Bad Decisions, and the whole yearbook saves as one picture. Crude adult humor. 21+.",
+    genre: 'Party',
+    tags: ['21+', 'Party game', 'Pass and play', 'Drawing', 'Superlatives', 'Pregame Papers', 'Printable', 'Controller'],
+    controls: [['Type / tap', 'Names, write-ins and quotes'], ['Tap / mouse / left stick + (A)', 'Draw'], ['X / (X)', 'Next color'], ['Y / (Y)', 'Undo'], ['← → ↑ ↓ / d-pad', 'Move between buttons'], ['Esc / (B)', 'Back'], ['M', 'Sound']],
+    by: 'ContentPad Studios · Pregame Papers',
+    made: 'The class mascot and cover made in ContentPad Studio · superlatives from the Pregame Papers printable · code by Claude',
+    scoreLabel: 'Yearbooks made',
+    quietSync: true,
+    cover: 'https://arcade.contentpad.io/pp/cover-yearbook.jpg',
+    accent: '#E8C463',
+    released: '2026-10-09',
+    rating: '21+',
+    controller: true, mobile: true,
+    status: 'live'
+  },
   {
     slug: 'oak-hill-farm',
     file: 'oak-hill-farm.html',
