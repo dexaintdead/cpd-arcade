@@ -128,7 +128,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 .gc small{display:block;font:600 10px var(--ui);color:#ffd8b0;margin-top:3px}
 .gname{font:400 17px var(--wide);letter-spacing:.06em;margin:2px 0 4px}
 .gkind{font:600 13px var(--ui);color:#ffd8b0;margin-bottom:10px}
-.stat{display:grid;grid-template-columns:86px 1fr;gap:8px;align-items:center;font:700 11px var(--hud);letter-spacing:.12em;color:var(--ice);margin:5px 0}
+.stat{display:grid;grid-template-columns:132px 1fr;gap:8px;align-items:center;font:700 11px var(--hud);letter-spacing:.12em;color:var(--ice);margin:5px 0}
 .bar{height:8px;border-radius:5px;background:rgba(255,255,255,.1);overflow:hidden;position:relative}
 .bar u{position:absolute;inset:0 auto 0 0;background:rgba(255,210,154,.5);border-radius:5px}
 .bar i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#7fb2ff,#ffc98c);border-radius:5px}
@@ -182,6 +182,29 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 .hud .hpb .bl{font:900 10px var(--hud);letter-spacing:.4em;color:rgba(255,255,255,.4);margin-top:4px}
 .hud .hpb.hot .bm{border-color:#ff6b6b;box-shadow:0 0 14px rgba(255,58,74,.6)}.hud .hpb.hot .bl{color:#ff6b6b;animation:blink .4s steps(2) infinite}
 .hud.split .hpb{display:none}
+/* race mode: just the bust meter, and only while a cruiser is on you */
+.hud .hpb.race .heat{display:none}.hud .hpb.race{opacity:0;transition:opacity .3s}.hud .hpb.race.show{opacity:1}
+/* police radar: units on you, or a patrol coming up */
+.hud .pol{position:absolute;left:50%;top:calc(max(12px,env(safe-area-inset-top)) + 46px);transform:translateX(-50%);display:none;align-items:center;gap:9px;padding:7px 14px;border-radius:999px;background:rgba(6,8,16,.62);border:1.5px solid rgba(255,255,255,.25);font:800 clamp(10px,1.2vw,13px)/1 var(--hud);letter-spacing:.18em;color:#fff;white-space:nowrap;max-width:calc(100% - 24px)}
+.hud .pol span{overflow:hidden;text-overflow:ellipsis}
+.hud .pol i{width:9px;height:9px;border-radius:50%;flex:none;background:#ff3a4a;box-shadow:0 0 10px #ff3a4a;animation:copdot .5s steps(2) infinite}
+.hud .pol.on,.hud .pol.ahead{display:inline-flex}
+.hud .pol.ahead{border-color:rgba(160,180,255,.45);color:#cfd9ff}.hud .pol.ahead i{animation-duration:1s}
+.hud .pol.close{border-color:#ff3a4a;box-shadow:0 0 18px rgba(255,58,74,.55)}
+@keyframes copdot{0%{background:#ff3a4a;box-shadow:0 0 10px #ff3a4a}50%{background:#4a7aff;box-shadow:0 0 10px #4a7aff}}
+.hud.split .pol{top:8px;font-size:10px;padding:5px 10px}
+.hud.hpm .pol{top:calc(max(12px,env(safe-area-inset-top)) + 62px)}
+@media (pointer:coarse){ .hud .pol{top:calc(max(8px,env(safe-area-inset-top)) + 92px)} .hud.hpm .pol{top:calc(max(8px,env(safe-area-inset-top)) + 106px)} }
+/* the edge of the screen pulses red and blue with a cruiser right on you */
+.hud.copsclose::after{content:"";position:absolute;inset:0;pointer-events:none;animation:copedge .5s steps(2) infinite}
+@keyframes copedge{0%{box-shadow:inset 0 0 90px rgba(255,40,60,.45)}50%{box-shadow:inset 0 0 90px rgba(60,100,255,.45)}}
+/* small pop-ups: near misses, combos */
+.hud .pop{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);text-align:center;opacity:0;white-space:nowrap}
+.hud .pop b{display:block;font:900 clamp(16px,2.6vw,28px)/1 var(--hud);letter-spacing:.08em;color:#9ff0ff;text-shadow:0 0 16px rgba(94,224,255,.7),0 2px 0 rgba(0,0,0,.6)}
+.hud .pop small{display:block;margin-top:5px;font:800 clamp(12px,1.6vw,17px) var(--hud);letter-spacing:.2em;color:#ffd27a}
+.hud .pop.on{animation:popin 1.4s ease-out forwards}
+@keyframes popin{0%{opacity:0;transform:translate(-50%,-30%) scale(.8)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}22%{transform:translate(-50%,-50%) scale(1)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-80%)}}
+.hud .streak{position:absolute;inset:0;width:100%;height:100%}
 .hud .msg.bust{font-size:clamp(40px,9vw,96px);color:#ff3a4a;text-shadow:0 0 30px rgba(255,40,60,.8),0 0 60px rgba(60,100,255,.6)}
 @media (pointer:coarse){ .hud .hpb{top:calc(max(8px,env(safe-area-inset-top)) + 44px)} }
 /* intro film */
@@ -269,7 +292,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       <p class="p" id="p2Sub"></p>
       <div class="carpick"><button class="mi" type="button" data-p2="car0:-1">◀</button><b id="p2c0"></b><button class="mi" type="button" data-p2="car0:1">▶</button></div>
       <div class="carpick"><button class="mi" type="button" data-p2="car1:-1">◀</button><b id="p2c1"></b><button class="mi" type="button" data-p2="car1:1">▶</button></div>
-      <div class="carpick"><button class="mi" type="button" data-p2="ai">Rivals: <span id="p2ai"></span></button><button class="mi" type="button" data-p2="laps">Laps: <span id="p2laps"></span></button><button class="mi" type="button" data-p2="traffic">Traffic: <span id="p2tr"></span></button></div>
+      <div class="carpick"><button class="mi" type="button" data-p2="ai">Rivals: <span id="p2ai"></span></button><button class="mi" type="button" data-p2="laps">Laps: <span id="p2laps"></span></button><button class="mi" type="button" data-p2="traffic">Traffic: <span id="p2tr"></span></button><button class="mi" type="button" data-p2="police">Police: <span id="p2pol"></span></button></div>
       <div class="row"><button class="mi" type="button" data-p2="go">Race ▶</button><button class="mi ghost" type="button" data-go="back">◀ Back</button></div>
       <div class="hint">Player 1: WASD + Space (nitro) + Left Shift (drift), or controller 1.<br>Player 2: arrow keys + / (nitro) + Right Shift (drift), or controller 2.</div>
     </div>
@@ -284,6 +307,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       <div class="carpick"><button class="mi" type="button" data-fr="rivals:-1" aria-label="Fewer rivals">◀</button><b>Rivals: <span id="frRivals"></span></b><button class="mi" type="button" data-fr="rivals:1" aria-label="More rivals">▶</button></div>
       <div class="carpick" id="frDiffRow"><button class="mi" type="button" data-fr="diff:-1" aria-label="Easier">◀</button><b>Difficulty: <span id="frDiff"></span></b><button class="mi" type="button" data-fr="diff:1" aria-label="Harder">▶</button></div>
       <div class="carpick"><button class="mi" type="button" data-fr="traffic:-1" aria-label="Less traffic">◀</button><b>Traffic: <span id="frTraffic"></span></b><button class="mi" type="button" data-fr="traffic:1" aria-label="More traffic">▶</button></div>
+      <div class="carpick" id="frPolRow"><button class="mi" type="button" data-fr="police:-1" aria-label="Fewer police">◀</button><b>Police: <span id="frPolice"></span></b><button class="mi" type="button" data-fr="police:1" aria-label="More police">▶</button></div>
       <div class="row"><button class="mi" type="button" data-fr="go" id="frGo">Race ▶</button><button class="mi ghost" type="button" data-go="back">◀ Back</button></div>
       <div class="hint" id="frHint"></div>
     </div>
@@ -372,7 +396,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 <script>
 (function () {
   'use strict';
-  var GAME_ID = 'night-drive', BUILD = '2026100803-nd';
+  var GAME_ID = 'night-drive', BUILD = '2026100804-nd';
   var $ = function (id) { return document.getElementById(id); };
   var EMBED = false; try { EMBED = window.top !== window; } catch (e) { EMBED = true; }
   function post(type, extra) { try { if (EMBED) window.parent.postMessage(Object.assign({ arcade: type, game: GAME_ID }, extra || {}), '*'); } catch (e) {} }
@@ -391,15 +415,15 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   /* ════════════════ DATA ════════════════ */
   // Five original cars. Profiles are side silhouettes (x along the car, front +x; y up), extruded across the width.
   var CARS = [
-    { id: 'hatch', name: 'Pocket Rocket 1.6', kind: 'Hot hatch · 1984', price: 0, top: 60, acc: 13, grip: 1.0, nitro: 3.0, paint: 6, L: 3.9, Wd: 1.74,
+    { id: 'hatch', name: 'Pocket Rocket 1.6', kind: 'Hot hatch · 1984', price: 0, top: 47, acc: 11.5, grip: 1.0, nitro: 3.0, paint: 6, L: 3.9, Wd: 1.74,
       body: [[-1.95, .3], [1.95, .3], [2.0, .6], [1.92, .78], [.9, .9], [-1.9, .94], [-1.98, .68]], cab: [[.86, .88], [.2, 1.36], [-1.55, 1.38], [-1.93, .94], [-1.9, .88]], wing: 0, wheelX: 1.3 },
-    { id: 'muscle', name: 'Blackjack 5.0', kind: 'T-top muscle · 1982', price: 9000, top: 66, acc: 14.5, grip: .97, nitro: 3.4, paint: 3, L: 4.7, Wd: 1.86,
+    { id: 'muscle', name: 'Blackjack 5.0', kind: 'T-top muscle · 1982', price: 9000, top: 54, acc: 13.5, grip: .97, nitro: 3.4, paint: 3, L: 4.7, Wd: 1.86,
       body: [[-2.35, .3], [2.35, .3], [2.42, .55], [2.3, .8], [.5, .88], [-1.7, .9], [-2.35, .96], [-2.42, .6]], cab: [[.45, .86], [-.25, 1.24], [-1.0, 1.26], [-2.05, .94], [-1.6, .88]], wing: 1, wheelX: 1.55 },
-    { id: 'gull', name: 'Chronos SS', kind: 'Stainless gull-wing · 1981', price: 16000, top: 69, acc: 14, grip: 1.06, nitro: 3.6, paint: 8, L: 4.25, Wd: 1.82,
+    { id: 'gull', name: 'Chronos SS', kind: 'Stainless gull-wing · 1981', price: 16000, top: 59, acc: 14, grip: 1.06, nitro: 3.6, paint: 8, L: 4.25, Wd: 1.82,
       body: [[-2.12, .32], [2.12, .32], [2.17, .55], [2.06, .72], [.6, .9], [-2.06, .98], [-2.14, .62]], cab: [[.6, .88], [-.05, 1.22], [-1.05, 1.24], [-1.96, .97]], wing: 0, wheelX: 1.42 },
-    { id: 'wedge', name: 'Razor 88', kind: 'Wedge coupe · 1985', price: 26000, top: 73, acc: 16, grip: 1.1, nitro: 3.8, paint: 10, L: 4.15, Wd: 1.95,
+    { id: 'wedge', name: 'Razor 88', kind: 'Wedge coupe · 1985', price: 26000, top: 66, acc: 15.5, grip: 1.1, nitro: 3.8, paint: 10, L: 4.15, Wd: 1.95,
       body: [[-2.07, .3], [2.07, .3], [2.12, .45], [.4, .84], [-1.92, .9], [-2.1, .7]], cab: [[.5, .82], [-.2, 1.12], [-1.1, 1.12], [-1.9, .88]], wing: 2, wheelX: 1.38 },
-    { id: 'exotic', name: 'Rosso Veloce 12', kind: 'Flat-12 exotic · 1986', price: 40000, top: 77, acc: 17, grip: 1.14, nitro: 4.2, paint: 4, L: 4.5, Wd: 2.0,
+    { id: 'exotic', name: 'Rosso Veloce 12', kind: 'Flat-12 exotic · 1986', price: 40000, top: 74, acc: 17.5, grip: 1.14, nitro: 4.2, paint: 4, L: 4.5, Wd: 2.0,
       body: [[-2.25, .3], [2.25, .3], [2.3, .5], [2.2, .64], [.7, .82], [-2.2, .92], [-2.28, .62]], cab: [[.6, .8], [-.1, 1.13], [-1.2, 1.14], [-2.1, .9]], wing: 0, wheelX: 1.5 }
   ];
   var CAR = {}; CARS.forEach(function (c, i) { c.tier = i; CAR[c.id] = c; });
@@ -418,7 +442,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   function stats(car, u) {
     u = u || {};
     return {
-      top: car.top * (1 + 0.035 * (u.eng || 0)), acc: car.acc * (1 + 0.08 * (u.eng || 0)),
+      top: car.top * (1 + 0.05 * (u.eng || 0)), acc: car.acc * (1 + 0.08 * (u.eng || 0)),
       grip: car.grip * (1 + 0.06 * (u.tire || 0)), cap: car.nitro * (1 + 0.2 * (u.nitro || 0)), regen: 0.035 * (1 + 0.25 * (u.nitro || 0))
     };
   }
@@ -430,27 +454,27 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     { id: 't1', ep: '01', name: 'Sunset Boulevard', place: 'Los Angeles · 1985', theme: 'strip', laps: 3, pay: 1,
       still: ART + '67b55da3-1645-4ba4-a3f9-db88aa38f32e.png', hz: ART + '40e80e09-fb37-4583-bbf4-ace63f724f55.png',
       pts: [[0, 0, 0], [260, 0, 0], [480, 0, -25], [620, 2, -90], [680, 4, -200], [630, 4, -300], [500, 2, -330], [380, 0, -290], [260, 0, -310], [130, 2, -370], [-50, 4, -385], [-210, 2, -335], [-290, 0, -225], [-270, 0, -110], [-170, 0, -25]],
-      rivals: ['hatch', 'hatch', 'muscle', 'gull', 'muscle'], skill: .84, rupg: 0 },
+      rivals: ['hatch', 'muscle', 'hatch', 'hatch', 'muscle'], skill: .84, rupg: 0 },
     { id: 't2', ep: '02', name: 'Midnight Freeway', place: 'Southern California · 1984', theme: 'freeway', laps: 3, pay: 1.35,
       still: ART + '186a117a-2c72-48f9-aa50-3b7b9485a039.png', hz: ART + '40e80e09-fb37-4583-bbf4-ace63f724f55.png',
       pts: [[0, 0, 0], [420, 6, -40], [800, 18, -10], [1060, 10, 140], [1080, 4, 380], [880, -2, 520], [560, 10, 540], [260, 22, 480], [-40, 14, 520], [-300, 4, 400], [-380, 8, 180], [-260, 10, 40]],
-      rivals: ['muscle', 'gull', 'muscle', 'wedge', 'gull'], skill: .89, rupg: 1 },
+      rivals: ['muscle', 'gull', 'muscle', 'hatch', 'gull'], skill: .88, rupg: 1 },
     { id: 't3', ep: '03', name: 'Desert Run', place: 'The Southwest · 1985', theme: 'desert', laps: 3, pay: 1.75,
       still: ART + '7c3b81fa-bd0f-4b98-a1a6-1d0b0d323179.png', hz: ART + 'ed464890-e724-44d6-9494-3786b12c2f6e.png',
       pts: [[0, 0, 0], [330, 8, -50], [640, 24, -20], [880, 12, 130], [950, 2, 380], [820, -4, 590], [560, 8, 650], [330, 26, 540], [140, 18, 580], [-130, 6, 640], [-370, 0, 500], [-430, 10, 270], [-310, 14, 90]],
-      rivals: ['gull', 'wedge', 'wedge', 'exotic', 'gull'], skill: .92, rupg: 2 },
+      rivals: ['gull', 'wedge', 'gull', 'muscle', 'wedge'], skill: .91, rupg: 1 },
     { id: 't4', ep: '04', name: 'Rainy Manhattan', place: 'New York · 1984', theme: 'nyc', laps: 3, pay: 2.2,
       still: ART + '6c0e3e01-234b-42f1-942c-f41f45d654da.png', hz: ART + 'd9f04052-a286-4ce3-b71a-231b1065408a.png',
       pts: [[0, 0, 0], [235, 0, 0], [465, 0, 0], [500, 0, 35], [500, 0, 150], [500, 0, 265], [465, 0, 300], [285, 0, 300], [250, 0, 265], [250, 0, 215], [215, 0, 180], [60, 0, 180], [-65, 0, 180], [-100, 0, 145], [-100, 0, 35], [-65, 0, 0]],
-      rivals: ['wedge', 'exotic', 'wedge', 'exotic', 'gull'], skill: .93, rupg: 3 },
+      rivals: ['wedge', 'gull', 'wedge', 'exotic', 'gull'], skill: .92, rupg: 2 },
     { id: 't5', ep: '05', name: 'Midnight in Miami', place: 'Ocean Drive · 1986', theme: 'miami', laps: 3, pay: 2.8,
       still: ART + '6744575c-3fca-4897-bf2c-efa98431b203.png', hz: ART + 'c4981db3-ae49-435f-a9bd-b1a51e72a79c.png',
       pts: [[0, 0, 0], [300, 0, 0], [560, 0, 8], [720, 0, 50], [770, 0, 130], [710, 0, 195], [580, 0, 185], [470, 0, 215], [360, 0, 290], [200, 0, 310], [30, 0, 270], [-110, 0, 205], [-190, 0, 120], [-160, 0, 35]],
-      rivals: ['exotic', 'wedge', 'exotic', 'exotic', 'wedge'], skill: .95, rupg: 3 },
+      rivals: ['exotic', 'wedge', 'wedge', 'exotic', 'wedge'], skill: .94, rupg: 2 },
     { id: 't6', ep: '06', name: 'Las Vegas Strip', place: 'Las Vegas · 1986', theme: 'vegas', laps: 3, pay: 3.4,
       still: ART + '1e97b00b-26fb-49db-8924-da5c9508c8e3.png', hz: ART + '9d7ba0f9-6d12-42f8-8cf4-95673ead5b97.png',
       pts: [[0, 0, 0], [300, 0, 0], [600, 0, 0], [860, 0, 0], [930, 0, 40], [950, 0, 120], [950, 0, 240], [910, 0, 300], [820, 0, 320], [640, 0, 320], [560, 0, 345], [515, 0, 405], [460, 0, 445], [330, 0, 455], [150, 0, 455], [-30, 0, 445], [-110, 0, 385], [-130, 0, 260], [-130, 0, 120], [-90, 0, 30]],
-      rivals: ['exotic', 'exotic', 'wedge', 'exotic', 'exotic'], skill: .96, rupg: 3 }
+      rivals: ['exotic', 'exotic', 'wedge', 'exotic', 'exotic'], skill: .95, rupg: 3 }
   ];
   // Traffic lanes per look (d across the road, + is the right side; dir +1 drives with the race, -1 comes at you).
   // A double yellow line means two-way traffic; the freeway is one carriageway, all four lanes with the race.
@@ -462,13 +486,18 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     freeway: { lanes: [[-6.75, 1], [-2.25, 1], [2.25, 1], [6.75, 1]], v: [21, 29] },
     desert: { lanes: [[4.5, 1], [-4.5, -1]], v: [19, 25] }
   };
-  var TRAFFIC_GAP = [0, 170, 95];   // metres of road per car: off / light / heavy
+  var TRAFFIC_GAP = [0, 150, 85, 52];   // metres of road per car: off / light / heavy / rush hour
   var TRAFFIC_COLS = [0x6e1424, 0x24407a, 0xcdb48a, 0x2f4a3a, 0x8a8a90, 0xe9e4d8, 0x3a2a24, 0x7a5a2a, 0x1c1c22, 0x9a3a2a, 0x5a6a7a];
   // The police cruiser: a black-and-white on the muscle car's body (white doors and roof), with a light bar.
   var COP = { id: 'cruiser', name: 'Police cruiser', kind: 'Cruiser', price: 0, top: 70, acc: 15.5, grip: 1.12, nitro: 4.5, paint: 3, L: 5.2, Wd: 1.95, tier: 2,
     body: [[-2.6, .3], [2.6, .3], [2.65, .62], [2.55, .8], [1.1, .84], [-1.8, .86], [-2.6, .84], [-2.65, .55]], cab: [[1.0, .82], [.4, 1.38], [-1.2, 1.4], [-1.75, .86]], wing: 0, wheelX: 1.6, cop: true };
+  // Heat 3 and up: an unmarked black interceptor coupe with a push bar. Faster than anything in the showroom stock.
+  var INTERCEPTOR = { id: 'interceptor', name: 'Interceptor', kind: 'Unmarked', price: 0, top: 76, acc: 18.5, grip: 1.16, nitro: 5, paint: 3, L: 5.0, Wd: 1.9, tier: 3,
+    body: [[-2.5, .3], [2.5, .3], [2.56, .55], [2.45, .78], [.8, .84], [-1.9, .86], [-2.5, .9], [-2.56, .58]], cab: [[.7, .82], [.1, 1.26], [-1.15, 1.28], [-1.95, .88]], wing: 0, wheelX: 1.5, cop: true, fast: true };
   // everyday period cars (traffic and parked): photo-skinned like the rest, a simple shape until the photos arrive
-  CAR.cruiser = COP;
+  CAR.cruiser = COP; CAR.interceptor = INTERCEPTOR;
+  CAR.truck = { id: 'truck', name: 'Box truck', L: 6.8, Wd: 2.4, paint: 4, tier: 0, top: 36, acc: 6, grip: 1, nitro: 2, wing: 0, wheelX: 2.3, heavy: true,
+    body: [[-3.4, .35], [3.4, .35], [3.42, 1.0], [3.3, 1.9], [2.2, 2.05], [-3.4, 3.2], [-3.42, .6]], cab: [[3.3, 1.9], [2.6, 2.4], [2.2, 2.4]] };
   CAR.sedan = { id: 'sedan', name: 'Sedan', L: 4.8, Wd: 1.8, paint: 8, tier: 0, top: 50, acc: 10, grip: 1, nitro: 2, wing: 0, wheelX: 1.55,
     body: [[-2.45, .3], [2.45, .3], [2.5, .62], [2.4, .78], [.9, .82], [-1.6, .84], [-2.45, .82], [-2.5, .55]], cab: [[.85, .8], [.3, 1.34], [-1.2, 1.36], [-1.65, .84]] };
   CAR.wagon = { id: 'wagon', name: 'Station wagon', L: 5.0, Wd: 1.95, paint: 4, tier: 0, top: 48, acc: 9, grip: 1, nitro: 2, wing: 0, wheelX: 1.75,
@@ -508,7 +537,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   window.addEventListener('storage', function (e) { if (e.key === 'nd_save') { loadSave(); if (UI.cur) UI.refresh(); } });
   window.addEventListener('arcade:sync', function () { loadSave(); if (UI.cur) UI.refresh(); });
   var SET = Object.assign({ sound: true, music: true, units: 'mph', cam: 0 }, lsj('nd_settings') || {});
-  var FREE = Object.assign({ laps: 3, rivals: 5, diff: 1, traffic: 1 }, lsj('nd_free') || {});
+  var FREE = Object.assign({ laps: 3, rivals: 5, diff: 1, traffic: 2, police: 1 }, lsj('nd_free') || {});
   function saveFree() { ls('nd_free', JSON.stringify(FREE)); }
   function saveSet() { ls('nd_settings', JSON.stringify(SET)); }
 
@@ -562,6 +591,10 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     else if (n === 'crash') { noise(0.6, 0.7 * v, 'lowpass', 700); noise(0.35, 0.4 * v, 'bandpass', 2400, null, null, 1.2); tone('sine', 90, 30, 0.45, 0.5 * v); tone('square', 220, 60, 0.2, 0.12 * v); }
     else if (n === 'busted') { [0, 0.18, 0.36].forEach(function (d, i) { var f = [392, 311, 233][i]; tone('sawtooth', f, f * 0.98, 0.5, 0.12, null, AC.currentTime + d); }); noise(0.5, 0.3, 'lowpass', 500, null, AC.currentTime + 0.36); }
     else if (n === 'takedown') { noise(0.5, 0.5, 'lowpass', 900); [0, 0.08, 0.16, 0.3].forEach(function (d, i) { var f = [659, 784, 988, 1319][i]; tone('square', f, f, 0.16, 0.1, null, AC.currentTime + 0.1 + d); }); }
+    else if (n === 'nearmiss') { noise(0.25, 0.3 * v, 'bandpass', 1800, null, null, 1.5); tone('triangle', 1175, 1568, 0.12, 0.08); }
+    else if (n === 'scrape') noise(0.12, 0.22 * v, 'highpass', 2600);
+    else if (n === 'wreck') { noise(1.1, 0.8, 'lowpass', 500); noise(0.6, 0.45, 'bandpass', 2000, null, null, 1); tone('sine', 70, 25, 0.9, 0.6); [0.15, 0.32, 0.5].forEach(function (d) { noise(0.18, 0.3, 'highpass', 3500, null, AC.currentTime + d); }); }
+    else if (n === 'lights') { tone('square', 988, 740, 0.12, 0.08); tone('square', 988, 740, 0.12, 0.08, null, AC.currentTime + 0.16); }
     else if (n === 'move') tone('square', 660, 660, 0.05, 0.06);
     else if (n === 'ok') { tone('square', 880, 1320, 0.1, 0.08); }
     else if (n === 'no') tone('square', 200, 140, 0.18, 0.1);
@@ -1595,8 +1628,9 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       var gm = new THREE.SpriteMaterial({ map: GLOW, color: 0xff3040, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending });
       [-1, 1].forEach(function (s) { var sp = new THREE.Sprite(gm); sp.position.set(-half - 0.12, 0.66, s * (Wd / 2 - 0.3)); sp.scale.set(1.0, 1.0, 1); g.add(sp); });
       var hm = new THREE.SpriteMaterial({ map: GLOW, color: 0xfff0d0, transparent: true, opacity: 0.8, depthWrite: false, blending: THREE.AdditiveBlending });
-      [-1, 1].forEach(function (s) { var sp = new THREE.Sprite(hm); sp.position.set(half + 0.15, Math.max(0.5, hy), s * (Wd / 2 - 0.35)); sp.scale.set(1.3, 1.3, 1); g.add(sp); });
-      fx.glow = gm;
+      var heads = [];
+      [-1, 1].forEach(function (s) { var sp = new THREE.Sprite(s < 0 || !def.cop ? hm : hm.clone()); sp.position.set(half + 0.15, Math.max(0.5, hy), s * (Wd / 2 - 0.35)); sp.scale.set(1.3, 1.3, 1); g.add(sp); heads.push(sp); });
+      fx.glow = gm; fx.heads = heads;
       var flames = [], fm = new THREE.MeshBasicMaterial({ color: 0x8ab8ff, transparent: true, opacity: 0.85, depthWrite: false, blending: THREE.AdditiveBlending });
       [-1, 1].forEach(function (s) { var cone = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.9, 8), fm); cone.rotation.z = Math.PI / 2; cone.position.set(-half - 0.5, 0.36, s * 0.45); cone.visible = false; g.add(cone); flames.push(cone); });
       fx.flames = flames;
@@ -1608,19 +1642,26 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var base = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.08, 1.3), new THREE.MeshBasicMaterial({ color: 0x18181c })); base.position.set(x, y + 0.04, 0); g.add(base);
     var r = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.13, 0.6), red); r.position.set(x, y + 0.13, -0.32); g.add(r);
     var b = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.13, 0.6), blue); b.position.set(x, y + 0.13, 0.32); g.add(b);
-    var rs = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW, color: 0xff2030, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); rs.position.set(x, y + 0.2, -0.4); rs.scale.set(2.6, 2.6, 1); g.add(rs);
-    var bs = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW, color: 0x2a5aff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); bs.position.set(x, y + 0.2, 0.4); bs.scale.set(2.6, 2.6, 1); g.add(bs);
+    var rs = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW, color: 0xff2030, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); rs.position.set(x, y + 0.25, -0.45); rs.scale.set(4.4, 4.4, 1); g.add(rs);
+    var bs = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW, color: 0x2a5aff, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); bs.position.set(x, y + 0.25, 0.45); bs.scale.set(4.4, 4.4, 1); g.add(bs);
+    var halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW, color: 0xff2030, transparent: true, opacity: 0.4, depthWrite: false, blending: THREE.AdditiveBlending })); halo.position.set(x, y + 0.4, 0); halo.scale.set(15, 9, 1); g.add(halo);
     var pool = null;
-    if (!opt.bare) { pool = new THREE.Mesh(new THREE.PlaneGeometry(11, 11), new THREE.MeshBasicMaterial({ map: SOFTBOX, color: 0xff2030, transparent: true, opacity: 0.3, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -6 })); pool.rotation.x = -Math.PI / 2; pool.position.set(x, 0.07, 0); g.add(pool); }
-    fx.bar = { red: red, blue: blue, rs: rs, bs: bs, pool: pool, on: true };
+    if (!opt.bare) { pool = new THREE.Mesh(new THREE.PlaneGeometry(19, 15), new THREE.MeshBasicMaterial({ map: SOFTBOX, color: 0xff2030, transparent: true, opacity: 0.55, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -6 })); pool.rotation.x = -Math.PI / 2; pool.position.set(x, 0.07, 0); g.add(pool); }
+    fx.bar = { red: red, blue: blue, rs: rs, bs: bs, halo: halo, pool: pool, on: true };
   }
   function flashBar(fx, t) {
     var B = fx.bar; if (!B) return;
-    if (!B.on) { B.red.color.setHex(0x3a0a10); B.blue.color.setHex(0x0a1236); B.rs.visible = B.bs.visible = false; if (B.pool) B.pool.visible = false; return; }
-    var ph = Math.floor(t * 9) % 6, redOn = ph === 0 || ph === 2, blueOn = ph === 3 || ph === 5;
+    if (!B.on) {
+      B.red.color.setHex(0x3a0a10); B.blue.color.setHex(0x0a1236); B.rs.visible = B.bs.visible = B.halo.visible = false; if (B.pool) B.pool.visible = false;
+      if (fx.heads) fx.heads.forEach(function (sp) { sp.material.opacity = 0.8; });
+      return;
+    }
+    var ph = Math.floor(t * 10) % 8, redOn = ph === 0 || ph === 2, blueOn = ph === 4 || ph === 6;
     B.red.color.setHex(redOn ? 0xff3040 : 0x4a0a10); B.blue.color.setHex(blueOn ? 0x4a7aff : 0x0a1650);
-    B.rs.visible = redOn; B.bs.visible = blueOn;
+    B.rs.visible = redOn; B.bs.visible = blueOn; B.halo.visible = redOn || blueOn; B.halo.material.color.setHex(redOn ? 0xff2030 : 0x2a5aff);
     if (B.pool) { B.pool.visible = redOn || blueOn; B.pool.material.color.setHex(redOn ? 0xff2030 : 0x2a5aff); }
+    // wig-wag headlights
+    if (fx.heads && fx.heads.length === 2) { var wig = Math.floor(t * 6) % 2; fx.heads[0].material.opacity = wig ? 1 : 0.15; fx.heads[1].material.opacity = wig ? 0.15 : 1; }
   }
   function setLights(car, braking) {
     var fx = car.mesh.userData.fx;
@@ -1634,9 +1675,12 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var st = stats(def, upg);
     return { def: def, st: st, upg: upg || {}, paint: paint, name: name, human: human, s: 0, d: 0, yaw: 0, v: 0, total: 0, laps: 0, lapStart: 0, lapTimes: [], best: 0,
       finished: false, finishT: 0, place: 0, tank: st.cap * 0.5, boost: false, turbo: 0, drift: 0, driftT: 0, steerSm: 0, vis: 0, rub: 1, wallCd: 0, spin: 0,
+      kd: 0, spinT: 0, spinDir: 0, hold: 0, inv: 0, wreck: null,
       inp: { thr: 0, brk: 0, steer: 0, nitro: false, drift: false }, ai: null, mesh: null };
   }
   function stepCar(c, h, TR, ev) {
+    if (c.hold > 0) { c.hold -= h; c.inp = { thr: 0, brk: 1, steer: 0, nitro: false, drift: false }; }
+    if (c.inv > 0) c.inv -= h;
     var st = c.st, inp = c.inp, v = c.v, av = Math.abs(v);
     var boosting = inp.nitro && c.tank > 0.03 && v > 5;
     if (boosting) c.tank = Math.max(0, c.tank - h); else c.tank = Math.min(st.cap, c.tank + st.cap * st.regen * h);
@@ -1661,21 +1705,33 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       c.drift = 0;
     }
     var yawRate = c.steerSm * yawMax * (v < -0.5 ? -1 : 1);
-    if (c.drift) { c.driftT += h; yawRate = (c.drift * 0.5 + c.steerSm * 0.75) * yawMax * 1.35; v -= v * 0.09 * h; }
+    if (c.spinT > 0) {   // spun out (a PIT, a hard side hit): the car rotates on its own and scrubs speed
+      // physically it ends up about 70° off the road; on screen it does a full 360 on the way there
+      c.spinT -= h; yawRate = c.spinDir * 1.45; v -= v * 1.0 * h; c.drift = 0;
+      c.visSpin = c.spinDir * (1 - Math.max(0, c.spinT) / 0.85) * Math.PI * 2; if (c.spinT <= 0) c.visSpin = 0;
+    } else if (c.drift) { c.driftT += h; yawRate = (c.drift * 0.5 + c.steerSm * 0.75) * yawMax * 1.35; v -= v * 0.09 * h; }
     else if (Math.abs(c.steerSm) < 0.08 && Math.abs(c.yaw) < 0.6 && av > 3) c.yaw -= c.yaw * 0.7 * h;   // a little help to straighten up
     var fi = c.s / TR.step, i0 = Math.floor(fi) % TR.n, k = lerp(TR.K[i0], TR.K[(i0 + 1) % TR.n], fi - Math.floor(fi));
     var cy = Math.cos(c.yaw), sy = Math.sin(c.yaw);
     var ds = v * cy * h / Math.max(0.5, 1 - k * c.d);
     c.yaw += yawRate * h - k * ds;
     if (c.yaw > Math.PI) c.yaw -= 2 * Math.PI; if (c.yaw < -Math.PI) c.yaw += 2 * Math.PI;
-    c.d += v * sy * h;
+    c.d += v * sy * h + c.kd * h;
+    if (c.kd) { c.kd *= Math.max(0, 1 - 2.6 * h); if (Math.abs(c.kd) < 0.05) c.kd = 0; }
     // walls (parked cars move them in)
     var wr = lerp(TR.wr[i0], TR.wr[(i0 + 1) % TR.n], fi - Math.floor(fi)) - CAR_HALF, wl = -(lerp(TR.wl[i0], TR.wl[(i0 + 1) % TR.n], fi - Math.floor(fi)) - CAR_HALF);
     c.touch = 0;
     if (c.d > wr || c.d < wl) {
       var sd = c.d > wr ? 1 : -1; c.d = sd > 0 ? wr : wl;
-      var vlat = v * Math.sin(c.yaw) * sd;
-      if (vlat > 0) { var loss = Math.min(0.5, Math.abs(Math.sin(c.yaw)) * 1.1); if (vlat > 2.5 && c.wallCd <= 0 && ev) { ev.push(['hit', c, vlat]); c.wallCd = 0.35; } v *= 1 - loss; c.yaw *= 0.25; }
+      var vlat = v * Math.sin(c.yaw) * sd + c.kd * sd; c.kd = 0;
+      if (vlat > 0) {
+        var loss = Math.min(0.5, Math.abs(Math.sin(c.yaw)) * 1.1 + vlat * 0.012);
+        // slammed into the wall hard enough (usually shoved there by someone): a wreck
+        if (vlat > 15 && av > 22 && ev && !c.block && (c.human != null || c.cop || Math.abs(c.kd) > 1 || c.spinT > 0 || (c.hitBy && (TR.now || 0) - (c.hitT || -9) < 3))) ev.push(['wreck', c, vlat, 'wall']);
+        else if (vlat > 2.5 && c.wallCd <= 0 && ev) { ev.push(['hit', c, vlat]); c.wallCd = 0.35; }
+        v *= 1 - loss; c.yaw *= 0.25;
+      }
+      if (av > 14 && ev && c.human != null && Math.random() < h * 12) ev.push(['scrape', c, av]);
       v -= Math.sign(v) * Math.min(Math.abs(v), 3 * h); c.touch = sd;
     }
     if (c.wallCd > 0) c.wallCd -= h;
@@ -1687,28 +1743,56 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   // police cruisers take damage from hard hits (enough of it and they're wrecked).
   function collide(cars, TR, ev) {
     for (var a = 0; a < cars.length; a++) for (var b = a + 1; b < cars.length; b++) {
-      var A = cars[a], B = cars[b]; if (A.ghost || B.ghost || A.gone || B.gone) continue;
+      var A = cars[a], B = cars[b]; if (A.ghost || B.ghost || A.gone || B.gone || A.wreck || B.wreck || A.inv > 0 || B.inv > 0) continue;
       var LA = A.ext ? A.ext[0] : A.def.L, WA = A.ext ? A.ext[1] : A.def.Wd, LB = B.ext ? B.ext[0] : B.def.L, WB = B.ext ? B.ext[1] : B.def.Wd;
       var ds = wrapD(B.s - A.s, TR.L), dd = B.d - A.d, lx = (LA + LB) / 2 - 0.2, ly = (WA + WB) / 2 + 0.05;
       if (Math.abs(ds) > lx || Math.abs(dd) > ly) continue;
       var ox = lx - Math.abs(ds), oy = ly - Math.abs(dd), fa = A.block ? 0 : B.block ? 1 : 0.5, fb = 1 - fa;
       var imp = Math.abs(A.v * Math.cos(A.yaw) - B.v * Math.cos(B.yaw));
-      if (oy < ox * 0.8) { var push = oy * (dd >= 0 ? 1 : -1); A.d -= push * fa; B.d += push * fb; if (!A.block) A.yaw -= push * 0.05; if (!B.block) B.yaw += push * 0.05; imp = Math.max(imp * 0.3, oy * 8); }
+      if (oy < ox * 0.8) {
+        var push = oy * (dd >= 0 ? 1 : -1); A.d -= push * fa; B.d += push * fb; if (!A.block) A.yaw -= push * 0.05; if (!B.block) B.yaw += push * 0.05; imp = Math.max(imp * 0.3, oy * 8);
+        sideShove(A, B, dd >= 0 ? 1 : -1, ds, ev);
+      }
       else {
         var back = ds > 0 ? A : B, front = ds > 0 ? B : A, rel = back.v - front.v;
         if (front.block) { if (back.v > 0) { imp = back.v; back.v = Math.max(-3, -back.v * 0.15); } }
         else if (back.block) { imp = Math.abs(front.v); front.v = Math.max(0, front.v); }
-        else if (rel > 0) { back.v -= rel * 0.6; front.v += rel * 0.3; }
+        else if (rel > 0) { back.v -= rel * 0.6; front.v += rel * 0.3; rearRam(back, front, rel, front.d - back.d, ev); }
         if (Math.abs(dd) > 0.25) { if (!back.block) back.d -= Math.sign(front.d - back.d) * 0.03 * (back.block ? 0 : 1); }   // slide off an off-centre hit
         var sepA = ox * fa * (ds > 0 ? -1 : 1), sepB = ox * fb * (ds > 0 ? 1 : -1);
         A.s = ((A.s + sepA) % TR.L + TR.L) % TR.L; A.total += sepA; B.s = ((B.s + sepB) % TR.L + TR.L) % TR.L; B.total += sepB;
       }
       if (ev && imp > 3) {
         if (A.human != null || B.human != null) ev.push([imp > 14 ? 'crash' : 'bump', A.human != null ? A : B, imp]);
-        if (A.cop && !A.block) { A.dmg = (A.dmg || 0) + imp * (B.human != null ? 3.6 : 1.2); if (B.human != null) A.hitBy = B; }
-        if (B.cop && !B.block) { B.dmg = (B.dmg || 0) + imp * (A.human != null ? 3.6 : 1.2); if (A.human != null) B.hitBy = A; }
+        if (A.cop && !A.block) { A.dmg = (A.dmg || 0) + imp * (B.human != null ? 3.6 : B.cop ? 0.3 : 1.2); if (B.human != null) A.hitBy = B; }
+        if (B.cop && !B.block) { B.dmg = (B.dmg || 0) + imp * (A.human != null ? 3.6 : A.cop ? 0.3 : 1.2); if (A.human != null) B.hitBy = A; }
+        // remember who hit whom, so a rival you put into the wall counts as your takedown
+        if (A.human != null && B.human == null) { B.hitBy = A; B.hitT = TR.now || 0; }
+        if (B.human != null && A.human == null) { A.hitBy = B; A.hitT = TR.now || 0; }
+        if (ev && imp > 6) ev.push(['spark', A, imp, B]);
       }
     }
+  }
+
+  // Side contact: whoever is moving into the other one shoves it sideways (police shove much harder, and a cruiser
+  // that clips your rear quarter while it's trying a PIT spins you out). The shove carries on after contact (kd).
+  function sideShove(A, B, sgn, ds, ev) {
+    if (A.block || B.block) return;
+    var la = A.v * Math.sin(A.yaw) + A.kd, lb = B.v * Math.sin(B.yaw) + B.kd, close = (la - lb) * sgn;   // B sits on A's +sgn side
+    var mA = A.def.heavy ? 3 : 1, mB = B.def.heavy ? 3 : 1;
+    function hit(att, vic, dir, cl, mAtt, mVic, dsVic) {
+      var k = cl * (0.75 + (att.cop && att.cop.tgt === vic ? 0.9 : 0)) * mAtt / (mAtt + mVic) * 2;
+      if (att.cop && att.cop.tgt === vic && att.cop.atk) k += 4.5;
+      vic.kd += dir * clamp(k, 0, 14); att.kd -= dir * clamp(k * 0.25, 0, 4);
+      // a cruiser's front corner on your rear quarter: the PIT
+      if (att.cop && att.cop.tgt === vic && att.cop.atk === 'pit' && dsVic > 1.2 && vic.spinT <= 0 && vic.v > 14) {
+        vic.spinT = 0.85; vic.spinDir = dir; vic.v *= 0.82; att.cop.atkCd = 6; if (ev) ev.push(['pit', vic, cl, att]);
+      }
+    }
+    if (close > 0.4) { hit(A, B, sgn, close, mA, mB, ds); }
+    else if (close < -0.4) { hit(B, A, -sgn, -close, mB, mA, -ds); }
+    else if (A.cop && A.cop.tgt === B && A.cop.atk) hit(A, B, sgn, 2, mA, mB, ds);
+    else if (B.cop && B.cop.tgt === A && B.cop.atk) hit(B, A, -sgn, 2, mB, mA, -ds);
   }
 
   /* ════════════════ AI ════════════════ */
@@ -1720,18 +1804,35 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     ai.laneNow += (ai.lane - ai.laneNow) * Math.min(1, h * 0.8);
     var look = 12 + v * 0.45, target = aim != null ? aim : sampleAt(TR.line, TR, c.s + look) * 0.8 + ai.laneNow, thrCap = 1, brkMin = 0, best = 1e9;
     var wr = sampleAt(TR.wr, TR, c.s + look) - 1.7, wl = -(sampleAt(TR.wl, TR, c.s + look) - 1.7);
+    // is there room to pass at lateral position d, from here to a bit past the obstacle?
+    function blocked(d, upto) {
+      var j, o2, g;
+      for (j = 0; j < cars.length; j++) { o2 = cars[j]; if (o2 === c || o2.ghost || o2.gone || o2.inv > 0) continue; g = wrapD(o2.s - c.s, TR.L); if (g > -4 && g < upto && Math.abs(o2.d - d) < 2.3) return true; }
+      if (traffic) for (j = 0; j < traffic.length; j++) { o2 = traffic[j]; g = wrapD(o2.s - c.s, TR.L); if (g > -4 && g < upto + (o2.dir < 0 ? v * 1.2 : 0) && Math.abs(o2.d - d) < 2.4) return true; }
+      return false;
+    }
     function obstacle(o, ovs, hw) {
       var ds = wrapD(o.s - c.s, TR.L), closing = v - ovs;
-      if (ds <= 0 || ds > best || ds > 10 + Math.max(0, closing) * 1.15 || Math.abs(o.d - c.d) > 1.7 + hw) return;
+      if (ds <= 0 || ds > best || ds > 12 + Math.max(0, closing) * 1.6 || Math.abs(o.d - c.d) > 1.7 + hw) return;
       best = ds;
-      var side = c.d >= o.d ? 1 : -1, t1 = o.d + side * (2.4 + hw);
-      if (t1 > wr || t1 < wl) t1 = o.d - side * (2.4 + hw);
-      target = t1;
+      var side = c.d >= o.d ? 1 : -1, t1 = o.d + side * (2.4 + hw), t2 = o.d - side * (2.4 + hw), ok1 = t1 <= wr && t1 >= wl, ok2 = t2 <= wr && t2 >= wl;
+      if (ok1 && blocked(t1, ds + 14)) ok1 = false;
+      if (ok2 && blocked(t2, ds + 14)) ok2 = false;
+      target = ok1 ? t1 : ok2 ? t2 : (t1 <= wr && t1 >= wl ? t1 : t2);
+      // nowhere to go: brake as hard as it takes to match its speed in the room left
+      var need = closing > 0 ? closing * closing / (2 * Math.max(1, ds - 5)) : 0;
       if (closing > 0 && ds < 6 + closing * 0.45) thrCap = 0.3;
-      if (closing > 12 && ds < closing * 0.7) brkMin = 0.6;
+      if (!ok1 && !ok2 && need > 4) { thrCap = 0; brkMin = clamp(need / BRAKE, 0.35, 1); }
+      else if (closing > 12 && ds < closing * 0.7) brkMin = 0.6;
     }
-    for (var i = 0; i < cars.length; i++) { var o = cars[i]; if (o === c || o.ghost || o.gone || o === ai.ignore) continue; obstacle(o, o.v * Math.cos(o.yaw), o.ext ? o.ext[1] / 2 : 1); }
-    if (traffic) for (i = 0; i < traffic.length; i++) obstacle(traffic[i], traffic[i].dir * traffic[i].v, 1);
+    for (var i = 0; i < cars.length; i++) { var o = cars[i]; if (o === c || o.ghost || o.gone || o.inv > 0 || o === ai.ignore) continue; obstacle(o, o.v * Math.cos(o.yaw), o.ext ? o.ext[1] / 2 : 1); }
+    if (traffic) {
+      // oncoming headlights within a few seconds: stay on your own side of the line unless something forces you over
+      var onc = false;
+      for (i = 0; i < traffic.length; i++) { var to = traffic[i]; if (to.dir < 0) { var g0 = wrapD(to.s - c.s, TR.L); if (g0 > 0 && g0 < 20 + v * 2.6) { onc = true; break; } } }
+      if (onc && aim == null && LANES[TR.theme] && LANES[TR.theme].lanes.some(function (l) { return l[1] < 0; })) target = Math.max(target, 1.1);
+      for (i = 0; i < traffic.length; i++) obstacle(traffic[i], traffic[i].dir * traffic[i].v, traffic[i].Wd / 2);
+    }
     target = clamp(target, wl, wr);
     var desired = Math.atan2(target - c.d, look), k = sampleAt(TR.K, TR, c.s);
     var yawMax = Math.min(1.9, LAT * c.st.grip / Math.max(v, 7));
@@ -1754,7 +1855,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   var CAMS = ['Chase', 'Far chase', 'Bumper'];
   function placeCar(c, TR) {
     var f = frameAt(TR, c.s, c._f || (c._f = { p: new THREE.Vector3(), t: new THREE.Vector3(), r: new THREE.Vector3(), u: new THREE.Vector3() }));
-    var yaw = c.yaw + c.vis, cy = Math.cos(yaw), sy = Math.sin(yaw);
+    var yaw = c.yaw + c.vis + (c.visSpin || 0), cy = Math.cos(yaw), sy = Math.sin(yaw);
     var F = c._F || (c._F = new THREE.Vector3()), Rg = c._R || (c._R = new THREE.Vector3());
     F.copy(f.t).multiplyScalar(cy).addScaledVector(f.r, sy).normalize();
     Rg.crossVectors(F, f.u).normalize();
@@ -1806,7 +1907,10 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     // everyday period cars for traffic and the curbs: a silver sedan (repainted per car) and a woodgrain wagon (as is)
     cruiser: { side: '625271b0-74c1-4ee8-acd2-0275456ae2d1.png', top: 'f0bacccc-93f1-4e47-a449-7440914959fb.png', rear: 'd077c4ff-6f0e-4518-bce6-ec014b682a98.png', front: '0631e7e8-e6e0-4840-b9f6-f0db3fc88aa1.png', flip: true, fixed: true },
     sedan: { side: '79e495c6-9e46-4572-b2c3-0d75361ebb64.png', top: 'fc2ed76f-c027-400c-9d46-3d205ec2380f.png', rear: '55a093f8-28a8-49e5-8649-fcdbc3854f38.png', front: '012a2bc8-0f75-429d-9328-d7c62e984984.png', base: 8 },
-    wagon: { side: '634c6a1f-9d19-4216-a20a-c93a61490e72.png', top: '3ca2162a-3a5d-4a5e-b78f-09c4226c0ce1.png', rear: 'f8701dce-1362-4c72-8187-ae22e0a3b7b9.png', front: '7db2d760-ee48-4d52-8eab-8fdc4afc1e68.png', fixed: true }
+    wagon: { side: '634c6a1f-9d19-4216-a20a-c93a61490e72.png', top: '3ca2162a-3a5d-4a5e-b78f-09c4226c0ce1.png', rear: 'f8701dce-1362-4c72-8187-ae22e0a3b7b9.png', front: '7db2d760-ee48-4d52-8eab-8fdc4afc1e68.png', fixed: true },
+    // 2026-10-08: the black interceptor (heat 3+) and a box truck for traffic; both side renders face left
+    interceptor: { side: '5516f4df-15b4-4507-86cb-1a6b13bbf06c.png', top: 'b6aea6b4-91a8-4c14-803c-899145a8d7b4.png', rear: '9a024dd6-3166-4fa7-9f78-093304c183c2.png', front: '7f461676-a258-4743-86b0-96e1da8d34d2.png', flip: true, fixed: true },
+    truck: { side: 'd2e478f5-3a5d-4a85-b7d0-22b779808c6a.png', top: 'fa7d6883-fd13-4a80-89e5-477d5c2570d9.png', rear: '7d2a19c3-0679-4755-80b9-2720f835227a.png', front: 'b36ad784-7ecd-4749-a267-f7f19c23c611.png', flip: true, fixed: true }
   };
   var PHOTO = {};   // id → { atlas, rects, prof } once ready
   function loadImg(url) { return new Promise(function (res) { var im = new Image(); im.crossOrigin = 'anonymous'; var t = setTimeout(function () { res(null); }, 15000); im.onload = function () { clearTimeout(t); res(im); }; im.onerror = function () { clearTimeout(t); res(null); }; im.src = url; }); }
@@ -2145,18 +2249,21 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 
   /* ════════════════ TRAFFIC ════════════════
      Period traffic in its lanes: with the race on the right, coming at you on the left wherever the road has a double
-     yellow line (the freeway is one carriageway, all with the race). Photo cars in everyday colours, kinematic: they keep
-     their lane and their distance, squeeze in past parked cars, and get knocked about when you hit them. */
+     yellow line (the freeway is one carriageway, all with the race). Photo cars in everyday colours plus box trucks,
+     kinematic: they keep their lane and their distance, squeeze in past parked cars, and get knocked about when hit.
+     Squeak past one at speed for a near miss (nitro and cash); hit one head-on at speed and you wreck. */
   function makeTraffic(R, level) {
     var TR = R.TR, cfg = LANES[R.def.theme], out = [];
     if (!cfg || !level) return out;
     var n = Math.floor(TR.L / TRAFFIC_GAP[level]), models = ['sedan', 'wagon', 'sedan', 'hatch', 'sedan', 'wagon', 'muscle', 'sedan', 'gull'];
+    var truckP = R.def.theme === 'freeway' || R.def.theme === 'desert' ? 0.2 : 0.09;
     for (var i = 0; i < n; i++) {
       var ln = cfg.lanes[i % cfg.lanes.length], s = (i + Math.random() * 0.7) / n * TR.L, rel = wrapD(s, TR.L);
       if (rel > -150 && rel < 220) continue;   // the grid and the first stretch stay clear
-      var taxi = cfg.taxis && Math.random() < cfg.taxis, def = CAR[taxi ? 'sedan' : models[Math.floor(Math.random() * models.length)]];
-      var vw = lerp(cfg.v[0], cfg.v[1], Math.random());
-      var t = { traffic: true, def: def, L: def.L, Wd: def.Wd, lane: ln[0], dir: ln[1], d: ln[0], s: s, v: vw, vWant: vw, yaw: ln[1] > 0 ? 0 : Math.PI, vis: 0, spin: 0, boost: false, turbo: 0, stun: 0, hitCd: 0 };
+      var taxi = cfg.taxis && Math.random() < cfg.taxis, truck = !taxi && Math.random() < truckP;
+      var def = CAR[taxi ? 'sedan' : truck ? 'truck' : models[Math.floor(Math.random() * models.length)]];
+      var vw = lerp(cfg.v[0], cfg.v[1], Math.random()) * (truck ? 0.82 : 1);
+      var t = { traffic: true, def: def, L: def.L, Wd: def.Wd, lane: ln[0], dir: ln[1], d: ln[0], s: s, v: vw, vWant: vw, yaw: ln[1] > 0 ? 0 : Math.PI, vis: 0, spin: 0, boost: false, turbo: 0, stun: 0, hitCd: 0, nm: [1e9, 1e9] };
       t.mesh = makeCar(def, null, { paintHex: taxi ? 0xffc61a : TRAFFIC_COLS[Math.floor(Math.random() * TRAFFIC_COLS.length)], bare: true, expo: 0.92 });
       var sh = new THREE.Mesh(new THREE.PlaneGeometry(def.L + 0.5, def.Wd + 0.5), new THREE.MeshBasicMaterial({ map: SOFTBOX, color: 0x000000, transparent: true, opacity: 0.6, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -6 }));
       sh.rotation.x = -Math.PI / 2; sh.position.y = 0.03; t.mesh.add(sh);
@@ -2179,11 +2286,11 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var TL = R.tl; if (!TL) return;
     var hp = TL.head.geometry.attributes.position, tp = TL.tail.geometry.attributes.position;
     for (var i = 0; i < R.traffic.length; i++) {
-      var t = R.traffic[i], m = t.mesh, hl = t.L / 2 + 0.05, hw = t.Wd / 2 - 0.32; m.updateMatrixWorld();
+      var t = R.traffic[i], m = t.mesh, hl = t.L / 2 + 0.05, hw = t.Wd / 2 - 0.32, ly = t.def.heavy ? 0.75 : 0.62; m.updateMatrixWorld();
       for (var k = 0; k < 2; k++) {
         var sd = k ? 1 : -1;
-        _tv.set(hl, 0.62, sd * hw); m.localToWorld(_tv); hp.setXYZ(i * 2 + k, _tv.x, _tv.y, _tv.z);
-        _tv.set(-hl, 0.68, sd * hw); m.localToWorld(_tv); tp.setXYZ(i * 2 + k, _tv.x, _tv.y, _tv.z);
+        _tv.set(hl, ly, sd * hw); m.localToWorld(_tv); hp.setXYZ(i * 2 + k, _tv.x, _tv.y, _tv.z);
+        _tv.set(-hl, ly + 0.06, sd * hw); m.localToWorld(_tv); tp.setXYZ(i * 2 + k, _tv.x, _tv.y, _tv.z);
       }
     }
     hp.needsUpdate = true; tp.needsUpdate = true;
@@ -2194,7 +2301,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       var t = T[i], want = t.vWant, gap = 1e9, j, g;
       if (t.stun > 0) { t.stun -= h; want = 0; }
       for (j = 0; j < T.length; j++) { var o = T[j]; if (o === t || o.dir !== t.dir || Math.abs(o.d - t.d) > 2.2) continue; g = wrapD(o.s - t.s, TR.L) * t.dir; if (g > 0 && g < gap) gap = g; }
-      for (j = 0; j < cars.length; j++) { var c = cars[j]; if (c.ghost || c.gone || Math.abs(c.d - t.d) > 2.4) continue; g = wrapD(c.s - t.s, TR.L) * t.dir; if (g > 0 && g < gap && c.v * t.dir < t.v * 0.7) gap = g; }
+      for (j = 0; j < cars.length; j++) { var c = cars[j]; if (c.ghost || c.gone || c.inv > 0 || Math.abs(c.d - t.d) > 2.4) continue; g = wrapD(c.s - t.s, TR.L) * t.dir; if (g > 0 && g < gap && c.v * t.dir < t.v * 0.7) gap = g; }
       if (gap < 8 + t.v * 0.9) want = Math.min(want, Math.max(0, (gap - 7) * 0.9));
       t.v = Math.max(0, t.v + clamp(want - t.v, -8 * h, 3 * h));
       t.s = ((t.s + t.dir * t.v * h) % TR.L + TR.L) % TR.L;
@@ -2205,49 +2312,197 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       t.spin += t.v * h / 0.34; if (t.hitCd > 0) t.hitCd -= h;
     }
   }
-  // racers (and cruisers) against traffic: a sideswipe pushes you off it, running into one stops you hard
+  // racers (and cruisers) against traffic: a sideswipe pushes you off it, running into one stops you hard,
+  // and running into one hard (head-on, or into the back of a truck) is a wreck
   function collideTraffic(R, ev) {
     var TR = R.TR, T = R.traffic, cars = R.cars;
     for (var i = 0; i < cars.length; i++) {
-      var c = cars[i]; if (c.ghost || c.gone || c.block) continue;
+      var c = cars[i]; if (c.ghost || c.gone || c.block || c.wreck || c.inv > 0 || c.wrecked) continue;
       for (var j = 0; j < T.length; j++) {
         var t = T[j], ds = wrapD(t.s - c.s, TR.L), dd = t.d - c.d, lx = (c.def.L + t.L) / 2 - 0.25, ly = (c.def.Wd + t.Wd) / 2;
         if (Math.abs(ds) > lx || Math.abs(dd) > ly) continue;
-        var ox = lx - Math.abs(ds), oy = ly - Math.abs(dd), cvs = c.v * Math.cos(c.yaw), tvs = t.dir * t.v;
+        var ox = lx - Math.abs(ds), oy = ly - Math.abs(dd), cvs = c.v * Math.cos(c.yaw), tvs = t.dir * t.v, heavy = t.def.heavy ? 0.35 : 1;
         if (oy < ox * 0.8) {
-          var push = oy * (dd >= 0 ? 1 : -1); c.d -= push * 0.8; t.d += push * 0.2; c.yaw -= push * 0.08; c.v *= 0.98;
-          if (t.hitCd <= 0 && Math.abs(cvs - tvs) > 2) { t.hitCd = 0.5; ev.push(['bump', c, 5]); if (c.cop) c.dmg = (c.dmg || 0) + 6; }
+          var push = oy * (dd >= 0 ? 1 : -1); c.d -= push * (heavy < 1 ? 0.95 : 0.8); t.d += push * 0.2 * heavy; c.yaw -= push * 0.08; c.v *= 0.98;
+          if (Math.abs(c.kd) < 3) c.kd -= Math.sign(dd || 1) * (heavy < 1 ? 3 : 1.2);
+          if (t.hitCd <= 0 && Math.abs(cvs - tvs) > 2) { t.hitCd = 0.5; ev.push(['bump', c, 5]); ev.push(['spark', c, 8]); if (c.cop) c.dmg = (c.dmg || 0) + 6; }
           continue;
         }
         var sg = ds >= 0 ? 1 : -1, sep = ox + 0.05, closing = sg > 0 ? cvs - tvs : tvs - cvs;
         c.s = ((c.s - sg * sep) % TR.L + TR.L) % TR.L; c.total -= sg * sep;
         if (Math.abs(dd) > 0.25) c.d -= Math.sign(dd) * 0.05;   // off-centre: slide off its corner instead of sticking
         if (closing <= 0) continue;
+        // rivals are pros: on their own they only wreck in a big head-on; with you (or a cop) in the mix, like anyone
+        var pro = c.human == null && !c.cop && !(c.hitBy && R.t - (c.hitT || -9) < 3) && !c.kd && c.spinT <= 0;
+        if (sg > 0 && closing > (pro ? (t.dir < 0 ? 38 : 1e9) : heavy < 1 ? 20 : 25) && Math.abs(dd) < ly * 0.75) { ev.push(['wreck', c, closing, t.dir < 0 ? 'oncoming' : 'traffic']); t.stun = 2; t.v *= 0.3; t.yaw += (Math.random() - 0.5) * 0.9; t.hitCd = 1; continue; }
         if (sg > 0) c.v = Math.max(-4, Math.min(c.v, tvs - closing * 0.12)); else c.v = Math.max(c.v, tvs + closing * 0.3);
-        if (t.dir > 0 && sg > 0) t.v += closing * 0.35; else t.v *= 0.2;
+        if (t.dir > 0 && sg > 0) t.v += closing * 0.35 * heavy; else t.v *= 0.2;
         t.stun = 1.4;
-        if (closing > 6) { c.yaw += (Math.random() < 0.5 ? -1 : 1) * Math.min(0.5, closing / 70); t.yaw += (Math.random() - 0.5) * 0.7; }
-        if (t.hitCd <= 0) { t.hitCd = 0.6; ev.push([closing > 9 ? 'crash' : 'bump', c, closing]); if (c.cop) c.dmg = (c.dmg || 0) + closing * 2; }
+        if (closing > 6) { c.yaw += (Math.random() < 0.5 ? -1 : 1) * Math.min(0.5, closing / 70); t.yaw += (Math.random() - 0.5) * 0.7 * heavy; }
+        if (t.hitCd <= 0) { t.hitCd = 0.6; ev.push([closing > 9 ? 'crash' : 'bump', c, closing]); ev.push(['spark', c, closing]); if (c.cop) c.dmg = (c.dmg || 0) + closing * 2; }
       }
     }
   }
+  // Near misses: slip past traffic within about a metre at speed. Nitro, a little cash, and a combo for chaining them.
+  function nearMisses(R, dt) {
+    var TR = R.TR;
+    R.humans.forEach(function (c, hi) {
+      if (c.finished || c.busted || c.wreck || c.hold > 0) return;
+      var B = R.bonus[hi];
+      if (B.comboT > 0) { B.comboT -= dt; if (B.comboT <= 0) B.combo = 0; }
+      for (var j = 0; j < R.traffic.length; j++) {
+        var t = R.traffic[j], ds = wrapD(t.s - c.s, TR.L), prev = t.nm[hi]; t.nm[hi] = ds;
+        if (!(prev > 0 && ds <= 0 && prev < 30)) continue;
+        var gap = Math.abs(t.d - c.d) - (c.def.Wd + t.Wd) / 2, rel = c.v - t.dir * t.v;
+        if (gap < 0 || gap > 1.25 || c.v < 22 || rel < 12) continue;
+        var onc = t.dir < 0, cash = (onc ? 150 : 75) * (1 + Math.min(4, B.combo) * 0.5);
+        B.combo++; B.comboT = 3; B.nm++; B.cash += Math.round(cash / 5) * 5;
+        c.tank = Math.min(c.st.cap, c.tank + (onc ? 0.55 : 0.35));
+        popMsg(hi, (onc ? 'ONCOMING ' : '') + 'NEAR MISS' + (B.combo > 1 ? ' ×' + B.combo : ''), '+$' + (Math.round(cash / 5) * 5));
+        sfx('nearmiss', 0.8);
+      }
+    });
+  }
 
-  /* ════════════════ POLICE (Hot Pursuit) ════════════════
-     Cruisers join from behind (and now and then from a side street ahead), hunt the nearest racer (you, mostly), ram,
-     and try to get in front and box you in. Slow down with a cruiser on you and the bust meter fills: full means
-     BUSTED. Ram them hard enough and they're wrecked: a takedown. More cruisers each lap; a roadblock on the last. */
-  var COP_NAMES = ['Unit 12', 'Unit 7', 'Unit 21', 'Unit 4', 'Unit 33', 'Unit 9', 'Unit 18', 'Unit 2'];
+  /* ════════════════ SPARKS ════════════════ */
+  var SPARK_N = 220;
+  function makeSparks(R) {
+    var g = new THREE.BufferGeometry(), pos = new Float32Array(SPARK_N * 3), col = new Float32Array(SPARK_N * 3);
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    var p = new THREE.Points(g, new THREE.PointsMaterial({ size: 0.42, map: GLOW, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+    p.frustumCulled = false; R.W.S.scene.add(p);
+    return { p: p, pos: pos, col: col, vel: new Float32Array(SPARK_N * 3), life: new Float32Array(SPARK_N), i: 0 };
+  }
+  function emitSparks(R, c, n, power) {
+    var S = R.sparks; if (!S || !c.mesh) return;
+    var m = c.mesh, f = c._f, p = m.position;
+    for (var k = 0; k < n; k++) {
+      var i = S.i = (S.i + 1) % SPARK_N, o = i * 3, sp = 3 + Math.random() * 6 * power;
+      S.pos[o] = p.x + rnd(-1, 1) * c.def.L * 0.4; S.pos[o + 1] = p.y + 0.35 + Math.random() * 0.4; S.pos[o + 2] = p.z + rnd(-1, 1) * c.def.L * 0.4;
+      var fx = f ? f.t.x * c.v * 0.7 : 0, fz = f ? f.t.z * c.v * 0.7 : 0;
+      S.vel[o] = fx + rnd(-1, 1) * sp; S.vel[o + 1] = 2 + Math.random() * 4 * power; S.vel[o + 2] = fz + rnd(-1, 1) * sp;
+      S.life[i] = 0.35 + Math.random() * 0.45;
+    }
+  }
+  function stepSparks(R, dt) {
+    var S = R.sparks; if (!S) return;
+    for (var i = 0; i < SPARK_N; i++) {
+      var o = i * 3;
+      if (S.life[i] <= 0) { S.pos[o + 1] = -999; continue; }
+      S.life[i] -= dt; S.vel[o + 1] -= 14 * dt;
+      S.pos[o] += S.vel[o] * dt; S.pos[o + 1] += S.vel[o + 1] * dt; S.pos[o + 2] += S.vel[o + 2] * dt;
+      var a = clamp(S.life[i] / 0.5, 0, 1); S.col[o] = a; S.col[o + 1] = a * 0.62; S.col[o + 2] = a * 0.25;
+    }
+    S.p.geometry.attributes.position.needsUpdate = true; S.p.geometry.attributes.color.needsUpdate = true;
+  }
+
+  /* ════════════════ WRECKS ════════════════
+     Into a wall sideways at speed, head-on into traffic, or into the back of a truck: the car barrel-rolls, slides
+     to a stop, and drops back onto the road a moment later (see-through for a second so nothing piles into it).
+     A rival you put into the wall (you hit them in the last 3 s) is your takedown. Police cars that wreck are out. */
+  function startWreck(R, c, power, cause) {
+    if (c.wreck || c.block || c.inv > 0 || c.busted || (c.finished && c.human == null)) return;
+    (R.wlog || (R.wlog = [])).push([c.human != null ? 'you' : c.cop ? 'cop' : 'ai', cause, (c.name || '').slice(0, 5), R.t.toFixed(0), (c.v * 1).toFixed(0), c.inv.toFixed(1), Math.round(power), c.hitBy && R.t - (c.hitT || -9) < 3 ? 'hit' : '', c.spinT > 0 || c.kd ? 'shoved' : '']);
+    if (c.cop) { c.dmg = 999; if (!c.hitBy && c.cop.lastTgt && c.cop.lastTgt.human != null && R.t - (c.cop.lastHit || -9) < 3) c.hitBy = c.cop.lastTgt; return; }
+    if (c.finished && c.human == null) return;
+    c.wreck = { t: 0, dur: c.human != null ? 2.4 : 2.1, dir: Math.random() < 0.5 ? -1 : 1, lift: 1.1 + Math.min(1.4, (power || 20) / 30) };
+    c.inp = { thr: 0, brk: 0, steer: 0, nitro: false, drift: false }; c.drift = 0; c.boost = false; c.turbo = 0; c.spinT = 0; c.visSpin = 0;
+    emitSparks(R, c, 40, 1.4);
+    if (c.human != null) {
+      hudMsg(c.human, 'WRECKED', 'warn', 2); sfx('wreck');
+      if (R.humans.length === 1) R.slow = 1.1;
+      R.bonus[c.human].wrecks++;
+    } else {
+      var me = R.humans[0], near = me && Math.abs(wrapD(c.s - me.s, R.TR.L)) < 140;
+      var by = c.hitBy && c.hitBy.human != null && R.t - (c.hitT || -9) < 3 ? c.hitBy : null;
+      if (by) {
+        var B = R.bonus[by.human]; B.td++; B.cash += 750; by.tank = by.st.cap;
+        hudMsg(by.human, 'TAKEDOWN<small>' + esc(c.name) + ' · + $750 · nitro full</small>', '', 2); sfx('takedown');
+      } else if (near) sfx('crash', 0.6);
+    }
+  }
+  function wreckStep(R, c, h) {
+    var W = c.wreck, TR = R.TR; W.t += h;
+    c.v = Math.max(0, c.v - (14 + c.v * 0.9) * h);
+    var ds = c.v * h; c.s = ((c.s + ds) % TR.L + TR.L) % TR.L; c.total += ds;
+    c.d += c.kd * h; c.kd *= Math.max(0, 1 - 2 * h);
+    var wr = sampleAt(TR.wr, TR, c.s) - CAR_HALF, wl = -(sampleAt(TR.wl, TR, c.s) - CAR_HALF); c.d = clamp(c.d, wl, wr);
+    if (W.t >= W.dur) respawn(R, c);
+  }
+  function respawn(R, c) {
+    var TR = R.TR, best = 0, bs = -1;
+    [-4.5, -1.5, 1.5, 4.5, 0].forEach(function (d) {   // the clearest lane nearby
+      var room = 1e9; R.traffic.forEach(function (t) { var ds = Math.abs(wrapD(t.s - c.s, TR.L)); if (Math.abs(t.d - d) < 2.6) room = Math.min(room, ds); });
+      var sc = Math.min(room, 60) - Math.abs(d - c.d) * 0.5; if (sc > bs) { bs = sc; best = d; }
+    });
+    c.wreck = null; c.d = best; c.yaw = 0; c.kd = 0; c.vis = 0; c.v = Math.max(14, c.st.top * 0.3); c.inv = 1.8; c.steerSm = 0;
+    if (c.mesh) c.mesh.visible = true;
+  }
+  // your own wreck: the camera swings round the car while it rolls, then the chase camera sweeps back in
+  function crashCam(cam, c, dt) {
+    var st = cam.userData, W = c.wreck, f = c._f, p = c.mesh.position, a = 2.2 + W.t * 0.75, r = 9 + W.t * 1.5;
+    cam.position.copy(p).addScaledVector(f.t, Math.cos(a) * r).addScaledVector(f.r, Math.sin(a) * r).addScaledVector(f.u, 3.2 + W.t * 0.6);
+    if (st.p) st.p.copy(cam.position);
+    cam.up.copy(f.u); cam.lookAt(p.x, p.y + 0.6, p.z);
+    if (Math.abs(cam.fov - 58) > 0.05) { cam.fov = 58; cam.updateProjectionMatrix(); }
+  }
+  // after placeCar: the roll, the bounce, and the see-through blink when it comes back
+  function wreckPose(c) {
+    var m = c.mesh;
+    if (c.wreck) {
+      var W = c.wreck, k = clamp(W.t / 1.15, 0, 1), e = 1 - Math.pow(1 - k, 2.2);
+      m.position.addScaledVector(c._f.u, Math.sin(Math.PI * k) * W.lift);
+      m.rotateX(W.dir * e * Math.PI * 2); m.rotateY(W.dir * e * 0.9);
+    }
+    if (c.inv > 0) m.visible = Math.floor(c.inv * 14) % 2 === 0; else if (!c.gone && !m.visible && !c.wreck) m.visible = true;
+  }
+
+  /* ════════════════ POLICE ════════════════
+     Patrol units sit on the shoulder or roll along in traffic with their lights off. Blow past one at speed (or hit
+     it) and it lights up and comes after you: it closes in, rams, tries a PIT on your back quarter, slams your side
+     to put you in the wall, and gets in front to box you in. Get far enough ahead for long enough and it gives up.
+     Slow down with a cruiser on you and the bust meter fills: in a race you're pulled over for a few seconds; in
+     Hot Pursuit, BUSTED ends the run. Hot Pursuit also sends units from behind, more each lap (interceptors from
+     heat 3), and a roadblock on the last lap. Hit a cruiser hard enough and it's wrecked: a takedown. */
+  var COP_NAMES = ['Unit 12', 'Unit 7', 'Unit 21', 'Unit 4', 'Unit 33', 'Unit 9', 'Unit 18', 'Unit 2', 'Unit 14', 'Unit 30'];
+  function copCar(R, fast, name) {
+    var def = fast ? INTERCEPTOR : COP, c = newCar(def, { eng: 0, tire: 0, nitro: 0 }, 3, name || COP_NAMES[R.pol.n++ % COP_NAMES.length], null);
+    c.base = stats(def, {}); c.dmg = 0;
+    c.cop = { tgt: null, hold: 0, mode: 'chase', on: true, atk: null, atkT: 0, atkCd: 2, lostT: 0, cool: 0, lane: 0, cruise: 0, park: false, pass: {} };
+    c.ai = { skill: fast ? 1.08 : 1.05, lane: 0, laneNow: 0, laneT: 3, nitroOn: false };
+    c.mesh = makeCar(def, 3, { cop: true, beam: 0.36, expo: 1.18 }); R.W.S.scene.add(c.mesh);
+    return c;
+  }
+  function setupPolice(R, level) {
+    R.pol = { level: level, n: 0, warnCd: 0, chasing: 0, lostCd: 0 };
+    if (!level) return;
+    var TR = R.TR, cfg = LANES[R.def.theme], n = Math.max(1, Math.round(TR.L / (level >= 2 ? 520 : 820)));
+    var fastP = R.type === 'hp' ? 0 : R.def.pay >= 2.2 ? 0.3 : 0;
+    for (var i = 0; i < n; i++) {
+      var s = 300 + (i + Math.random() * 0.5) / n * (TR.L - 420), park = Math.random() < 0.5, c = copCar(R, Math.random() < fastP);
+      var P = c.cop; P.mode = 'patrol'; P.on = false; P.park = park;
+      if (park) {   // pulled onto the shoulder, nose out a little
+        var side = Math.random() < 0.5 ? 1 : -1, w = side > 0 ? sampleAt(TR.wr, TR, s) : sampleAt(TR.wl, TR, s);
+        c.d = side * (w - 1.6); c.yaw = -side * 0.12; c.v = 0;
+      } else {
+        var lanes = cfg ? cfg.lanes.filter(function (l) { return l[1] > 0; }) : [[2.25, 1]];
+        var ln = lanes[Math.floor(Math.random() * lanes.length)]; c.d = ln[0]; P.lane = ln[0];
+        P.cruise = cfg ? lerp(cfg.v[0], cfg.v[1], Math.random()) : 18; c.v = P.cruise;
+      }
+      c.s = s % TR.L; c.total = c.s;
+      R.cars.push(c); placeCar(c, TR);
+    }
+  }
+  // Hot Pursuit: a unit joining from behind (or, now and then, from a side street ahead), already chasing
   function spawnCop(R, ahead) {
     var TR = R.TR, me = R.humans[0], tries = 0, s, d;
     do {
       s = ahead ? me.s + 240 + Math.random() * 120 : me.s - 150 - Math.random() * 70; d = [-2.25, 2.25, -5.5, 5.5][Math.floor(Math.random() * 4)];
       var clear = R.cars.concat(R.traffic).every(function (o) { return o.gone || Math.abs(wrapD(o.s - s, TR.L)) > 14 || Math.abs(o.d - d) > 3; });
     } while (!clear && ++tries < 8);
-    var c = newCar(COP, { eng: 0, tire: 0, nitro: 0 }, 3, COP_NAMES[R.hp.n++ % COP_NAMES.length], null);
-    c.cop = { tgt: null, hold: 0 }; c.dmg = 0;
-    c.ai = { skill: 1.04, lane: 0, laneNow: 0, laneT: 3, nitroOn: false };
+    var c = copCar(R, R.hp.heat >= 3 && Math.random() < (R.hp.heat >= 4 ? 0.6 : 0.4));
     c.s = ((s % TR.L) + TR.L) % TR.L; c.total = c.s; c.d = d; c.v = ahead ? 10 : Math.max(18, me.v * 0.95);
-    c.mesh = makeCar(COP, 3, { cop: true, beam: 0.3 }); R.W.S.scene.add(c.mesh);
+    c.cop.tgt = me;
     R.cars.push(c); placeCar(c, TR);
     return c;
   }
@@ -2256,105 +2511,176 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     // three cruisers parked across the road at an angle, leaving one gap (about 5 m) a car can thread
     var list = [], ds = [-6.6, -1.7, 8.6].map(function (d) { return gapLeft ? -d : d; });
     ds.forEach(function (d, i) {
-      var c = newCar(COP, {}, 3, 'Roadblock', null);
-      c.cop = { tgt: null, hold: 0 }; c.block = true; c.ext = ext; c.dmg = 0;
+      var c = copCar(R, false, 'Roadblock');
+      c.cop.mode = 'block'; c.block = true; c.ext = ext; c.ai = null;
       c.s = ((s0 + i * 1.5) % TR.L + TR.L) % TR.L; c.total = c.s; c.d = d; c.v = 0; c.yaw = (i % 2 ? -1 : 1) * 1.15;
-      c.mesh = makeCar(COP, 3, { cop: true, beam: 0 }); R.W.S.scene.add(c.mesh);
       R.cars.push(c); placeCar(c, TR); list.push(c);
     });
     R.hp.block = { cars: list, s: s0 };
   }
-  function pickSuspect(cop, R) {
-    var TR = R.TR, best = null, bs = 1e9;
-    R.racers.forEach(function (c) {
-      if (c.busted || c.finished) return;
-      var ds = wrapD(c.s - cop.s, TR.L), dist = Math.abs(ds) + (ds < 0 ? 40 : 0);
-      var on = R.cars.filter(function (o) { return o.cop && !o.block && o.cop.tgt === c; }).length;
-      var sc = dist * (c.human != null ? 0.55 : 1) * (1 + on * 0.35);
-      if (sc < bs) { bs = sc; best = c; }
-    });
-    return best;
+  function chasersOf(R, t) { return R.cars.filter(function (o) { return o.cop && o.cop.mode === 'chase' && o.cop.tgt === t && !o.wrecked && !o.gone; }).length; }
+  function lightUp(R, c, t, why) {
+    var P = c.cop; P.mode = 'chase'; P.on = true; P.tgt = t; P.lostT = 0; P.atk = null; P.atkCd = 1.2;
+    if (t.human != null) {
+      var was = R.pol.chasing; R.pol.chasing = chasersOf(R, t);
+      hudMsg(t.human, (why === 'hit' ? 'YOU HIT A COP' : 'PURSUIT') + '<small>' + (was ? 'another unit is on you' : 'lose them, or get boxed in') + '</small>', 'warn', 2);
+      sfx('lights'); if (!was && R.type !== 'hp') musicStart('pursuit');
+    }
   }
+  // patrols: notice anyone flying past (or into them)
+  function patrolWatch(c, R) {
+    var TR = R.TR, P = c.cop, lim = R.type === 'hp' ? 9 : R.pol.level >= 2 ? 3 : 2;
+    if (P.cool > 0) return;
+    for (var i = 0; i < R.racers.length; i++) {
+      var r = R.racers[i]; if (r.finished || r.busted || r.wreck || r.hold > 0) continue;
+      var ds = wrapD(r.s - c.s, TR.L), prev = P.pass[i]; P.pass[i] = ds;
+      var hit = c.hitBy === r && R.t - (c.hitT || 0) < 1;
+      var passed = prev != null && prev < 0 && ds >= 0 && Math.abs(r.d - c.d) < 13 && r.v > 27;
+      var clocked = ds > -35 && ds < 10 && Math.abs(r.d - c.d) < 10 && r.v > 40;
+      if ((hit || passed || clocked) && (r.human == null || chasersOf(R, r) < lim)) { lightUp(R, c, r, hit ? 'hit' : 'pass'); return; }
+    }
+  }
+  function giveUp(R, c, quiet) {
+    var P = c.cop, t = P.tgt;
+    P.mode = R.type === 'hp' ? 'leave' : 'patrol'; P.on = false; P.tgt = null; P.atk = null; P.cool = 9; P.park = false;
+    var cfg = LANES[R.def.theme]; P.lane = c.d > 0 ? 2.25 : (cfg && cfg.lanes.some(function (l) { return l[1] > 0 && l[0] < 0; }) ? -2.25 : 2.25); P.cruise = cfg ? cfg.v[0] : 16;
+    if (t && t.human != null && !quiet && !chasersOf(R, t)) {
+      var B = R.bonus[t.human]; B.cash += 300; B.esc++;
+      hudMsg(t.human, 'LOST THEM<small>+ $300</small>', '', 1.8); sfx('cash');
+      if (R.type !== 'hp') musicStart(R.def.id);
+    }
+  }
+  function copStats(c, T) {
+    var b = c.base, k = R_TYPE_HP ? 1.08 : 1.05, top = T ? Math.max(b.top, T.st.top * k) : b.top;
+    c.st.top = top; c.st.acc = T ? Math.max(b.acc, T.st.acc * 1.12) : b.acc;
+  }
+  var R_TYPE_HP = false;
   function copDrive(c, R, h) {
     var TR = R.TR, P = c.cop;
-    if (P.hold > 0) { P.hold -= h; c.inp.thr = 0; c.inp.brk = 1; c.inp.steer = 0; c.inp.nitro = false; return; }
-    if (!P.tgt || P.tgt.busted || P.tgt.finished || Math.random() < h * 0.05) P.tgt = pickSuspect(c, R);
-    var T = P.tgt;
-    if (!T) { aiDrive(c, R.cars, TR, h, R.traffic); c.inp.thr *= 0.6; return; }
-    c.ai.ignore = T;
-    var ds = wrapD(T.s - c.s, TR.L), aim = null;
-    if (ds > -3 && ds < 50) aim = T.d + clamp(T.d - c.d, -1, 1) * 0.6;   // line up on them and ram
-    else if (ds <= -3 && ds > -45) aim = T.d;                            // in front: sit in their path
-    var vt = aiDrive(c, R.cars, TR, h, R.traffic, aim);
-    if (ds > 70 && c.tank > 0.3 && !c.inp.brk) c.inp.nitro = true;
-    if (ds <= -3 && ds > -45 && c.v > T.v - 1.5) { c.inp.thr = 0; c.inp.brk = clamp((c.v - T.v + 1.5) / 10, 0.15, 0.7); c.inp.nitro = false; }   // box them in
-    if (ds > 0 && ds < 75) {   // close in at a controlled speed, so the hit is a shove, not a wreck
-      var vw = T.v + clamp(ds * 0.32, 2.5, 22);
-      if (c.v > vw + 1) { c.inp.thr = 0; c.inp.brk = clamp((c.v - vw) / 10, 0.2, 1); c.inp.nitro = false; }
-      else if (c.v < vw - 1 && c.v < vt) { c.inp.thr = 1; c.inp.brk = 0; }
+    R_TYPE_HP = R.type === 'hp';
+    if (P.cool > 0) P.cool -= h;
+    if (P.hold > 0) { P.hold -= h; c.inp.thr = 0; c.inp.brk = 1; c.inp.steer = 0; c.inp.nitro = false; if (P.hold <= 0) giveUp(R, c, true); return; }
+    if (P.mode === 'patrol' || P.mode === 'leave') {
+      copStats(c, null);
+      if (P.mode === 'patrol') patrolWatch(c, R);
+      if (P.mode === 'chase') return;
+      if (P.park) { c.inp.thr = 0; c.inp.brk = 1; c.inp.steer = 0; c.inp.nitro = false; c.v = 0; return; }
+      aiDrive(c, R.cars, TR, h, R.traffic, P.lane);
+      if (c.v > P.cruise) { c.inp.thr = 0; c.inp.brk = c.v > P.cruise + 3 ? 0.3 : 0; } c.inp.nitro = false;
+      if (P.mode === 'leave') { var me = R.humans[0]; if (me && wrapD(me.s - c.s, TR.L) > 260) { c.gone = true; c.mesh.visible = false; c.d = 30; } }
+      return;
     }
+    // chasing
+    var T = P.tgt;
+    if (!T || T.busted || T.finished || T.gone) { giveUp(R, c, true); return; }
+    if (T.hold > 0) { P.hold = 2.5; return; }   // you've been pulled over: they stop with you, then leave
+    copStats(c, T);
+    c.ai.ignore = T;
+    var ds = wrapD(T.s - c.s, TR.L), aim = null, vw = null, side = c.d >= T.d ? 1 : -1;
+    // losing them: far ahead for a while
+    if (ds > (R.type === 'hp' ? 380 : 300) || ds < -300) { P.lostT += h; if (P.lostT > (R.type === 'hp' ? 6 : 4.5)) { giveUp(R, c); return; } } else P.lostT = Math.max(0, P.lostT - h * 2);
+    if (P.atkCd > 0) P.atkCd -= h;
+    if (P.atk) { P.atkT -= h; if (P.atkT <= 0 || ds < -6 || ds > 40) { P.atk = null; P.atkCd = 1 + Math.random(); } }
+    if (T.wreck) { aim = T.d + side * 3.5; vw = Math.max(0, T.v); }
+    else if (ds > 0 && ds < 60) {
+      if (!P.atk) P.side = side;
+      if (!P.atk && P.atkCd <= 0 && ds < 28) { var r = Math.random(); P.atk = r < 0.4 ? 'pit' : r < 0.7 ? 'slam' : 'ram'; P.atkT = 4; P.side = side; }
+      if (P.atk === 'pit') { aim = ds > 5 ? T.d + P.side * 1.6 : T.d + P.side * 0.3; vw = T.v + clamp(ds * 0.7, 3.5, 24); }
+      else if (P.atk === 'slam') { aim = ds > 1.2 ? T.d + P.side * 2.5 : T.d - P.side * 0.8; vw = T.v + (ds > 1.2 ? clamp(ds * 0.7, 2.5, 24) : 0.5); }
+      else if (P.atk === 'ram') { aim = T.d + clamp(T.d - c.d, -1, 1) * 0.4; vw = T.v + clamp(ds * 0.8, 6, 26); }
+      else { aim = T.d + P.side * 2.2; vw = T.v + clamp(ds * 0.6, 3, 24); }
+      P.lastTgt = T; P.lastHit = R.t;
+    } else if (ds <= 0 && ds > -50) { aim = T.d; vw = T.v - 2.5; P.atk = null; }   // in front: sit in their path and brake-check
+    var vt = aiDrive(c, R.cars, TR, h, R.traffic, aim);
+    if (ds > 60 && c.tank > 0.3 && !c.inp.brk) c.inp.nitro = true;
+    if (vw != null) {
+      if (c.v > vw + 1) { c.inp.thr = 0; c.inp.brk = clamp((c.v - vw) / 9, 0.15, 1); c.inp.nitro = false; }
+      else if (c.v < vw - 1 && c.v < vt + 3) { c.inp.thr = 1; c.inp.brk = 0; if (vw - c.v > 12 && c.tank > 0.3) c.inp.nitro = true; }
+    }
+  }
+  // a cruiser running into your back while it means it: a shove sideways, and off-centre it can spin you
+  function rearRam(back, front, rel, dd, ev) {
+    if (!back.cop || back.cop.tgt !== front || !back.cop.atk || rel < 2.5) return;
+    front.kd += (Math.sign(front.d - back.d) || 1) * (2 + rel * 0.35);
+    if (Math.abs(dd) > 0.7 && front.spinT <= 0 && front.v > 16 && Math.random() < 0.45) { front.spinT = 0.85; front.spinDir = dd > 0 ? 1 : -1; front.v *= 0.85; back.cop.atkCd = 5; if (ev) ev.push(['pit', front, rel, back]); }
   }
   function wreckCop(R, c) {
     c.wrecked = true; c.inp = { thr: 0, brk: 0.4, steer: 0, nitro: false, drift: false }; c.ai = null; c.wreckT = 0;
-    c.yaw += (Math.random() < 0.5 ? -1 : 1) * 0.9;
+    c.yaw += (Math.random() < 0.5 ? -1 : 1) * 0.9; c.cop.on = false;
     var fx = c.mesh.userData.fx; if (fx.bar) fx.bar.on = false;
     var smoke = new THREE.Sprite(new THREE.SpriteMaterial({ map: GLOW, color: 0x6a6a74, transparent: true, opacity: 0.5, depthWrite: false })); smoke.position.set(1.6, 1.6, 0); smoke.scale.set(4, 4, 1); c.mesh.add(smoke); c.smoke = smoke;
+    emitSparks(R, c, 30, 1.2);
     // a takedown (and its $1,000) is yours when your car did the damage; a cruiser that wrecks itself is just gone
-    if (c.hitBy && c.hitBy.human != null) { R.hp.takedowns++; R.hp.cash += 1000; hudMsg(c.hitBy.human, 'TAKEDOWN<small>+ $1,000</small>', '', 1.8); sfx('takedown'); }
-    else { hudMsg(0, 'CRUISER WRECKED', '', 1.4); sfx('crash', 0.5); }
+    if (c.hitBy && c.hitBy.human != null) { var B = R.bonus[c.hitBy.human]; B.ctd++; B.cash += 1000; if (R.hp) R.hp.takedowns++; c.hitBy.tank = c.hitBy.st.cap; hudMsg(c.hitBy.human, 'COP TAKEDOWN<small>+ $1,000 · nitro full</small>', '', 1.8); sfx('takedown'); }
+    else { var me = R.humans[0]; if (me && Math.abs(wrapD(c.s - me.s, R.TR.L)) < 200) { hudMsg(0, 'CRUISER WRECKED', '', 1.4); sfx('crash', 0.5); } }
+  }
+  function pullOver(R, c) {
+    c.bust = 0; c.hold = 4; c.v = Math.min(c.v, 4); c.pulled = (c.pulled || 0) + 1;
+    R.cars.forEach(function (o) { if (o.cop && o.cop.tgt === c && o.cop.mode === 'chase') { o.cop.hold = 4.5; } });
+    if (c.human != null) { hudMsg(c.human, 'PULLED OVER<small>4 seconds · lose the cops next time</small>', 'warn bust', 3); sfx('busted'); R.bonus[c.human].pulled++; if (R.type !== 'hp') musicStart(R.def.id); }
   }
   function bust(R, c) {
+    if (R.type !== 'hp') { pullOver(R, c); return; }
     c.busted = true; c.v = 0; c.inp = { thr: 0, brk: 1, steer: 0, nitro: false, drift: false };
-    R.cars.forEach(function (o) { if (o.cop && !o.block && o.cop.tgt === c && Math.abs(wrapD(o.s - c.s, R.TR.L)) < 40) { o.cop.hold = 3; o.cop.tgt = null; } });
+    R.cars.forEach(function (o) { if (o.cop && o.cop.tgt === c && Math.abs(wrapD(o.s - c.s, R.TR.L)) < 40) { o.cop.hold = 3; } });
     if (c.human != null) { R.hp.over = 'busted'; R.hp.overT = 0; hudMsg(c.human, 'BUSTED', 'warn bust', 4); sfx('busted'); if (c.eng) { c.eng.stop(); c.eng = null; } }
     else { c.ai = null; hudMsg(0, esc(c.name) + '<small>BUSTED</small>', '', 1.8); }
   }
-  // runs every physics step during a pursuit
-  function pursuitStep(R, h) {
+  // every physics step: the bust meter, wrecked cruisers
+  function policeStep(R, h) {
     var TR = R.TR;
     R.racers.forEach(function (c) {
-      if (c.busted || c.finished) return;
-      var near = false, close = false;
+      if (c.busted || c.finished || c.hold > 0) return;
+      var near = false, close = 0;
       for (var i = 0; i < R.cars.length; i++) {
-        var o = R.cars[i]; if (!o.cop || o.wrecked || o.gone) continue;
+        var o = R.cars[i]; if (!o.cop || o.wrecked || o.gone || !(o.block || (o.cop.mode === 'chase' && o.cop.tgt === c))) continue;
         var ds = Math.abs(wrapD(o.s - c.s, TR.L)), dd = Math.abs(o.d - c.d);
         if (ds < 40) near = true;
-        if (ds < 9.5 && dd < 4.6) close = true;
+        if (ds < 9.5 && dd < 4.6) close++;
       }
       var v = Math.abs(c.v);
-      if (close && v < 11) c.bust = Math.min(1, (c.bust || 0) + h / (v < 3 ? 1.5 : 2.4));
-      else c.bust = Math.max(0, (c.bust || 0) - h / (near ? 7 : 3.5));
+      if (close && (v < 11 || c.wreck)) c.bust = Math.min(1, (c.bust || 0) + h * close / (v < 3 ? 1.6 : 2.6));
+      else c.bust = Math.max(0, (c.bust || 0) - h / (near ? 6 : 3));
       if (c.bust >= 1) bust(R, c);
     });
-    R.cars.forEach(function (c) {
-      if (!c.cop || c.block || c.wrecked) return;
-      if ((c.dmg || 0) >= 100) wreckCop(R, c);
-    });
+    R.cars.forEach(function (c) { if (c.cop && !c.block && !c.wrecked && (c.dmg || 0) >= 100) wreckCop(R, c); });
   }
-  // runs every frame during a pursuit: spawning, heat, the roadblock, the siren
-  function pursuitTick(R, dt) {
-    var H = R.hp, me = R.humans[0], TR = R.TR; if (!me) return;
-    if (R.state !== 'run') return;
-    H.t += dt;
-    var lap = clamp(me.laps + 1, 1, R.laps), heat = R.laps <= 1 ? 3 : Math.min(4, 1 + Math.round((lap - 1) / Math.max(1, R.laps - 1) * 3));
-    if (heat > H.heat) { H.heat = heat; if (H.t > 8) hudMsg(0, 'HEAT ' + heat + '<small>more units joining</small>', '', 1.8); }
-    var active = R.cars.filter(function (c) { return c.cop && !c.block && !c.wrecked && !c.gone; }).length, max = H.heat + 1;
-    H.next -= dt;
-    if (H.next <= 0 && active < max && !me.finished && !me.busted) {
-      var first = !H.n; spawnCop(R, !first && H.n % 3 === 2); H.next = first ? 2.5 : 9 + Math.random() * 6;
-      if (first) { spawnCop(R, false); hudMsg(0, 'POLICE PURSUIT<small>don\'t let them box you in</small>', 'warn', 2.6); musicStart('pursuit'); }
+  // every frame: Hot Pursuit spawning and heat, the roadblock, the siren, wrecked cruisers clearing away
+  function policeTick(R, dt) {
+    var me = R.humans[0], TR = R.TR; if (!me || R.state !== 'run') return;
+    var H = R.hp;
+    if (H) {
+      H.t += dt;
+      var lap = clamp(me.laps + 1, 1, R.laps), heat = R.laps <= 1 ? 3 : Math.min(4, 1 + Math.round((lap - 1) / Math.max(1, R.laps - 1) * 3));
+      if (heat > H.heat) { H.heat = heat; if (H.t > 8) hudMsg(0, 'HEAT ' + heat + '<small>' + (heat >= 3 ? 'interceptors joining' : 'more units joining') + '</small>', '', 1.8); }
+      var active = R.cars.filter(function (c) { return c.cop && c.cop.mode === 'chase' && !c.wrecked && !c.gone; }).length, max = H.heat + 1;
+      H.next -= dt;
+      if (H.next <= 0 && active < max && !me.finished && !me.busted) {
+        var first = !H.started; H.started = true; spawnCop(R, !first && R.pol.n % 3 === 2); H.next = first ? 2.5 : 7 + Math.random() * 5;
+        if (first) { spawnCop(R, false); hudMsg(0, 'POLICE PURSUIT<small>don\'t let them box you in</small>', 'warn', 2.6); musicStart('pursuit'); }
+      }
+      if (!H.block && lap === R.laps && !me.finished && R.laps > 1) { roadblock(R); hudMsg(0, 'ROADBLOCK AHEAD<small>find the gap</small>', 'warn', 2.4); }
+      if (H.block && !H.block.done && wrapD(me.s - H.block.s, TR.L) > 260) { H.block.cars.forEach(function (c) { c.gone = true; c.mesh.visible = false; c.d = 30; }); H.block.done = true; }
+      if (H.over === 'busted') { H.overT += dt; if (H.overT > 3 && !R.done) { R.done = true; showResults(); } }
     }
-    if (!H.block && lap === R.laps && !me.finished && R.laps > 1) { roadblock(R); hudMsg(0, 'ROADBLOCK AHEAD<small>find the gap</small>', 'warn', 2.4); }
-    // wrecked cruisers clear away after a while
     R.cars.forEach(function (c) {
       if (c.wrecked && !c.gone) { c.wreckT += dt; if (c.smoke) c.smoke.material.opacity = 0.5 * (1 - c.wreckT / 8); if (c.wreckT > 8) { c.gone = true; c.mesh.visible = false; c.s = (c.s + TR.L / 2) % TR.L; c.d = 30; } }
     });
-    if (H.block && wrapD(me.s - H.block.s, TR.L) > 260) { H.block.cars.forEach(function (c) { c.gone = true; c.mesh.visible = false; c.d = 30; }); H.block.done = true; }
-    // siren: the nearest working cruiser
-    var dmin = 1e9; R.cars.forEach(function (c) { if (c.cop && !c.wrecked && !c.gone) dmin = Math.min(dmin, Math.hypot(wrapD(c.s - me.s, TR.L), c.d - me.d)); });
+    // siren: the nearest cruiser with its lights on
+    var dmin = 1e9; R.cars.forEach(function (c) { if (c.cop && c.cop.on && !c.wrecked && !c.gone) dmin = Math.min(dmin, Math.hypot(wrapD(c.s - me.s, TR.L), c.d - me.d)); });
     if (!R.siren && AC && dmin < 400) R.siren = Siren();
     if (R.siren) R.siren.set(me.busted || me.finished ? 400 : dmin, dt);
-    if (H.over === 'busted') { H.overT += dt; if (H.overT > 3 && !R.done) { R.done = true; showResults(); } }
+  }
+  // for the HUD: who's on you, how close, and whether a patrol is coming up
+  function policeRadar(R, c) {
+    var TR = R.TR, on = 0, near = 1e9, ahead = 1e9;
+    R.cars.forEach(function (o) {
+      if (!o.cop || o.gone || o.wrecked || o.block) return;
+      var ds = wrapD(o.s - c.s, TR.L);
+      if (o.cop.mode === 'chase' && o.cop.tgt === c) { on++; near = Math.min(near, Math.hypot(ds, o.d - c.d)); }
+      else if (o.cop.mode === 'patrol' && ds > 0 && ds < ahead) ahead = ds;
+    });
+    return { on: on, near: near, ahead: ahead };
   }
 
   /* ════════════════ WORLD + RACE ════════════════ */
@@ -2384,6 +2710,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     LAST = { type: type, def: def, opt: opt };
     endRace(true);
     var W = loadWorld(def), TR = W.TR, racers = [], humans = [];
+    TR.theme = def.theme;
     if (type === '2p') {
       [opt.c0 || SAVE.car, opt.c1 || SAVE.car].forEach(function (id, i) { var u = myCar(id), c = newCar(CAR[id], u, i === 1 && (opt.c0 === opt.c1) ? (u.paint + 2) % PAINTS.length : u.paint, 'Player ' + (i + 1), i); humans.push(c); });
     } else { var u0 = myCar(SAVE.car); humans.push(newCar(CAR[SAVE.car], u0, u0.paint, 'You', 0)); }
@@ -2413,12 +2740,17 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       var gd = lsj('nd_ghost_' + def.id);
       if (gd && gd.pts && gd.pts.length > 10) { ghost = { data: gd, mesh: makeCar(CAR[gd.car] || CAR.hatch, gd.paint, { ghost: true }) }; ghost.mesh.visible = false; W.S.scene.add(ghost.mesh); }
     }
-    var traffic = type === 'tt' ? 0 : type === 'gp' ? 1 : clamp(opt.traffic == null ? 1 : opt.traffic, 0, 2);
-    RACE = { type: type, def: def, TR: TR, W: W, cars: racers.slice(), racers: racers, humans: humans, laps: opt.laps || def.laps, t: -3.6, state: 'count', ev: [], wait: 0, ghost: ghost, rec: [], recT: 0, msgs: [], cd: 4, done: false, diff: D, traffic: [], tl: null };
+    var traffic = type === 'tt' ? 0 : type === 'gp' ? 2 : clamp(opt.traffic == null ? 1 : opt.traffic, 0, 3);
+    // police: patrols in every race (heavier in Free Race if you ask for it), patrols plus units from behind in Hot Pursuit
+    var police = type === 'gp' ? 1 : type === 'free' ? clamp(opt.police == null ? 1 : opt.police, 0, 2) : type === 'hp' ? 2 : type === '2p' ? clamp(opt.police || 0, 0, 2) : 0;
+    RACE = { type: type, def: def, TR: TR, W: W, cars: racers.slice(), racers: racers, humans: humans, laps: opt.laps || def.laps, t: -3.6, state: 'count', ev: [], wait: 0, ghost: ghost, rec: [], recT: 0, msgs: [], cd: 4, done: false, diff: D, traffic: [], tl: null, slow: 0 };
+    RACE.bonus = humans.map(function () { return { cash: 0, nm: 0, combo: 0, comboT: 0, td: 0, ctd: 0, wrecks: 0, esc: 0, pulled: 0 }; });
     RACE.traffic = makeTraffic(RACE, traffic); RACE.tl = trafficLights(RACE);
-    if (type === 'hp') RACE.hp = { heat: 1, next: 5, n: 0, t: 0, takedowns: 0, cash: 0, block: null, over: null };
+    if (type === 'hp') RACE.hp = { heat: 1, next: 5, t: 0, takedowns: 0, block: null, over: null, started: false };
+    setupPolice(RACE, police);
+    RACE.sparks = makeSparks(RACE);
     humans.forEach(function (h, i) { h.eng = Engine(humans.length > 1 ? (i ? 0.45 : -0.45) : 0); h.cam = CAMS[i]; h.cam.userData = {}; placeCar(h, TR); updateCam(h.cam, h, TR, 0.016, SET.cam, true); });
-    racers.forEach(function (c) { placeCar(c, TR); });
+    RACE.cars.forEach(function (c) { placeCar(c, TR); });
     RACE.traffic.forEach(function (t) { placeCar(t, TR); }); updateTrafficLights(RACE);
     buildHud();
     STATE = 'race'; UI.hideAll();
@@ -2433,6 +2765,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     RACE.humans.forEach(function (h) { if (h.eng) h.eng.stop(); });
     RACE.cars.concat(RACE.traffic || []).forEach(function (c) { if (c.mesh) { RACE.W.S.scene.remove(c.mesh); c.mesh.traverse(function (o) { if (o.geometry && !o.geometry.keep) o.geometry.dispose(); }); } });
     if (RACE.tl) [RACE.tl.head, RACE.tl.tail].forEach(function (p) { RACE.W.S.scene.remove(p); p.geometry.dispose(); });
+    if (RACE.sparks) { RACE.W.S.scene.remove(RACE.sparks.p); RACE.sparks.p.geometry.dispose(); }
     if (RACE.siren) RACE.siren.stop();
     if (RACE.ghost) RACE.W.S.scene.remove(RACE.ghost.mesh);
     RACE = null; $('hudWrap').innerHTML = ''; $('count').hidden = true; $('touch').hidden = true; $('split').hidden = true;
@@ -2444,16 +2777,17 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var wrap = $('hudWrap'); wrap.innerHTML = ''; HUDS = [];
     var split = RACE.humans.length > 1, tt = RACE.type === 'tt', hp = RACE.type === 'hp';
     RACE.humans.forEach(function (h, i) {
-      var d = document.createElement('div'); d.className = 'hud p' + i + (split ? ' split' : '');
+      var d = document.createElement('div'); d.className = 'hud p' + i + (split ? ' split' : '') + (hp ? ' hpm' : '');
       d.innerHTML = '<div class="tl">' + (tt ? '' : '<div class="pos"><b>-</b><small>/' + RACE.racers.length + '</small></div>') +
         '<div><div class="lap">LAP <b>1</b>/' + RACE.laps + '</div><div class="tm">TIME<b>0:00.00</b>BEST LAP <i>--</i></div></div></div>' +
         '<canvas class="map" width="150" height="150"></canvas>' +
         '<div class="spd"><b>0</b><small>' + (SET.units === 'kmh' ? 'KM/H' : 'MPH') + '</small><div class="nitro"><i></i></div><div class="nlbl">NITRO</div></div>' +
+        '<canvas class="streak"></canvas><div class="pol"><i></i><span></span></div><div class="pop"><b></b><small></small></div>' +
         '<div class="msg"></div>' + (split ? '<div class="tag" style="color:' + (i ? '#7fb2ff' : '#ffc98c') + '">P' + (i + 1) + '</div>' : '') +
-        (hp ? '<div class="hpb"><div class="heat">HEAT <b>1</b> · COPS <b>0</b> · TAKEDOWNS <b>0</b></div><div class="bm"><i></i></div><div class="bl">BUST</div></div>' : '') +
+        (hp || (RACE.pol && RACE.pol.level) ? '<div class="hpb' + (hp ? '' : ' race') + '"><div class="heat">HEAT <b>1</b> · COPS <b>0</b> · TAKEDOWNS <b>0</b></div><div class="bm"><i></i></div><div class="bl">' + (hp ? 'BUST' : 'PULL OVER') + '</div></div>' : '') +
         (i === 0 ? '<div class="card"><b>' + esc(RACE.def.place.toUpperCase()) + '</b><span>' + esc(RACE.def.name) + '</span></div>' : '');
       wrap.appendChild(d);
-      HUDS.push({ el: d, pos: d.querySelector('.pos b'), lap: d.querySelector('.lap b'), tm: d.querySelector('.tm b'), best: d.querySelector('.tm i'), spd: d.querySelector('.spd b'), nit: d.querySelector('.nitro'), nitI: d.querySelector('.nitro i'), msg: d.querySelector('.msg'), map: d.querySelector('.map'), card: d.querySelector('.card'), hpb: d.querySelector('.hpb'), heat: d.querySelectorAll('.heat b'), bm: d.querySelector('.bm i'), msgT: 0, last: {} });
+      HUDS.push({ el: d, pos: d.querySelector('.pos b'), lap: d.querySelector('.lap b'), tm: d.querySelector('.tm b'), best: d.querySelector('.tm i'), spd: d.querySelector('.spd b'), nit: d.querySelector('.nitro'), nitI: d.querySelector('.nitro i'), msg: d.querySelector('.msg'), map: d.querySelector('.map'), card: d.querySelector('.card'), pol: d.querySelector('.pol'), polT: d.querySelector('.pol span'), pop: d.querySelector('.pop'), popB: d.querySelector('.pop b'), popS: d.querySelector('.pop small'), popT: 0, streak: d.querySelector('.streak'), hpb: d.querySelector('.hpb'), heat: d.querySelectorAll('.heat b'), bm: d.querySelector('.bm i'), msgT: 0, last: {} });
     });
     // minimap path
     var TR = RACE.TR, bx = TR.box, sc = 130 / Math.max(bx[1] - bx[0], bx[3] - bx[2]);
@@ -2463,13 +2797,41 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     if (HUDS[0].card) setTimeout(function () { if (HUDS[0] && HUDS[0].card) HUDS[0].card.classList.add('on'); }, 300);
   }
   function hudMsg(i, html, cls, t) { var H = HUDS[i]; if (!H) return; H.msg.innerHTML = html; H.msg.className = 'msg on ' + (cls || ''); H.msgT = t || 2; }
+  // small pop-ups under the centre line (near misses and the like), so they never fight the big messages
+  function popMsg(i, title, sub) { var H = HUDS[i]; if (!H) return; H.popB.textContent = title; H.popS.textContent = sub || ''; H.pop.classList.remove('on'); void H.pop.offsetWidth; H.pop.classList.add('on'); H.popT = 1.4; }
+  // speed streaks: thin lines rushing past the edge of the frame when you're near the top end or on nitro
+  function drawStreaks(H, c) {
+    var cv = H.streak; if (!cv) return;
+    var w = cv.clientWidth, hh = cv.clientHeight; if (!w || !hh) return;
+    if (cv.width !== w || cv.height !== hh) { cv.width = w; cv.height = hh; }
+    var x = cv.getContext('2d'), k = clamp((Math.abs(c.v) / c.st.top - 0.8) / 0.2, 0, 1) * 0.55 + (c.boost ? 0.55 : 0) + (c.turbo > 0 ? 0.25 : 0);
+    x.clearRect(0, 0, w, hh); if (k < 0.04 || c.wreck) return;
+    var cx = w / 2, cy = hh * 0.52, R0 = Math.hypot(w, hh) / 2;
+    x.lineCap = 'round';
+    for (var i = 0; i < 26; i++) {
+      var a = Math.random() * Math.PI * 2, r0 = R0 * (0.45 + Math.random() * 0.5), len = (40 + Math.random() * 110) * k;
+      x.strokeStyle = 'rgba(' + (c.boost ? '190,215,255' : '255,240,225') + ',' + (0.1 + Math.random() * 0.25) * Math.min(1, k) + ')'; x.lineWidth = 1 + Math.random() * 1.6;
+      x.beginPath(); x.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0 * 0.75); x.lineTo(cx + Math.cos(a) * (r0 + len), cy + Math.sin(a) * (r0 + len) * 0.75); x.stroke();
+    }
+  }
   var hudTick = 0;
   function updateHud(dt) {
     hudTick += dt; var full = hudTick > 1 / 15; if (full) hudTick = 0;
     RACE.humans.forEach(function (h, i) {
       var H = HUDS[i]; if (!H) return;
       if (H.msgT > 0) { H.msgT -= dt; if (H.msgT <= 0) H.msg.className = 'msg'; }
+      if (H.popT > 0) { H.popT -= dt; if (H.popT <= 0) H.pop.classList.remove('on'); }
+      drawStreaks(H, h);
       if (!full) return;
+      // police radar: units on you (and how close), or a patrol coming up
+      if (RACE.pol && RACE.pol.level || RACE.hp) {
+        var rd = policeRadar(RACE, h), txt = '', cls = 'pol';
+        if (rd.on && !h.finished) { txt = (rd.on === 1 ? '1 UNIT ON YOU' : rd.on + ' UNITS ON YOU') + ' · ' + Math.round(rd.near) + ' M'; cls += ' on' + (rd.near < 30 ? ' close' : ''); }
+        else if (rd.ahead < 320 && !h.finished) { txt = 'POLICE AHEAD · ' + Math.round(rd.ahead) + ' M'; cls += ' ahead'; }
+        if (H.last.pol !== txt) { H.polT.textContent = txt; H.last.pol = txt; }
+        if (H.pol.className !== cls) H.pol.className = cls;
+        H.el.classList.toggle('copsclose', rd.on > 0 && rd.near < 26 && !h.finished);
+      }
       var spd = Math.round(Math.abs(h.v) * (SET.units === 'kmh' ? 3.6 : 2.237));
       if (H.last.spd !== spd) { H.spd.textContent = spd; H.last.spd = spd; }
       if (H.pos && H.last.pos !== h.place) { H.pos.textContent = h.place || '-'; H.last.pos = h.place; }
@@ -2482,10 +2844,11 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       var x = H.map.getContext('2d'); x.clearRect(0, 0, 150, 150);
       x.lineJoin = 'round'; x.strokeStyle = 'rgba(0,0,0,.55)'; x.lineWidth = 7; x.stroke(RACE.mapPath); x.strokeStyle = 'rgba(255,240,220,.85)'; x.lineWidth = 3; x.stroke(RACE.mapPath);
       var blink = Math.floor(performance.now() / 180) % 2;
-      RACE.cars.forEach(function (c) { if (c.gone || (c.block && RACE.hp && RACE.hp.block && RACE.hp.block.done)) return; var q = RACE.mapF(c.mesh.position.x, c.mesh.position.z); x.fillStyle = c.cop ? (c.wrecked ? '#555' : blink ? '#ff3a4a' : '#4a7aff') : c.busted ? '#666' : c.human === 0 ? '#ffc98c' : c.human === 1 ? '#7fb2ff' : '#d8dce8'; x.beginPath(); x.arc(q[0], q[1], c.human != null ? 5 : c.cop ? 3.6 : 3.2, 0, 7); x.fill(); if (c === h) { x.strokeStyle = '#000'; x.lineWidth = 1.5; x.stroke(); } });
+      RACE.cars.forEach(function (c) { if (c.gone || (c.block && RACE.hp && RACE.hp.block && RACE.hp.block.done)) return; var q = RACE.mapF(c.mesh.position.x, c.mesh.position.z); x.fillStyle = c.cop ? (c.wrecked ? '#555' : !c.cop.on ? 'rgba(140,160,210,.75)' : blink ? '#ff3a4a' : '#4a7aff') : c.busted ? '#666' : c.human === 0 ? '#ffc98c' : c.human === 1 ? '#7fb2ff' : '#d8dce8'; x.beginPath(); x.arc(q[0], q[1], c.human != null ? 5 : c.cop ? 3.6 : 3.2, 0, 7); x.fill(); if (c === h) { x.strokeStyle = '#000'; x.lineWidth = 1.5; x.stroke(); } });
       if (H.hpb) {
-        var Hp = RACE.hp, cops = RACE.cars.filter(function (c) { return c.cop && !c.block && !c.wrecked && !c.gone; }).length, vals = [Hp.heat, cops, Hp.takedowns];
-        for (var k = 0; k < 3; k++) if (H.heat[k].textContent !== String(vals[k])) H.heat[k].textContent = vals[k];
+        var Hp = RACE.hp;
+        if (Hp) { var cops = RACE.cars.filter(function (c) { return c.cop && c.cop.mode === 'chase' && !c.wrecked && !c.gone; }).length, vals = [Hp.heat, cops, Hp.takedowns]; for (var k = 0; k < 3; k++) if (H.heat[k].textContent !== String(vals[k])) H.heat[k].textContent = vals[k]; }
+        else H.hpb.classList.toggle('show', (h.bust || 0) > 0.01 || H.last.pol && /ON YOU/.test(H.last.pol));
         H.bm.style.width = ((h.bust || 0) * 100).toFixed(1) + '%'; H.hpb.classList.toggle('hot', (h.bust || 0) > 0.02);
       }
       if (RACE.ghost && RACE.ghost.mesh.visible) { var g = RACE.mapF(RACE.ghost.mesh.position.x, RACE.ghost.mesh.position.z); x.fillStyle = 'rgba(207,227,255,.6)'; x.beginPath(); x.arc(g[0], g[1], 3.5, 0, 7); x.fill(); }
@@ -2496,6 +2859,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   /* ── one frame of racing ── */
   function updateRace(dt) {
     var R = RACE, TR = R.TR;
+    if (R.slow > 0) { R.slow -= dt; dt *= 0.3; }   // slow motion for your own wreck
     // humans: read input (engines rev on the grid too)
     R.humans.forEach(function (h, i) { if (!h.finished && !h.busted && !AUTO) h.inp = humanInput(i, R.humans.length); });
     if (R.state === 'count') {
@@ -2507,10 +2871,11 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     if (R.state === 'run') {
       var steps = Math.min(8, Math.ceil(dt * 120)), h = dt / steps;
       for (var k = 0; k < steps; k++) {
-        R.t += h;
+        R.t += h; TR.now = R.t;
         for (var i = 0; i < R.cars.length; i++) {
           var c = R.cars[i];
           if (c.gone || c.block) continue;
+          if (c.wreck) { wreckStep(R, c, h); continue; }
           if (c.busted) { c.v *= Math.max(0, 1 - 4 * h); c.inp.thr = 0; c.inp.brk = 1; }
           else if (c.wrecked) { c.inp.thr = 0; c.inp.brk = 0.5; c.inp.steer = 0; }
           else if (c.cop) copDrive(c, R, h);
@@ -2520,7 +2885,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
         if (R.traffic.length) stepTraffic(R, h);
         collide(R.cars, TR, R.ev);
         if (R.traffic.length) collideTraffic(R, R.ev);
-        if (R.hp) pursuitStep(R, h);
+        policeStep(R, h);
         for (i = 0; i < R.racers.length; i++) lapCheck(R.racers[i]);
       }
       // ghost recording and playback
@@ -2545,12 +2910,16 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
         var lead = Math.max.apply(null, R.humans.map(function (h) { return h.total; }));
         R.racers.forEach(function (c) { if (c.human != null && !c.finished) return; if (c.human != null) { c.rub = 1; return; } var gap = c.total - lead; c.rub = gap > 60 ? 1 - Math.min(0.1, (gap - 60) / 1400) : gap < -60 ? 1 + Math.min(0.07, (-gap - 60) / 1400) : 1; });
         // cruisers close in hard from far back, then match pace
-        R.cars.forEach(function (c) { if (!c.cop || c.block || !c.cop.tgt) return; var g = wrapD(c.cop.tgt.s - c.s, TR.L); c.rub = g > 60 ? 1 + Math.min(0.14, (g - 60) / 500) : 1.02; });
+        R.cars.forEach(function (c) { if (!c.cop || c.block) return; if (c.cop.mode !== 'chase' || !c.cop.tgt) { c.rub = 1; return; } var g = wrapD(c.cop.tgt.s - c.s, TR.L); c.rub = g > 60 ? 1 + Math.min(0.12, (g - 60) / 600) : 1.02; });
       }
       // events
       R.ev.forEach(function (e) {
         var c = e[1], hi = c.human;
         if (c.cop && e[0] === 'hit') c.dmg = (c.dmg || 0) + e[2] * 2.5;
+        if (e[0] === 'wreck') { startWreck(R, c, e[2], e[3]); return; }
+        if (e[0] === 'spark') { emitSparks(R, c, Math.min(26, 4 + e[2]), Math.min(1.5, e[2] / 14)); if (e[3]) emitSparks(R, e[3], 3, 0.6); return; }
+        if (e[0] === 'scrape') { emitSparks(R, c, 3, 0.6); sfx('scrape', 0.6); return; }
+        if (e[0] === 'pit') { if (hi != null) { hudMsg(hi, 'SPUN OUT<small>PIT maneuver</small>', 'warn', 1.4); sfx('crash', 0.7); c.cam.userData.shake = 0.6; } emitSparks(R, c, 14, 1); return; }
         if (hi == null) return;
         if (e[0] === 'hit') { sfx('hit', clamp(e[2] / 12, 0.3, 1)); c.cam.userData.shake = Math.min(0.5, e[2] / 30); }
         else if (e[0] === 'crash') { sfx('crash', clamp(e[2] / 25, 0.5, 1)); c.cam.userData.shake = Math.min(0.8, e[2] / 25); }
@@ -2560,7 +2929,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       });
       R.ev.length = 0;
       R.humans.forEach(function (h, i) { if (!h.finished && !h.busted && Math.abs(h.yaw) > 1.8 && h.v > 3) hudMsg(i, 'WRONG WAY', 'warn', 0.3); });
-      if (R.hp) pursuitTick(R, dt);
+      policeTick(R, dt);
+      if (R.traffic.length) nearMisses(R, dt);
       // the end
       if (R.humans.every(function (h) { return h.finished; })) {
         R.wait += dt;
@@ -2569,11 +2939,15 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     }
     // place everything and drive the cameras / engines
     var now = performance.now() / 1000;
-    for (var j = 0; j < R.cars.length; j++) { var cc = R.cars[j]; if (cc.gone) continue; placeCar(cc, TR); setLights(cc, cc.inp.brk > 0.1 && cc.v > 1); if (cc.cop) flashBar(cc.mesh.userData.fx, now + j * 0.13); }
+    for (var j = 0; j < R.cars.length; j++) {
+      var cc = R.cars[j]; if (cc.gone) continue; placeCar(cc, TR); wreckPose(cc); setLights(cc, cc.inp.brk > 0.1 && cc.v > 1);
+      if (cc.cop) { var bfx = cc.mesh.userData.fx; if (bfx.bar) bfx.bar.on = (cc.cop.on || cc.block) && !cc.wrecked; flashBar(bfx, now + j * 0.13); }
+    }
+    stepSparks(R, dt);
     for (j = 0; j < R.traffic.length; j++) placeCar(R.traffic[j], TR);
     updateTrafficLights(R);
     R.humans.forEach(function (hh) {
-      updateCam(hh.cam, hh, TR, dt, SET.cam);
+      if (hh.wreck) crashCam(hh.cam, hh, dt); else updateCam(hh.cam, hh, TR, dt, SET.cam);
       if (hh.eng) {
         var v = Math.abs(hh.v), top = hh.st.top, G = [0, .2, .36, .52, .68, .84, 1.3], g = 1; while (g < G.length - 1 && v > G[g] * top) g++;
         var rpm = R.state === 'count' ? 0.12 + hh.inp.thr * 0.7 : clamp((v - G[g - 1] * top) / ((G[g] - G[g - 1]) * top), 0, 1) * 0.8 + 0.18;
@@ -2633,10 +3007,12 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       var t = c.finished ? c.finishT : R.t + (R.laps * R.TR.L - c.total) / Math.max(20, c.st.top * 0.8);
       return { c: c, t: t, est: !c.finished, bust: !!c.busted };
     }).sort(function (a, b) { if (a.bust !== b.bust) return a.bust ? 1 : -1; return a.t - b.t; });
-    var place = rows.findIndex(function (r) { return r.c === you; }) + 1, prize = 0, note = '', big = '';
+    var place = rows.findIndex(function (r) { return r.c === you; }) + 1, prize = 0, note = '', big = '', B = R.bonus && R.bonus[0];
+    // the street: near misses, takedowns and escapes pay on top of the finish (busted in Hot Pursuit keeps half)
+    var street = B ? B.cash : 0, streetNote = B && (B.nm || B.td || B.ctd || B.esc) ? ['near misses ' + B.nm, 'takedowns ' + (B.td + B.ctd), B.esc ? 'escapes ' + B.esc : ''].filter(Boolean).join(' · ') : '';
     function pay(pl, mul) { return Math.round((PAYOUT[pl - 1] || 600) * def.pay * mul / 100) * 100; }
     if (R.type === 'gp') {
-      prize = pay(place, 1); addCash(prize);
+      prize = pay(place, 1) + street; addCash(prize);
       SAVE.races++; if (place === 1) SAVE.wins++;
       if (!SAVE.podiums[def.id] || place < SAVE.podiums[def.id]) SAVE.podiums[def.id] = place;
       if (place <= 3 && idx + 2 > SAVE.unlocked && idx + 1 < TRACKS.length) { SAVE.unlocked = idx + 2; note = 'Drive ' + TRACKS[idx + 1].ep + ' is open: ' + TRACKS[idx + 1].name + ', ' + TRACKS[idx + 1].place + '.'; }
@@ -2645,14 +3021,14 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       big = place === 1 ? 'You win' : place === 2 ? '2nd place' : place === 3 ? '3rd place' : place + 'th place';
     } else if (R.type === 'free') {
       var n = R.racers.length;
-      if (n >= 4) { prize = pay(place, R.diff.pay * 0.5 * R.laps / 3); addCash(prize); }
+      prize = (n >= 4 ? pay(place, R.diff.pay * 0.5 * R.laps / 3) : 0) + street; if (prize) addCash(prize);
       big = n < 2 ? 'Free drive' : place === 1 ? 'You win' : place === 2 ? '2nd place' : place === 3 ? '3rd place' : place + 'th place';
       note = R.diff.n + ' · ' + R.laps + ' lap' + (R.laps === 1 ? '' : 's') + ' · traffic ' + ['off', 'light', 'heavy'][LAST.opt.traffic == null ? 1 : LAST.opt.traffic] + (n < 4 ? ' · race 3 or more rivals for prize money' : '');
     } else if (R.type === 'hp') {
       var H = R.hp, busted = !!you.busted;
-      prize = (busted ? 0 : pay(place, 0.8)) + (busted ? H.takedowns * 500 : H.cash); if (prize) addCash(prize);
+      prize = (busted ? 0 : pay(place, 0.8)) + (busted ? Math.round(street / 200) * 100 : street); if (prize) addCash(prize);
       big = busted ? 'Busted' : place === 1 ? 'You got away · 1st' : 'You got away · ' + (place === 2 ? '2nd' : place === 3 ? '3rd' : place + 'th');
-      note = 'Takedowns: ' + H.takedowns + ' · heat ' + H.heat + (busted ? ' · takedowns still pay $500 each' : '');
+      note = 'Cop takedowns: ' + H.takedowns + ' · heat ' + H.heat + (busted ? ' · busted: you keep half your street cash' : '');
     } else if (R.type === 'tt') {
       var bestLap = Math.min.apply(null, you.lapTimes), rec = SAVE.laps[def.id] === Math.round(bestLap * 1000);
       prize = 400 + (rec ? 1500 : 0); addCash(prize);
@@ -2668,6 +3044,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       ? you.lapTimes.map(function (t, i) { return '<tr' + (t === you.best ? ' class="you"' : '') + '><td>' + (i + 1) + '</td><td>Lap ' + (i + 1) + '</td><td class="r">' + fmtT(t * 1000) + '</td></tr>'; }).join('')
       : rows.map(function (r, i) { return '<tr' + (r.c.human != null ? ' class="you"' : '') + '><td>' + (r.bust ? '–' : i + 1) + '</td><td>' + esc(r.c.name) + '<small>' + esc(r.c.def.name) + '</small></td><td class="r">' + (r.bust ? 'BUSTED' : (r.est ? '+' : '') + fmtT(r.t * 1000)) + '</td></tr>'; }).join('');
     $('rPrize').textContent = prize ? '+ ' + money(prize) : '';
+    if (streetNote && R.type !== 'tt' && R.type !== '2p') note = (note ? note + ' · ' : '') + streetNote + (street ? ' (+ ' + money(street) + ')' : '');
     $('rNote').textContent = note;
     var btns = [];
     if (R.type === 'gp' && place <= 3 && idx + 1 < TRACKS.length) btns.push('<button class="mi" type="button" data-r="next">Next drive ▶</button>');
@@ -2836,9 +3213,9 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   function setBg(path) { if (bgNow === path) return; bgNow = path; var u = 'url("' + artUrl(path, 1920) + '")'; $('bg').style.backgroundImage = u; $('bg').firstElementChild.style.backgroundImage = u; }
   var MODE_TITLE = { gp: 'Grand Prix', free: 'Free Race', hp: 'Hot Pursuit', tt: 'Time Trial', '2p': '2 Players' };
   var MODE_SUB = {
-    gp: 'Six drives against five rivals, with traffic on the road. Finish in the top 3 to open the next drive.',
-    free: 'Every drive is open. Pick one, then set the laps, rivals, difficulty and traffic.',
-    hp: 'Every drive is open. Race your rivals while the police try to box you in. Escape and get paid.',
+    gp: 'Six drives against five rivals, in traffic, with patrols on the road. Finish in the top 3 to open the next drive.',
+    free: 'Every drive is open. Pick one, then set the laps, rivals, difficulty, traffic and police.',
+    hp: 'Every drive is open. Race your rivals while the police ram, PIT and box you in. Escape and get paid.',
     tt: 'Three laps on your own against your ghost. Best laps go on the leaderboard.',
     '2p': 'Every drive is open in 2-player.'
   };
@@ -2853,24 +3230,25 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
         (locked ? '<div class="lock"><div><b>🔒</b>Finish top 3 on<br>' + esc(TRACKS[i - 1].name) + '</div></div>' : '') + '</button>';
     }).join('');
   }
-  var TRAFFIC_N = ['Off', 'Light', 'Heavy'];
+  var TRAFFIC_N = ['Off', 'Light', 'Heavy', 'Rush hour'], POLICE_N = ['Off', 'Patrols', 'Heavy'];
   function frOpts() { return UI.mode === 'hp' ? UI.hpo : FREE; }
   function renderFree() {
     var hp = UI.mode === 'hp', o = frOpts(), d = UI.fr;
     $('frTitle').textContent = MODE_TITLE[UI.mode];
     $('frSub').textContent = d ? 'Drive ' + d.ep + ' · ' + d.name + ' · ' + d.place : '';
     $('frLaps').textContent = o.laps; $('frRivals').textContent = o.rivals; $('frTraffic').textContent = TRAFFIC_N[o.traffic];
+    $('frPolRow').hidden = hp; $('frPolice').textContent = POLICE_N[FREE.police == null ? 1 : FREE.police];
     $('frDiffRow').hidden = hp; $('frDiff').textContent = DIFFS[FREE.diff].n;
     $('frGo').textContent = hp ? 'Start the run ▶' : 'Race ▶';
-    $('frHint').innerHTML = hp ? 'Cruisers join a few seconds after the start and more come every lap, with a roadblock on the last one.<br>A cruiser on your bumper while you\'re slow fills the bust meter. Ram them hard for a takedown ($1,000 each).'
-      : 'Prize money with 3 or more rivals, scaled by difficulty and laps. Lap records count on every drive.';
+    $('frHint').innerHTML = hp ? 'Patrols wait along the road and units chase from behind, more every lap: interceptors from heat 3, a roadblock on the last lap.<br>They ram, PIT and box you in. Slow down with one on you and you\'re busted. Wreck them for $1,000 each.'
+      : 'Prize money with 3 or more rivals, scaled by difficulty and laps. Near misses, takedowns and losing the cops pay on top.<br>Fly past a patrol and it comes after you. Get pulled over and you lose 4 seconds.';
   }
   function ownedList() { return CARS.filter(function (c) { return owned(c.id); }).map(function (c) { return c.id; }); }
   function render2P() {
     var l = ownedList(), P = UI.p2; if (!P.c0 || l.indexOf(P.c0) < 0) P.c0 = SAVE.car; if (!P.c1 || l.indexOf(P.c1) < 0) P.c1 = SAVE.car;
     $('p2Sub').textContent = P.def ? 'Drive ' + P.def.ep + ' · ' + P.def.name + ' · ' + P.def.place : '';
     $('p2c0').innerHTML = '<span style="color:#ffc98c">P1</span> · ' + esc(CAR[P.c0].name); $('p2c1').innerHTML = '<span style="color:#7fb2ff">P2</span> · ' + esc(CAR[P.c1].name);
-    $('p2ai').textContent = P.ai ? '4' : 'Off'; $('p2laps').textContent = P.laps; $('p2tr').textContent = TRAFFIC_N[P.traffic || 0];
+    $('p2ai').textContent = P.ai ? '4' : 'Off'; $('p2laps').textContent = P.laps; $('p2tr').textContent = TRAFFIC_N[P.traffic || 0]; $('p2pol').textContent = POLICE_N[P.police || 0];
   }
   function renderSettings() {
     var s = $('sSettings');
@@ -2907,16 +3285,16 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     }
     if ((d = b.dataset.p2)) {
       var P = UI.p2, l = ownedList();
-      if (d === 'go') { sfx('ok'); startRace('2p', P.def, { c0: P.c0, c1: P.c1, ai: P.ai, laps: P.laps, traffic: P.traffic || 0 }); return; }
-      if (d === 'ai') P.ai = !P.ai; else if (d === 'laps') P.laps = P.laps >= 5 ? 1 : P.laps + 1; else if (d === 'traffic') P.traffic = ((P.traffic || 0) + 1) % 3;
+      if (d === 'go') { sfx('ok'); startRace('2p', P.def, { c0: P.c0, c1: P.c1, ai: P.ai, laps: P.laps, traffic: P.traffic || 0, police: P.police || 0 }); return; }
+      if (d === 'ai') P.ai = !P.ai; else if (d === 'laps') P.laps = P.laps >= 5 ? 1 : P.laps + 1; else if (d === 'traffic') P.traffic = ((P.traffic || 0) + 1) % 4; else if (d === 'police') P.police = ((P.police || 0) + 1) % 3;
       else { var k = d.split(':'), key = k[0] === 'car0' ? 'c0' : 'c1'; P[key] = l[(l.indexOf(P[key]) + (+k[1]) + l.length) % l.length]; }
       sfx('move'); render2P(); return;
     }
     if ((d = b.dataset.fr)) {
       var o = frOpts(), hpm = UI.mode === 'hp';
-      if (d === 'go') { sfx('ok'); startRace(UI.mode, UI.fr, { laps: o.laps, rivals: o.rivals, traffic: o.traffic, diff: FREE.diff }); return; }
-      var kv = d.split(':'), key = kv[0], dv = +kv[1], lim = { laps: [1, hpm ? 5 : 9], rivals: [0, hpm ? 5 : 7], traffic: [0, 2], diff: [0, 3] }[key];
-      if (key === 'diff') FREE.diff = clamp(FREE.diff + dv, lim[0], lim[1]); else o[key] = clamp(o[key] + dv, lim[0], lim[1]);
+      if (d === 'go') { sfx('ok'); startRace(UI.mode, UI.fr, { laps: o.laps, rivals: o.rivals, traffic: o.traffic, diff: FREE.diff, police: FREE.police == null ? 1 : FREE.police }); return; }
+      var kv = d.split(':'), key = kv[0], dv = +kv[1], lim = { laps: [1, hpm ? 5 : 9], rivals: [0, hpm ? 5 : 7], traffic: [0, 3], diff: [0, 3], police: [0, 2] }[key];
+      if (key === 'diff' || key === 'police') FREE[key] = clamp((FREE[key] == null ? 1 : FREE[key]) + dv, lim[0], lim[1]); else o[key] = clamp(o[key] + dv, lim[0], lim[1]);
       saveFree(); sfx('move'); renderFree(); return;
     }
     if ((d = b.dataset.set)) {
@@ -2964,7 +3342,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var c = CARS[UI.gsel], own = owned(c.id), u = myCar(c.id), s0 = stats(c, {}), s1 = stats(c, own ? u : {});
     $('gCars').innerHTML = CARS.map(function (k, i) { return '<button class="gc' + (i === UI.gsel ? ' sel' : '') + (k.id === SAVE.car ? ' cur' : '') + '" type="button" data-gc="' + i + '">' + esc(k.name.split(' ')[0]) + '<small>' + (owned(k.id) ? (k.id === SAVE.car ? 'Driving' : 'Owned') : money(k.price)) + '</small></button>'; }).join('');
     $('gName').textContent = c.name; $('gKind').textContent = c.kind;
-    $('gStats').innerHTML = bar('SPEED', s0.top, s1.top, 50, 82) + bar('ACCEL', s0.acc, s1.acc, 10, 22) + bar('GRIP', s0.grip, s1.grip, 0.9, 1.35) + bar('NITRO', s0.cap, s1.cap, 2, 7);
+    var spd = Math.round(s1.top * (SET.units === 'kmh' ? 3.6 : 2.237)) + (SET.units === 'kmh' ? ' KM/H' : ' MPH');
+    $('gStats').innerHTML = bar('SPEED · ' + spd, s0.top, s1.top, 40, 86) + bar('ACCEL', s0.acc, s1.acc, 10, 22) + bar('GRIP', s0.grip, s1.grip, 0.9, 1.35) + bar('NITRO', s0.cap, s1.cap, 2, 7);
     var h = '';
     if (own) {
       UPG.forEach(function (g) {
