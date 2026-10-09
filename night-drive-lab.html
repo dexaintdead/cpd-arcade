@@ -1652,10 +1652,18 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   function flashBar(fx, t) {
     var B = fx.bar; if (!B) return;
     if (!B.on) {
-      B.red.color.setHex(0x3a0a10); B.blue.color.setHex(0x0a1236); B.rs.visible = B.bs.visible = B.halo.visible = false; if (B.pool) B.pool.visible = false;
       if (fx.heads) fx.heads.forEach(function (sp) { sp.material.opacity = 0.8; });
+      if (B.idle) {   // on patrol: the bar glows steady and dim, with a slow blip, so you can pick a unit out from a distance
+        var blip = (t % 1.6) < 0.12, k = blip ? 1 : 0.55;
+        B.red.color.setHex(blip ? 0xff3040 : 0xa01828); B.blue.color.setHex(blip ? 0x4a7aff : 0x2040b0);
+        B.rs.visible = B.bs.visible = true; B.rs.material.opacity = B.bs.material.opacity = k; B.rs.scale.set(2.6, 2.6, 1); B.bs.scale.set(2.6, 2.6, 1);
+        B.halo.visible = blip; B.halo.material.color.setHex(0x8a50ff); if (B.pool) B.pool.visible = false;
+        return;
+      }
+      B.red.color.setHex(0x3a0a10); B.blue.color.setHex(0x0a1236); B.rs.visible = B.bs.visible = B.halo.visible = false; if (B.pool) B.pool.visible = false;
       return;
     }
+    B.rs.material.opacity = B.bs.material.opacity = 1; B.rs.scale.set(4.4, 4.4, 1); B.bs.scale.set(4.4, 4.4, 1);
     var ph = Math.floor(t * 10) % 8, redOn = ph === 0 || ph === 2, blueOn = ph === 4 || ph === 6;
     B.red.color.setHex(redOn ? 0xff3040 : 0x4a0a10); B.blue.color.setHex(blueOn ? 0x4a7aff : 0x0a1650);
     B.rs.visible = redOn; B.bs.visible = blueOn; B.halo.visible = redOn || blueOn; B.halo.material.color.setHex(redOn ? 0xff2030 : 0x2a5aff);
@@ -2941,7 +2949,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var now = performance.now() / 1000;
     for (var j = 0; j < R.cars.length; j++) {
       var cc = R.cars[j]; if (cc.gone) continue; placeCar(cc, TR); wreckPose(cc); setLights(cc, cc.inp.brk > 0.1 && cc.v > 1);
-      if (cc.cop) { var bfx = cc.mesh.userData.fx; if (bfx.bar) bfx.bar.on = (cc.cop.on || cc.block) && !cc.wrecked; flashBar(bfx, now + j * 0.13); }
+      if (cc.cop) { var bfx = cc.mesh.userData.fx; if (bfx.bar) { bfx.bar.on = (cc.cop.on || cc.block) && !cc.wrecked; bfx.bar.idle = !bfx.bar.on && !cc.wrecked && cc.cop.mode === 'patrol'; } flashBar(bfx, now + j * 0.13); }
     }
     stepSparks(R, dt);
     for (j = 0; j < R.traffic.length; j++) placeCar(R.traffic[j], TR);
