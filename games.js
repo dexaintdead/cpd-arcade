@@ -1,6 +1,6 @@
 /* ContentPad Arcade — the game catalog (build 2026100901-pp).
    House games live in this repo as <slug>.html at the top level and are listed here.
-   Only status:'live' entries are shown. rating marks adult games (the game itself runs its own age gate).
+   Only status:'live' entries are shown. noBoard: party games with no global leaderboard (play.html hides the card). rating marks adult games (the game itself runs its own age gate).
    landing: the brand landing page that wraps the game, if it has one (listed under "Brand pages").
    2026-10-07: Arcade HQ → Games can switch any game to live / hidden / off without touching this
    file (gate.js asks the API). status here only says whether the game exists in the Arcade at all. */
@@ -20,6 +20,7 @@ window.ARCADE_GAMES = [
     made: 'The cover and the cast avatars made in ContentPad Studio · the chats are from the Pregame Papers printable · code by Claude',
     scoreLabel: 'Leaks performed',
     quietSync: true,
+    noBoard: true,
     cover: 'https://arcade.contentpad.io/pp/cover-leaked.jpg',
     accent: '#C6FF3D',
     released: '2026-10-09',
@@ -42,6 +43,7 @@ window.ARCADE_GAMES = [
     made: 'The class mascot and cover made in ContentPad Studio · superlatives from the Pregame Papers printable · code by Claude',
     scoreLabel: 'Yearbooks made',
     quietSync: true,
+    noBoard: true,
     cover: 'https://arcade.contentpad.io/pp/cover-yearbook.jpg',
     accent: '#E8C463',
     released: '2026-10-09',

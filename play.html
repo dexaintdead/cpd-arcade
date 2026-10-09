@@ -43,7 +43,7 @@
 </div></footer>
 
 <script src="gamepad.js?v=1"></script>
-<script src="games.js?v=22"></script>
+<script src="games.js?v=23"></script>
 <script src="arcade.js?v=3"></script>
 <script src="account.js?v=7"></script>
 <script>
@@ -81,7 +81,7 @@
   function start() { if (started) return; started = true; where(); frame.src = src; }
   if (AC && AC.signedIn() && AC.sync) { setTimeout(start, 2500); Promise.resolve(AC.sync(g.slug)).then(start, start); } else start();
   if (AC) {
-    AC.online().then(function (on) { if (!on) return; document.getElementById('lbCard').hidden = false; lb = AC.board(document.getElementById('lb'), g.slug, { picker: true, limit: 10, prefix: g.scorePrefix }); });
+    AC.online().then(function (on) { if (!on || g.noBoard) return; document.getElementById('lbCard').hidden = false; lb = AC.board(document.getElementById('lb'), g.slug, { picker: true, limit: 10, prefix: g.scorePrefix }); });
     AC.onChange(function () { where(); if (lb) lb.refresh(); });
     // Whatever happened since the last push goes up when the page is left.
     addEventListener('pagehide', function () { if (AC.signedIn()) AC.sync(g.slug, '', { keepalive: true }); });
