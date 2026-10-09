@@ -15,7 +15,7 @@
 <meta name="theme-color" content="#16203A">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo+Black&family=Inter:wght@400;500;600;700;800&family=Permanent+Marker&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="pp/pp.css?v=1">
+<link rel="stylesheet" href="pp/pp.css?v=2">
 <style>
 body{background:var(--navy)}
 .scr{background:radial-gradient(ellipse at 30% 10%,#25345c 0,#16203A 55%,#0d1428 100%)}
@@ -27,6 +27,7 @@ body{background:var(--navy)}
 #title{text-align:center}
 #title .port{width:min(280px,62vw,34vh);aspect-ratio:836/830;border:7px solid var(--gold);border-radius:6px;background:url(pp/raccoon.webp) center/cover;box-shadow:0 10px 30px rgba(0,0,0,.5);margin:18px auto 0}
 .ribbon{display:inline-block;background:var(--red);color:#fff;font:400 clamp(18px,3.4vw,26px)/1 var(--A);letter-spacing:.06em;padding:10px 26px;transform:rotate(-2deg);box-shadow:0 6px 0 #7d0a1c;margin-top:-14px;position:relative}
+#title .menu .btn{white-space:normal;text-align:center;line-height:1.15;padding-top:8px;padding-bottom:8px}
 #title .menu{margin-top:24px;display:flex;flex-direction:column;gap:12px;width:min(380px,100%)}
 .btn{border-color:#0b1222;box-shadow:0 5px 0 #0b1222}
 .btn.pri{background:var(--gold)}
@@ -115,7 +116,7 @@ h2.hd{font:400 clamp(28px,5.4vw,46px)/1 var(--A);text-transform:uppercase;margin
   <div class="port"></div>
   <div class="ribbon">CLASS OF BAD DECISIONS</div>
   <div class="menu">
-    <button class="btn pri" data-nav id="tPlay">🎓 START THE YEARBOOK · 3–12 PLAYERS</button>
+    <button class="btn pri" data-nav id="tPlay">🎓 START · 3–12 PLAYERS</button>
     <button class="btn" data-nav id="tLast" hidden>📖 LAST YEARBOOK</button>
     <button class="btn ghost" data-nav id="tHow">HOW TO PLAY</button>
   </div>
