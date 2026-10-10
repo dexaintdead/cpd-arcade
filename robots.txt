@@ -1,0 +1,7 @@
+# ContentPad Arcade
+User-agent: *
+Allow: /
+Disallow: /night-drive-lab.html
+Disallow: /unavailable.html
+
+Sitemap: https://arcade.contentpad.io/sitemap.xml

@@ -1,0 +1,32 @@
+# ContentPad Arcade
+
+> The ContentPad Arcade (https://arcade.contentpad.io) is a free collection of original browser games made by ContentPad Studios, the in-house studio of ContentPad (https://contentpad.io). Every game runs in a web browser with nothing to install, plays with a keyboard or a standard USB/Bluetooth game controller, and most play on a phone. Players can sign in with an email code to save progress across devices and post to global leaderboards. Many games are made with brand partners.
+
+Key facts:
+- 10 live games as of 2026-10-10. All free. Adult games (18+ / 21+) ask the player's age first.
+- Art, characters, voices and music are made in ContentPad Studio; the code is written by Claude (Anthropic's AI).
+- Partners so far: Toy Tokyo (East Village collectibles shop), Oak Hill Farm (Holmdel, NJ), Dream Hospitality / Harbor NYC, Slapwoods, Pregame Papers.
+- Brands, shops, venues and creators can commission a game: support@contentpad.io.
+
+## Games
+- [Pregame Papers: Leaked](https://arcade.contentpad.io/games/pregame-leaked): The group chat party game: fill in the blanks blind, then read the leaked chat out loud. (21+)
+- [Pregame Papers: The Unhinged Yearbook](https://arcade.contentpad.io/games/pregame-yearbook): Vote your friends into superlatives, draw their yearbook photos and crown the Valedictorian of Bad Decisions. (21+)
+- [Oak Hill Farm: Farm Friends](https://arcade.contentpad.io/games/oak-hill-farm): A kids' farm game with the real animals of Oak Hill Farm in Holmdel, NJ: four seasons of chores, story levels and a coloring book.
+- [YESTERDAYLAND: Night Drive](https://arcade.contentpad.io/games/night-drive): A 3D 1980s night racer with six drives, an open-world city, drifting, slipstream and police chases.
+- [Gacha Rush: Toy Tokyo UFO Catcher](https://arcade.contentpad.io/games/toy-tokyo-catcher): A claw machine where every capsule is a real collectible from Toy Tokyo in the East Village, with a link to the real thing.
+- [Slappy Tha Bear: High Flying](https://arcade.contentpad.io/games/high-flying): A 3D rail shooter starring Slappy Tha Bear: three stages, bosses and twin-stick aiming. (21+)
+- [Dex Ain't Dead Casino](https://arcade.contentpad.io/games/dad-casino): Blackjack, baccarat, roulette, craps and a slot machine, dealt by Dex in his own voice. Play money only. (18+)
+- [Nightmare on 46th Street](https://arcade.contentpad.io/games/nightmare-on-46th): A fully voiced Halloween street fighter set at Harbor on West 46th Street in New York.
+- [Maverick: Skyline Dash](https://arcade.contentpad.io/games/skyline-dash): A rooftop skateboarding game with real kickflips, grabs, grinds and loops across eleven levels and Endless.
+- [Tre & Jada](https://arcade.contentpad.io/games/tre-and-jada): A fully voiced choose-your-path relationship comedy set in Brooklyn, with seven mini-games and nine endings. (18+)
+
+## Pages
+- [All games](https://arcade.contentpad.io/games/): the full list with descriptions.
+- [Arcade home](https://arcade.contentpad.io/): play any game; leaderboards.
+- [Toy Tokyo · Gacha World](https://arcade.contentpad.io/toytokyo.html): the Toy Tokyo brand page around Gacha Rush.
+- [Harbor NYC · Halloween](https://arcade.contentpad.io/nightmare.html): the Harbor brand page around Nightmare on 46th Street.
+- [Pregame Papers](https://arcade.contentpad.io/pregame-papers.html): the Pregame Papers brand page (Leaked, The Unhinged Yearbook).
+
+## Optional
+- [Full details for every game](https://arcade.contentpad.io/llms-full.txt): descriptions, controls and credits.
+- [ContentPad](https://contentpad.io/): the creative studio and platform behind the Arcade.

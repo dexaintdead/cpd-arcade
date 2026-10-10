@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url><loc>https://arcade.contentpad.io/</loc><lastmod>2026-10-10</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>
+  <url><loc>https://arcade.contentpad.io/games/</loc><lastmod>2026-10-10</lastmod><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://arcade.contentpad.io/games/pregame-leaked</loc><lastmod>2026-10-10</lastmod><changefreq>weekly</changefreq><priority>0.8</priority><image:image><image:loc>https://arcade.contentpad.io/shots/pregame-leaked-1.jpg</image:loc></image:image><image:image><image:loc>https://arcade.contentpad.io/shots/pregame-leaked-2.jpg</image:loc></image:image></url>
+  <url><loc>https://arcade.contentpad.io/games/pregame-yearbook</loc><lastmod>2026-10-10</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://arcade.contentpad.io/games/oak-hill-farm</loc><lastmod>2026-10-10</lastmod><changefreq>weekly</changefreq><priority>0.8</priority><image:image><image:loc>https://arcade.contentpad.io/shots/oak-hill-farm-1.jpg</image:loc></image:image></url>
+  <url><loc>https://arcade.contentpad.io/games/night-drive</loc><lastmod>2026-10-10</lastmod><changefreq>weekly</changefreq><priority>0.8</priority><image:image><image:loc>https://arcade.contentpad.io/shots/night-drive-1.jpg</image:loc></image:image><image:image><image:loc>https://arcade.contentpad.io/shots/night-drive-2.jpg</image:loc></image:image><image:image><image:loc>https://arcade.contentpad.io/shots/night-drive-3.jpg</image:loc></image:image><image:image><image:loc>https://arcade.contentpad.io/shots/night-drive-4.jpg</image:loc></image:image><image:image><image:loc>https://arcade.contentpad.io/shots/night-drive-5.jpg</image:loc></image:image></url>
+  <url><loc>https://arcade.contentpad.io/games/toy-tokyo-catcher</loc><lastmod>2026-10-10</lastmod><changefreq>weekly</changefreq><priority>0.8</priority><image:image><image:loc>https://arcade.contentpad.io/shots/toy-tokyo-catcher-1.jpg</image:loc></image:image></url>
+  <url><loc>https://arcade.contentpad.io/games/high-flying</loc><lastmod>2026-10-10</lastmod><changefreq>weekly</changefreq><priority>0.8</priority><image:image><image:loc>https://arcade.contentpad.io/shots/high-flying-1.jpg</image:loc></image:image></url>
+  <url><loc>https://arcade.contentpad.io/games/dad-casino</loc><lastmod>2026-10-10</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://arcade.contentpad.io/games/nightmare-on-46th</loc><lastmod>2026-10-10</lastmod><changefreq>weekly</changefreq><priority>0.8</priority><image:image><image:loc>https://arcade.contentpad.io/shots/nightmare-on-46th-1.jpg</image:loc></image:image></url>
+  <url><loc>https://arcade.contentpad.io/games/skyline-dash</loc><lastmod>2026-10-10</lastmod><changefreq>weekly</changefreq><priority>0.8</priority><image:image><image:loc>https://arcade.contentpad.io/shots/skyline-dash-1.jpg</image:loc></image:image></url>
+  <url><loc>https://arcade.contentpad.io/games/tre-and-jada</loc><lastmod>2026-10-10</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://arcade.contentpad.io/pregame-papers.html</loc><lastmod>2026-10-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://arcade.contentpad.io/toytokyo.html</loc><lastmod>2026-10-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://arcade.contentpad.io/nightmare.html</loc><lastmod>2026-10-10</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+</urlset>

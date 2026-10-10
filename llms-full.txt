@@ -1,0 +1,250 @@
+# ContentPad Arcade: full game details
+
+Source: https://arcade.contentpad.io · updated 2026-10-10. All games are free, run in a web browser, and play with a keyboard or a standard game controller. Play any game at https://arcade.contentpad.io/play.html?g=<slug>.
+
+## Pregame Papers: Leaked
+
+- Page: https://arcade.contentpad.io/games/pregame-leaked
+- Play: https://arcade.contentpad.io/play.html?g=pregame-leaked
+- Genre: Party · Rating: 21+
+- Players: 1 to 12 players (party mode 2 to 12, or solo)
+- Released: 2026-10-09
+- Made by: ContentPad Studios · Pregame Papers (partner: Pregame Papers)
+
+Somebody leaked the group chats. Fill the blanks blind, then perform them out loud.
+
+The Arcade twin of the printable Leaked book from Pregame Papers. Sixteen fake group chats, from Mom learning emojis and the 2:14 AM ex to the HOA, the fantasy league punishment vote and the wedding speech draft. Put it on the TV and add your friends: the game casts real people in the room as each role, then asks everyone in turn for words (a body part, a celebrity, a player's name) without showing the chat. Then the chat plays out bubble by bubble with typing dots, and each cast member reads their own lines. Turn on read-aloud if nobody is brave. Vote the funniest word Screenshot of the Night; whoever gave it gets a star, and the first to five wins. Solo mode chaos-fills the blanks from an unhinged word bank or lets you fill them yourself. Every chat saves as a screenshot for the real group chat. Crude adult humor. 21+.
+
+Controls:
+- Type / tap: Names and words
+- Space / Enter / (A) / tap the phone: Next message
+- 🎲 / X / (X): Random word
+- ← → ↑ ↓ / d-pad: Move between buttons
+- Esc / (B): Back
+- M: Sound
+
+Credits: The cover and the cast avatars made in ContentPad Studio · the chats are from the Pregame Papers printable · code by Claude.
+
+## Pregame Papers: The Unhinged Yearbook
+
+- Page: https://arcade.contentpad.io/games/pregame-yearbook
+- Play: https://arcade.contentpad.io/play.html?g=pregame-yearbook
+- Genre: Party · Rating: 21+
+- Players: 3 to 12 players
+- Released: 2026-10-09
+- Made by: ContentPad Studios · Pregame Papers (partner: Pregame Papers)
+
+Vote your friends into crude superlatives, draw their yearbook photo, crown the Valedictorian of Bad Decisions.
+
+The Arcade twin of the printable Unhinged Yearbook from Pregame Papers. Put it on the big screen and add the class. A superlative comes up (Most Likely to Sext Their Boss by Accident, Best Situationship, Most Likely to Get Banned From a 24-Hour Diner), the countdown hits 3, 2, 1, VOTE, and everyone points. Tap the winner; a tie means fifteen seconds each to argue why you don't deserve it. The player on the winner's left gets sixty seconds to draw their yearbook photo on screen with a finger, a mouse or a controller, and the winner gives a quote for the page. 44 superlatives plus write your own. Graduation crowns the Valedictorian of Bad Decisions, and the whole yearbook saves as one picture. Crude adult humor. 21+.
+
+Controls:
+- Type / tap: Names, write-ins and quotes
+- Tap / mouse / left stick + (A): Draw
+- X / (X): Next color
+- Y / (Y): Undo
+- ← → ↑ ↓ / d-pad: Move between buttons
+- Esc / (B): Back
+- M: Sound
+
+Credits: The class mascot and cover made in ContentPad Studio · superlatives from the Pregame Papers printable · code by Claude.
+
+## Oak Hill Farm: Farm Friends
+
+- Page: https://arcade.contentpad.io/games/oak-hill-farm
+- Play: https://arcade.contentpad.io/play.html?g=oak-hill-farm
+- Genre: Kids
+- Players: 1 or 2 players (one keyboard or two controllers)
+- Released: 2026-10-10
+- Made by: ContentPad Studios × Oak Hill Farm (partner: Oak Hill Farm)
+
+Four seasons of chores at Oak Hill Farm, plus story levels, bonus games and a coloring book. Make friends with every animal!
+
+Be a farmhand at Oak Hill Farm in Holmdel, New Jersey, and meet the real animals who live there: Boots the Clydesdale and Nugget, the mini ponies Brunello, Molly and Rosie, Cookie and Paris the mules, Charlotte and Penelope the donkeys, the Highland cows Prosciutto, Pearl, George and Hazel, Lola the Jersey cow, Mo, Larry and Curley the curly black-faced sheep, the blue-eyed goats Armani, Speckles and Kiwi, the alpacas Gaby, Bianca, Amina and Tracey, Peter the Peacock, Rodney the show rooster and the special chickens of the Chicken Dome. Travel the Farm Map through fall, winter, spring and summer: 32 story days of chores, from blankets and frozen troughs to planting the garden, building a snowman and cooling everyone off with the hose. In between are bonus games (Egg Catch, King of the Spools, Peter's Feather Match and Alpaca Spa) and story levels from the Oak Hill Farm mini books: The Great Pumpkin Roll, Rodney Oversleeps and Peekaboo, George! Every animal has friendship hearts: learn their favorite treat, dress them up with bows and hats, hear their secrets and become best friends. Color every page of the Oak Hill Farm coloring books right in the game, then save or print them. Play with a friend on one keyboard or two controllers, turn on read-aloud so little ones can play on their own, and look for the secret codes hidden in the coloring books and at the farm. No way to lose. Made for kids.
+
+Controls:
+- ← → ↑ ↓ / WASD / left stick / drag: Walk (or drive)
+- Space / Enter / (A) / yellow button: Pick up, feed, pet, pour · hold to brush, spray, rake or break ice
+- T / F / (X) / truck button: Hop in or out of the farm truck
+- 2 players: P1: WASD + Space, F truck · P2: arrows + Enter, / truck · or two controllers
+- 🏠 / H: Back to the Farm Map
+- L / (Y) / 📖: Farm Friends album
+- Esc / P / Start: Pause
+- M: Sound
+
+Credits: The animals, seasons and Farm Maps are drawn from the Oak Hill Farm coloring book and brought to life in color in ContentPad Studio, with the barn, the Chicken Dome and the blue farm truck · theme "Chore Day at Oak Hill" made in ContentPad · code by Claude.
+
+## YESTERDAYLAND: Night Drive
+
+- Page: https://arcade.contentpad.io/games/night-drive
+- Play: https://arcade.contentpad.io/play.html?g=night-drive
+- Genre: Racing
+- Players: 1 or 2 players (split screen)
+- Released: 2026-10-08
+- Made by: ContentPad Studios · YESTERDAYLAND
+
+Go back for a while. Six night drives and a whole city, 1984 to 1986. Race, drift, or outrun the police.
+
+A behind-the-car 3D racer set in YESTERDAYLAND, the show about places you remember and times you never actually lived, opening with a dreamlike intro film. Race six night drives: Sunset Boulevard in Los Angeles at dusk, 1985; the Southern California freeway at midnight, 1984; the desert Southwest, 1985; rainy Manhattan, 1984; Ocean Drive, Miami, 1986; and the Las Vegas Strip, 1986. Period traffic fills the roads, coming at you wherever there's a double yellow line. Grand Prix puts you against five rivals, and a top-3 finish opens the next drive. Free Race lets you pick any drive, the laps, the rivals, the difficulty and the traffic. Hot Pursuit sends black-and-white police cruisers after you: don't let them box you in, ram them for takedowns, and find the gap in the roadblock on the last lap. Time Trial races your own ghost for the lap-record boards. 2 Players splits the screen. Win cash, then buy and upgrade five original period cars in the Garage: engine, tires, nitro and paint. New: YESTERDAYLAND City, an open world that joins rainy Manhattan, the Las Vegas Strip, Sunset Boulevard and Ocean Drive into one street grid you can drive anywhere in, with checkpoint races where you pick your own way between the lights, free roam, traffic on every street and patrols. Tap the e-brake to kick the back out and hold the drift with steering and gas: the deeper and longer the drift, the faster your nitro fills. Tuck in behind any car to fill the slipstream meter, then pull out for a slingshot. Wet streets reflect the neon.
+
+Controls:
+- ↑ / W / RT / (A): Gas
+- ↓ / S / LT / (B): Brake and reverse
+- ← → / A D / left stick: Steer
+- Space / (X) (Y): Nitro
+- Shift / RB LB: E-brake: tap it with the wheel turned to start a drift, then hold it with steering and gas
+- C / Select: Camera
+- Esc / P / Start: Pause
+- M: Sound
+- Touch: Gas is automatic: slide to steer, Brake / Nitro / E-brake on the right
+
+Credits: Made in ContentPad Studio with the YESTERDAYLAND show bible: the intro film (Seedance 2.5), photo-skinned cars, police cruiser and traffic, building facades, track stills and horizons · music, sound and code by Claude.
+
+## Gacha Rush: Toy Tokyo UFO Catcher
+
+- Page: https://arcade.contentpad.io/games/toy-tokyo-catcher
+- Play: https://arcade.contentpad.io/play.html?g=toy-tokyo-catcher
+- Genre: Arcade
+- Players: 1 player
+- Released: 2026-10-07
+- Made by: ContentPad Studios × Toy Tokyo (partner: Toy Tokyo)
+
+Grab a capsule. Every one is a real Toy Tokyo pull, or crew.
+
+A claw machine stuffed with capsules from Toy Tokyo, the East Village collectibles shop at 91 Second Avenue. Aim the claw, drop it, and carry your capsule to the prize chute. Crack it open to find a real piece from the shop, from a $6 blind box up to a KAWS-tier grail, with a link to the real thing. You might also get one of the seven original crew stickers: MOKO, Oni-Bot, Kumo, Neko-naut, Daru-G, Hoshi and Kinoko. Grails slip, combos stack, and a full crew binder earns 5 bonus plays. Your binder is saved on this device.
+
+Controls:
+- ← → / A D / left stick / drag: Aim the claw
+- Space / Enter / ↓ / (A) / DROP: Drop the claw
+- B / (Y): Open your binder
+- M: Mute
+- Esc: Close a card
+
+Credits: Characters, art and the theme "Second Avenue Gacha" made in ContentPad Studio · products and photos courtesy of Toy Tokyo · code by Claude.
+
+## Slappy Tha Bear: High Flying
+
+- Page: https://arcade.contentpad.io/games/high-flying
+- Play: https://arcade.contentpad.io/play.html?g=high-flying
+- Genre: Shooter · Rating: 21+
+- Players: 1 player
+- Released: 2026-10-06
+- Made by: ContentPad Studios × Slapwoods (partner: Slapwoods)
+
+Slappy Tha Bear vs. the Buzzkill Armada. Pew pew pew. Blast your way to the top of the sky.
+
+Slappy the Bear, the Slapwoods mascot, straps into his orange starfighter to take the sky back from Baron Buzzkill and the Buzzkill Armada. A 3D rail shooter in the old-school space-fighter style: three stages, from a golden-hour sunset over H-Town, through the lightning of Thunder Canyon, up to the Stratosphere, with a boss gunship at the end of each and the Killjoy Dreadnought waiting at the top. Twin lasers, hold-to-charge lock-on shots, barrel rolls that knock enemy fire away, Slap Bombs, boost and brake. Upgrade from Natural lasers to Russian Cream twins to Bloodshot hyper lasers, grab honey pots and gold rings to fix your shield, wipe out whole formations for bonuses and earn a medal on every stage. Presented by Slapwoods. 21+ only.
+
+Controls:
+- WASD / arrows / left stick: Fly
+- Right stick / arrows / mouse: Aim — twin-stick, mouse or classic, in Controls & flight
+- Space / J / RT / click: Fire · hold and let go for a lock-on shot
+- Q / E / LB / RB: Barrel roll · or double-tap a direction
+- B / K / (B): Slap Bomb
+- Shift / hold (A): Boost — faster while held
+- C / (Y) / LT: Brake
+- P / Esc / Start: Pause
+- M: Mute
+
+Credits: Art made in ContentPad Studio · Slappy and the Slapwoods logo courtesy of Slapwoods · music, sound and code by Claude.
+
+## Dex Ain't Dead Casino
+
+- Page: https://arcade.contentpad.io/games/dad-casino
+- Play: https://arcade.contentpad.io/play.html?g=dad-casino
+- Genre: Casino · Rating: 18+
+- Players: 1 player
+- Released: 2026-10-04
+- Made by: ContentPad Studios × Dex Ain't Dead
+
+Blackjack, baccarat, roulette, craps and the slots. Dex deals. Play money only.
+
+Pull up a seat at Dex Ain't Dead's own casino. Dex deals every table himself, in his own voice: blackjack that pays 3 to 2, baccarat, single-zero roulette, craps with odds, and Dead Man's Jackpot, a five-reel slot with free spins and a 1,000× skull jackpot. DAD Radio plays Dex's records the whole time. Everything is in US dollars to the cent. You start with $10,000 in play money, the house spots you $2,500 when you go broke, and there's a free $2,500 stack every four hours. The lobby tracks your peak bankroll and your lifetime net win or loss. Sign in to the Arcade and your bankroll follows you to any device. Play money only: nothing to buy, nothing to cash out. 18+.
+
+Controls:
+- Tap a spot: Place the selected chip
+- 1 – 6: Pick a chip
+- Space / Enter / Start: Deal · spin · roll
+- H S D P: Blackjack: hit, stand, double, split
+- D-pad + A: Move between buttons and press
+- Esc / B: Back to the lobby
+- M: Mute
+
+Credits: Art and Dex's dealer voice made in ContentPad Studio · music by Dex Ain't Dead · code by Claude.
+
+## Nightmare on 46th Street
+
+- Page: https://arcade.contentpad.io/games/nightmare-on-46th
+- Play: https://arcade.contentpad.io/play.html?g=nightmare-on-46th
+- Genre: Fighting
+- Players: 1 or 2 players (2-player Versus)
+- Released: 2026-10-04
+- Made by: ContentPad Studios × Dream Hospitality (partner: Dream Hospitality · Harbor NYC)
+
+Six legends. One cursed DJ. Survive till 3 AM.
+
+Halloween at Harbor, 621 West 46th Street. At midnight a DJ nobody booked drops a cursed record, the dance floor splits open and New York's legends crawl out of the speakers. Pick Vexa the Bottle Queen, Stitch the Doorman, the Rat King, Jack Spokes, Madame 46 or Glow, and fight across the Harbor dance floor, 46th Street, the subway and the rooftop to take down The Headliner. Specials, throws, overheads, launchers and juggles, run attacks, EX specials, counter hits, wall bounces and a Midnight Meter super for every fighter — with a full move list one button away. Every fighter is fully voiced, with their own grunts, move calls, trash talk and signature sounds. Beat the arcade to unlock two secret fighters, or fight a friend in 2-player Versus. Plays with any controller, including 8BitDo.
+
+Controls:
+- ← → / A D: Walk · hold away to block · double-tap forward to run, back to backdash
+- ↑ / W: Jump
+- ↓ / S: Crouch · crouch + kick sweeps
+- J / Z: Punch · → + punch = overhead
+- K / X: Kick
+- Punch + Kick: Throw (controller X + A) · ← for a back throw · ↓ for a launcher
+- L / C or ↓↘→ + punch: Special · hold punch for an EX special (30 meter)
+- I / V: Super, when the Midnight Meter is full
+- Tab / controller Y: Move list
+- P / Esc / Start: Pause
+- Versus: P1 WASD + F G H T · P2 arrows + , . / ;
+
+Credits: Art, music and announcer made in ContentPad Studio · written and coded by Claude.
+
+## Maverick: Skyline Dash
+
+- Page: https://arcade.contentpad.io/games/skyline-dash
+- Play: https://arcade.contentpad.io/play.html?g=skyline-dash
+- Genre: Skate
+- Players: 1 player
+- Released: 2026-10-05
+- Made by: ContentPad Studios
+
+Skate the rooftops. Chain the tricks. Bank the combo.
+
+Maverick took his board to the roofs, then underground, then to the airport. The kickflip is real now: the board leaves his feet and turns over. Heelflips, hardflips, varials, 360 flips, and doubles and triples if you have the air. Hold a grab — frontside, melon or method — and tweak it for more. Shove-it, 360 spin, even a 720 on vert. Grind and boardslide the rails, manual between tricks, launch off ramps and vert quarter-pipes, and roll all the way round loop-de-loops. Dodge rising security gates, ride moving walkways and sliding platforms while express trains blast through the station and planes take off behind you. Bank big combos, grab S-K-A-T-E and earn your crew. Eleven levels — the rooftops, SUBWAY RUSH, TERMINAL 4 and LOOP CITY — then see how far you get in Endless. Every trick works on a controller.
+
+Controls:
+- Space / tap / (A): Ollie — hold for height
+- Again in the air: Kickflip · hold ← heelflip · → hardflip · up to 3
+- J / K / (Y) / RB / GRAB — hold: Grab · ← melon · → method · hold to tweak
+- ↓ / swipe down / TRICK / (X): Shove-it in the air · again = 360 spin
+- ↓ on the ground: Manual — keeps your combo alive
+- ↓ on a rail: Boardslide
+- Land on a rail: Grind it
+- Land clean: Bank your combo
+- P / Esc / Start: Pause menu
+- M: Mute
+
+Credits: Art and music made in ContentPad Studio · code by Claude.
+
+## Tre & Jada
+
+- Page: https://arcade.contentpad.io/games/tre-and-jada
+- Play: https://arcade.contentpad.io/play.html?g=tre-and-jada
+- Genre: Story comedy · Rating: 18+
+- Players: 1 player
+- Released: 2026-10-03
+- Made by: ContentPad Studios
+
+Keep the relationship alive. Keep your wallet alive. Pick one.
+
+A fully voiced, choose-your-path relationship comedy for grown folks, set in Brooklyn. One week, payday to rent day: a brunch ambush and a "man pays for everything" table debate, a double shift on Flatbush, the group chat, a DUMBO photo shoot for the gram, the mall, a Williamsburg restaurant with no prices, and her mama's potato salad. Seven mini-games, animated cutscenes, nine endings. Most of them are your fault.
+
+Controls:
+- Click / tap / Space / (A): Next line
+- 1 · 2 · 3 / ↑ ↓ / d-pad: Pick a choice
+- Esc / Start: Pause and settings
+- Y: Auto-play
+- L / X: Dialogue log
+
+Credits: Art, voices and music made in ContentPad Studio (ElevenLabs) · written and coded by Claude.
