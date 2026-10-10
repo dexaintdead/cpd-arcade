@@ -42,7 +42,7 @@
 </div>
 <script src="gamepad.js?v=1"></script>
 <script>
-/* Maverick: Skyline Dash — ContentPad Arcade house game #1 (build 2026101003-3dposes, v5.2).
+/* Maverick: Skyline Dash — ContentPad Arcade house game #1 (build 2026101004-3dflips, v5.3).
    Rooftop skateboarding. Original game and character (Maverick, owned by ContentPad).
    Art and music made in ContentPad Studio.
    v3: combo banking (land clean to bank, bail and lose it), shove-it + boardslide, ramps, moving
@@ -54,8 +54,9 @@
    v4: the crew (Kiko and Dre skate with you when you earn them), Rider Level + Locker
    (colorways, trails, starting crew), MANUAL and 360 SPIN, Moon Boots + Crew Call power-ups,
    new ride/kickflip art (two arms; flat board, wheels down).
-   v5.2: every pose (ride, push, ollie, grind, bail, the three grabs and the tuck under shove-its, hardflips
-   and varials) can come from the same 3D Maverick (skyline-3d.webp), behind the same switch.
+   v5.3 (Dex): the detailed 2D art stays for riding, pushing, ollies, grinds, bails and grabs; the 3D Maverick
+   only shows during flip tricks (the kickflip/heelflip frames and the tuck under shove-its, hardflips and varials).
+   v5.2: every pose could come from the 3D Maverick (skyline-3d.webp), behind the same switch.
    v5.1: the kickflip and heelflip play 16 fps frames rendered from a rigged 3D Maverick (skyline-kf3d.webp);
    off with ?kf3d=0 or the Arcade switch slug 'skyline-dash-kf3d'. Falls back to the v5 cut-out flip.
    v5: a REAL kickflip (the board leaves his feet and rolls over; heelflip, hardflip, varial and 360 flips,
@@ -129,9 +130,11 @@
   // v5.2 — the other poses from the 3D Maverick, packed in one atlas. Swapped in and out live by sync3d(),
   // so the Arcade HQ switch (skyline-dash-kf3d) turns all of the 3D art on or off together.
   var P3D_R = {'ride':[0,0,167,316],'push':[171,0,194,298],'ollie':[369,0,257,298],'grind':[630,0,261,298],'bail':[895,0,318,282],'flip':[1217,0,267,272],'grab_indy':[1488,0,251,204],'grab_melon':[1743,0,188,210],'grab_method':[1935,0,168,222],'tuck':[2107,0,267,272,272]};
+  var P3D_USE = { tuck: 1 };   // v5.3: only the flip-trick tuck is 3D; ride, push, ollie, grind, bail and grabs keep the 2D art
   var P3D = { ready: false, on: false, img: {}, orig: {} };
   function slice3d(c) {
     Object.keys(P3D_R).forEach(function (k) {
+      if (!P3D_USE[k]) return;
       var r = P3D_R[k], o = document.createElement('canvas'); o.width = r[2]; o.height = r[3];
       o.getContext('2d').drawImage(c, r[0], r[1], r[2], r[3], 0, 0, r[2], r[3]);
       if (k === 'tuck') { o.full = r[4]; o.board = { cy: 256.5, x0: 41, x1: 198 }; }
