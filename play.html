@@ -116,7 +116,14 @@
       if (type === 'keydown') focusGame();
     });
   });
-  document.getElementById('share').addEventListener('click', function () {
+  // Share: with a score on this device it opens the share-your-score card (share.js, 2026-10-10c);
+    // with no score yet it shares the game link as before.
+    function bestN() { try { return +localStorage.getItem(bestKey) || 0; } catch (e) { return 0; } }
+    function shareLabel() { var sb = document.getElementById('share'); if (sb && bestN() > 0 && !g.noShare) sb.textContent = 'Share score'; }
+    shareLabel();
+    document.getElementById('share').addEventListener('click', function () {
+    var n = bestN();
+    if (n > 0 && window.ArcadeShare && !g.noShare) { ArcadeShare.open({ game: g.slug, title: g.title, label: g.scoreLabel || 'Best', score: n, prefix: g.scorePrefix || '', accent: g.accent, name: AC && AC.player ? AC.player.name : '' }); return; }
     var url = location.origin + location.pathname + '?g=' + g.slug, btn = this;
     if (navigator.share) navigator.share({ title: g.title, text: g.tagline, url: url }).catch(function () {});
     else if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { btn.textContent = 'Link copied'; setTimeout(function () { btn.textContent = 'Share'; }, 1800); });
@@ -126,7 +133,7 @@
     if (e.source !== frame.contentWindow) return;
     var d = e.data || {};
     if (d.arcade === 'over' && d.game === g.slug) {
-      var b = best(); document.getElementById('best').textContent = b || '—';
+      var b = best(); document.getElementById('best').textContent = b || '—'; shareLabel();
       if (AC && AC.signedIn()) AC.sync(g.slug, 'over').then(function (j) { where(); if (j && lb) { lb.refresh(); if (!g.quietSync) AC.toast('Saved to your account'); } });
     }
     if (d.arcade === 'exit' && d.game === g.slug) { exitFs(); location.href = './'; }
@@ -145,6 +152,7 @@
   }
 })();
 </script>
+<script src="share.js?v=1" defer></script>
 <script src="/app.js?v=1" defer></script>
 </body>
 </html>
