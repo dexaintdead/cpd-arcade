@@ -81,3 +81,108 @@
     playable: function (slug) { return state(slug) !== 'off'; }
   };
 })();
+
+/* ── Arcade analytics + "make a game with us" (2026-10-10b) ─────────────────────
+   gate.js is already the first script on every Arcade page, so this is the one
+   place that can instrument all of them without touching each file.
+   · Top-level pages load ContentPad's own beacon (link.contentpad.io/px.js): page
+     views with referrer and UTM tags. No cookies, nothing stored on the device.
+   · Game events go to the same endpoint as event 'game', tool "<action>:<slug>":
+       open:<slug>  play.html opened a game          (top window, data-game-param)
+       play:<slug>  first real input inside a game   (a framed game page, once per load)
+       over:<slug>  the game posted {arcade:'over'} to the page hosting it
+       out:<host>   an outbound link was clicked (brand sites, shops, mailto)
+   · A "Make a game with us" mailto link opens an in-page form (collab.js) that
+     files the enquiry into Fact Finder and Pipeline; without JS the mailto still works.
+   Everything is wrapped: tracking must never be the reason a game breaks. */
+(function () {
+  'use strict';
+  try {
+    var EP = 'https://link.contentpad.io/px';
+    var me = document.currentScript || null;
+    var slug = '', param = '';
+    if (me) {
+      slug = me.getAttribute('data-game') || '';
+      param = me.getAttribute('data-game-param') || '';
+      if (!slug && param) { try { slug = new URLSearchParams(location.search).get(param) || ''; } catch (e) {} }
+      slug = String(slug).toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 60);
+    }
+    var top = true;
+    try { top = window.top === window; } catch (e) { top = false; }
+
+    var send = function (t) {
+      try {
+        var body = JSON.stringify({ e: 'game', h: location.hostname, p: location.pathname, t: String(t).slice(0, 60) });
+        if (navigator.sendBeacon) navigator.sendBeacon(EP, new Blob([body], { type: 'text/plain' }));
+        else fetch(EP, { method: 'POST', body: body, keepalive: true, mode: 'no-cors' });
+      } catch (e) {}
+    };
+    window.ArcadeTrack = { send: send };
+
+    if (top) {
+      // Page views, once per top-level page (px.js guards itself too).
+      if (!document.querySelector('script[src*="link.contentpad.io/px.js"]')) {
+        var px = document.createElement('script'); px.src = 'https://link.contentpad.io/px.js'; px.defer = true;
+        (document.head || document.documentElement).appendChild(px);
+      }
+      if (param && slug) send('open:' + slug);
+      // A game finished inside this page (play.html or a brand page).
+      var seen = {};
+      window.addEventListener('message', function (e) {
+        try {
+          if (e.origin !== location.origin) return;
+          var d = e.data || {};
+          if (d.arcade !== 'over' || typeof d.game !== 'string') return;
+          var g = d.game.toLowerCase().replace(/[^a-z0-9-]/g, '').slice(0, 60);
+          var now = Date.now();
+          if (!g || (seen[g] && now - seen[g] < 3000)) return; // one game-over, however many times it is posted
+          seen[g] = now;
+          send('over:' + g);
+        } catch (x) {}
+      });
+    } else if (slug && !param) {
+      // A game running inside a host page: count a play on the first real input.
+      var played = false;
+      var once = function () {
+        if (played) return; played = true;
+        send('play:' + slug);
+        ['keydown', 'pointerdown', 'touchstart'].forEach(function (t) { window.removeEventListener(t, once, true); });
+        clearInterval(pad);
+      };
+      ['keydown', 'pointerdown', 'touchstart'].forEach(function (t) { window.addEventListener(t, once, true); });
+      // Keys forwarded from play.html arrive as messages, and a controller fires no DOM event.
+      window.addEventListener('message', function (e) { try { if (e.data && e.data.arcade === 'key' && e.data.type === 'keydown') once(); } catch (x) {} });
+      var pad = setInterval(function () {
+        try {
+          var ps = navigator.getGamepads ? navigator.getGamepads() : [];
+          for (var i = 0; i < ps.length; i++) { var p = ps[i]; if (p && p.buttons && p.buttons.some(function (b) { return b && b.pressed; })) { once(); return; } }
+        } catch (x) {}
+      }, 400);
+      setTimeout(function () { clearInterval(pad); }, 10 * 60 * 1000);
+    }
+
+    // Outbound clicks (and the collab form), from any Arcade page or game.
+    document.addEventListener('click', function (e) {
+      try {
+        var a = e.target && e.target.closest ? e.target.closest('a[href]') : null;
+        if (!a) return;
+        var href = a.getAttribute('href') || '';
+        if (/^mailto:/i.test(href)) {
+          if (top && /make%20a%20game|make a game/i.test(href) && !e.metaKey && !e.ctrlKey) {
+            e.preventDefault();
+            var open = function () { if (window.ArcadeCollab) window.ArcadeCollab.open({ page: location.pathname }); else location.href = href; };
+            if (window.ArcadeCollab) { open(); return; }
+            var s = document.createElement('script'); s.src = '/collab.js?v=1';
+            s.onload = open; s.onerror = function () { location.href = href; };
+            document.head.appendChild(s);
+            return;
+          }
+          send('out:mailto'); return;
+        }
+        var u = new URL(href, location.href);
+        if (!/^https?:$/.test(u.protocol) || u.hostname === location.hostname) return;
+        send('out:' + u.hostname.replace(/^www\./, ''));
+      } catch (x) {}
+    }, true);
+  } catch (e) {}
+})();
