@@ -42,7 +42,7 @@
 </div>
 <script src="gamepad.js?v=1"></script>
 <script>
-/* Maverick: Skyline Dash — ContentPad Arcade house game #1 (build 2026101002-kf3d, v5.1).
+/* Maverick: Skyline Dash — ContentPad Arcade house game #1 (build 2026101003-3dposes, v5.2).
    Rooftop skateboarding. Original game and character (Maverick, owned by ContentPad).
    Art and music made in ContentPad Studio.
    v3: combo banking (land clean to bank, bail and lose it), shove-it + boardslide, ramps, moving
@@ -54,6 +54,8 @@
    v4: the crew (Kiko and Dre skate with you when you earn them), Rider Level + Locker
    (colorways, trails, starting crew), MANUAL and 360 SPIN, Moon Boots + Crew Call power-ups,
    new ride/kickflip art (two arms; flat board, wheels down).
+   v5.2: every pose (ride, push, ollie, grind, bail, the three grabs and the tuck under shove-its, hardflips
+   and varials) can come from the same 3D Maverick (skyline-3d.webp), behind the same switch.
    v5.1: the kickflip and heelflip play 16 fps frames rendered from a rigged 3D Maverick (skyline-kf3d.webp);
    off with ?kf3d=0 or the Arcade switch slug 'skyline-dash-kf3d'. Falls back to the v5 cut-out flip.
    v5: a REAL kickflip (the board leaves his feet and rolls over; heelflip, hardflip, varial and 360 flips,
@@ -77,7 +79,7 @@
     grab_indy: CDN + '6564d156-d6c2-4ba6-aeba-7fd92350af9a.png', grab_melon: CDN + 'c76b4ea5-ac93-4fcd-b293-1c7baa2dc5f3.png', grab_method: CDN + 'd45061bb-1094-42be-bbc7-4c12fcaf53ae.png',
     bg9: CDN + 'edcb33c3-9a88-439a-947b-a6e878b026d2.png', bg10: CDN + '9b889669-6ba5-4d9e-87f3-ec7d6cb6b61d.png', bg11: CDN + '23ed64c9-9396-4c37-a823-f3c3f748607a.png',
     kiko_r: CDN + 'cf3f5ae1-4c5b-4a31-92ef-cadda5a7f7de.png', kiko_o: CDN + 'f3ab06d6-072f-4aab-aa49-2983373596fb.png',
-    dre_r: CDN + '8562e681-b158-49cd-a721-9e862aa5aa88.png', dre_o: CDN + '5964cc58-63d2-49ed-868b-13e2f7432ae0.png', kf3d: 'skyline-kf3d.webp?v=1', music: CDN + '41c5a4c7-11a5-4a1c-8b25-1f50af42acb8.mp3'
+    dre_r: CDN + '8562e681-b158-49cd-a721-9e862aa5aa88.png', dre_o: CDN + '5964cc58-63d2-49ed-868b-13e2f7432ae0.png', kf3d: 'skyline-kf3d.webp?v=1', p3d: 'skyline-3d.webp?v=1', music: CDN + '41c5a4c7-11a5-4a1c-8b25-1f50af42acb8.mp3'
   };
   var KEYED = { ride: 1, push: 1, ollie: 1, flip: 1, grind: 1, bail: 1, drone: 1, vent: 1, cloud: 1, kiko_r: 1, kiko_o: 1, dre_r: 1, dre_o: 1, grab_indy: 1, grab_melon: 1, grab_method: 1 };
   var CROP = { grind: 0.83 };
@@ -124,6 +126,30 @@
     try { if (window.ArcadeStatus && ArcadeStatus.state('skyline-dash-kf3d') === 'off') return false; } catch (e) {}
     return true;
   }
+  // v5.2 — the other poses from the 3D Maverick, packed in one atlas. Swapped in and out live by sync3d(),
+  // so the Arcade HQ switch (skyline-dash-kf3d) turns all of the 3D art on or off together.
+  var P3D_R = {'ride':[0,0,167,316],'push':[171,0,194,298],'ollie':[369,0,257,298],'grind':[630,0,261,298],'bail':[895,0,318,282],'flip':[1217,0,267,272],'grab_indy':[1488,0,251,204],'grab_melon':[1743,0,188,210],'grab_method':[1935,0,168,222],'tuck':[2107,0,267,272,272]};
+  var P3D = { ready: false, on: false, img: {}, orig: {} };
+  function slice3d(c) {
+    Object.keys(P3D_R).forEach(function (k) {
+      var r = P3D_R[k], o = document.createElement('canvas'); o.width = r[2]; o.height = r[3];
+      o.getContext('2d').drawImage(c, r[0], r[1], r[2], r[3], 0, 0, r[2], r[3]);
+      if (k === 'tuck') { o.full = r[4]; o.board = { cy: 256.5, x0: 41, x1: 198 }; }
+      P3D.img[k] = o;
+    });
+    P3D.ready = true;
+  }
+  function keep3d(k) { if (P3D.on && P3D.img[k] && IMG[k] !== P3D.img[k]) { P3D.orig[k] = IMG[k]; IMG[k] = P3D.img[k]; } }   // 2D art that arrives late stays underneath
+  function sync3d() {
+    var on = P3D.ready && kf3dOn();
+    if (on === P3D.on) return;
+    Object.keys(P3D.img).forEach(function (k) {
+      if (on) { P3D.orig[k] = IMG[k]; IMG[k] = P3D.img[k]; }
+      else if (P3D.orig[k]) IMG[k] = P3D.orig[k];
+    });
+    P3D.on = on;
+    for (var tk in TINT) delete TINT[tk];   // colorway copies were made from the other art
+  }
   function trim(c) {
     var g = c.getContext('2d'), w = c.width, h = c.height, d;
     try { d = g.getImageData(0, 0, w, h).data; } catch (e) { return c; }
@@ -154,7 +180,7 @@
     needed++;
     var im = new Image(); im.decoding = 'async';
     if (KEYED[k]) im.crossOrigin = 'anonymous';
-    im.onload = function () { var c = KEYED[k] ? keyGreen(im) : k === 'kf3d' ? toCanvas(im) : im; if (CROP[k] && c.getContext) { var o = document.createElement('canvas'); o.width = c.width; o.height = Math.round(c.height * CROP[k]); o.getContext('2d').drawImage(c, 0, 0); c = o; } IMG[k] = c; if (k === 'flip') { var t = cutBoard(c); if (t) IMG.tuck = t; } loaded++; };
+    im.onload = function () { var c = KEYED[k] ? keyGreen(im) : (k === 'kf3d' || k === 'p3d') ? toCanvas(im) : im; if (CROP[k] && c.getContext) { var o = document.createElement('canvas'); o.width = c.width; o.height = Math.round(c.height * CROP[k]); o.getContext('2d').drawImage(c, 0, 0); c = o; } IMG[k] = c; if (k === 'flip') { var t = cutBoard(c); if (t) IMG.tuck = t; } if (k === 'p3d') slice3d(c); keep3d(k); if (k === 'flip') keep3d('tuck'); loaded++; };
     im.onerror = function () { loaded++; };
     im.src = (KEYED[k] && !window.SKYLINE_ASSETS && ASSETS[k].indexOf(CDN) === 0) ? VIA + encodeURIComponent(ASSETS[k]) : ASSETS[k];
   });
@@ -966,6 +992,7 @@
     }
   }
   function draw(now) {
+    sync3d();
     cx.save();
     if (shake) cx.translate(rnd(-shake, shake) * 0.4, rnd(-shake, shake) * 0.4);
     if (state === 'title' || state === 'select') { drawMenu(now); cx.restore(); return; }
