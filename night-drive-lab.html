@@ -5,12 +5,15 @@
 <script src="/gate.js?v=1" data-game="night-drive"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <title>YESTERDAYLAND: Night Drive · ContentPad Arcade</title>
-<meta name="description" content="Go back for a while. A behind-the-car 3D racer through the world of YESTERDAYLAND: Sunset Boulevard 1985, the midnight freeway, the desert highway, rainy Manhattan, Ocean Drive 1986 and the Las Vegas Strip. Grand Prix, Free Race, Hot Pursuit with the police, time trials, 2-player split screen, traffic and a garage.">
+<meta name="description" content="Go back for a while. A behind-the-car 3D racer through the world of YESTERDAYLAND: six night drives from Sunset Boulevard 1985 to the Las Vegas Strip, and YESTERDAYLAND City, an open world you can drive anywhere in. E-brake drifts that fill your nitro, slipstream slingshots, wet-road reflections, Grand Prix, city races, Hot Pursuit with the police, time trials, 2-player split screen, traffic and a garage.">
 <meta name="theme-color" content="#0a0d18">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Yellowtail&family=Orbitron:wght@500;700;900&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
 <!--
-  YESTERDAYLAND: NIGHT DRIVE · ContentPad Arcade (build 2026100803-nd: + photo wheels, traffic, Free Race, Hot Pursuit,
+  YESTERDAYLAND: NIGHT DRIVE · ContentPad Arcade. Build 2026101001-nd adds YESTERDAYLAND City (an open-world street grid of
+  Manhattan, the Vegas Strip, Sunset and Ocean Drive with checkpoint races, free roam, traffic and patrols), e-brake drifting
+  with a slip-angle model (drift points fill nitro), slipstream + slingshot, tyre smoke, skid marks and wet-road reflections.
+  Earlier: (build 2026100803-nd: + photo wheels, traffic, Free Race, Hot Pursuit,
   Drive 06 Las Vegas Strip 1986, and a street-racing intro film made in ContentPad with Seedance 2.5)
   A behind-the-car 3D racer set in the world of YESTERDAYLAND (Dex's show: period-correct 1980s night drives,
   "Go back for a while"). The five tracks are the show's Season 1 drives, in pilot order: Sunset Boulevard LA 1985,
@@ -50,6 +53,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 .hud .pos small{font:700 clamp(14px,1.8vw,20px) var(--hud);color:#ffd8b0;margin-left:2px}
 .hud .lap{font:700 clamp(11px,1.3vw,14px) var(--hud);letter-spacing:.2em;color:var(--ice);margin-top:4px}
 .hud .lap b{font-size:clamp(18px,2.4vw,26px);color:#fff;letter-spacing:.04em}
+.hud .lap b.dname{display:block;font:900 clamp(13px,1.9vw,20px)/1.15 var(--hud);letter-spacing:.06em;max-width:calc(50vw - 46px);white-space:normal}
 .hud .tm{font:700 clamp(11px,1.2vw,13px) var(--hud);letter-spacing:.18em;color:var(--ice);line-height:1.5}
 .hud .tm b{display:block;font-size:clamp(16px,2vw,22px);color:#fff;letter-spacing:.04em}
 .hud .tm i{font-style:normal;color:var(--amb);font-size:clamp(12px,1.4vw,15px);letter-spacing:.04em}
@@ -65,6 +69,27 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 .nitro.on i{animation:nflash .12s steps(2) infinite}
 @keyframes nflash{50%{filter:brightness(1.6)}}
 .nlbl{font:700 10px var(--hud);letter-spacing:.3em;color:var(--ice);margin-top:4px}
+.slip{width:clamp(100px,13vw,160px);height:6px;margin-top:7px;margin-left:auto;border-radius:4px;background:rgba(6,8,16,.7);border:1px solid rgba(255,255,255,.35);overflow:hidden;position:relative}
+.slip i{position:absolute;inset:0 auto 0 0;width:0;background:linear-gradient(90deg,#2ad8c8,#9ff0ff)}
+.slip.in{border-color:#9ff0ff;box-shadow:0 0 10px rgba(94,224,255,.45)}
+.slip.full i{background:#e8ffff;animation:nflash .16s steps(2) infinite}.slip.full{border-color:#fff}
+.slip.go i{width:100%!important;background:linear-gradient(90deg,#9ff0ff,#fff)}
+.slbl{font-size:9px;letter-spacing:.28em;color:rgba(207,227,255,.7)}.slbl.hot{color:#9ff0ff;text-shadow:0 0 12px rgba(94,224,255,.8)}
+.hud .drf{position:absolute;left:50%;bottom:max(16%,calc(env(safe-area-inset-bottom) + 96px));transform:translateX(-50%);text-align:center;opacity:0;transition:opacity .25s;min-width:180px}
+.hud .drf.on{opacity:1}
+.hud .drf .dtop{display:flex;align-items:baseline;justify-content:center;gap:10px}
+.hud .drf b{font:900 clamp(26px,4.2vw,46px)/1 var(--hud);color:#fff;letter-spacing:.02em;text-shadow:0 0 18px rgba(255,154,60,.7),0 2px 0 rgba(0,0,0,.6)}
+.hud .drf .dtop i{font:900 clamp(18px,2.6vw,28px)/1 var(--hud);font-style:normal;color:#ffd27a}
+.hud .drf.bump .dtop i{animation:mpop .35s ease-out}
+@keyframes mpop{0%{transform:scale(1.7);color:#fff}100%{transform:scale(1)}}
+.hud .drf .dtop i{display:inline-block}
+.hud .drf .dang{width:clamp(140px,18vw,220px);height:5px;margin:7px auto 0;border-radius:3px;background:rgba(6,8,16,.65);overflow:hidden}
+.hud .drf .dang u{display:block;height:100%;width:0;background:linear-gradient(90deg,#ffd27a,#ff9a3c 70%,#ff3a4a)}
+.hud .drf .dang.edge u{animation:nflash .12s steps(2) infinite}
+.hud .drf small{display:block;margin-top:6px;font:800 clamp(10px,1.3vw,13px) var(--hud);letter-spacing:.32em;color:#ffd8b0}
+.hud .drf.bank b{color:#ffd27a}.hud .drf.bank small{color:#9ff0ff;letter-spacing:.18em}
+.hud .drf.lost b{color:rgba(255,255,255,.45);text-decoration:line-through}.hud .drf.lost small{color:#ff6b6b}
+.hud.split .drf{bottom:12px}
 .hud .msg{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);font:900 clamp(20px,4.4vw,48px)/1.1 var(--hud);text-align:center;letter-spacing:.06em;width:max-content;max-width:94vw;opacity:0;transition:opacity .25s}
 .hud .msg.on{opacity:1}
 .hud .msg.warn{color:#ff6b6b;animation:blink .5s steps(2) infinite}
@@ -116,6 +141,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 .tk em{display:block;font:700 12px var(--hud);font-style:normal;color:#cfe3ff;margin-top:7px;letter-spacing:.04em}
 .tk .lock{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:14px;background:rgba(6,8,16,.8);font:600 12px var(--ui);color:#e6ecf8;line-height:1.5;z-index:2}
 .tk .lock b{font-size:20px;margin-bottom:6px}
+.cityopts{flex-wrap:wrap;justify-content:center;gap:8px;margin-top:14px}
+.cityopts .mi{min-width:0;flex:0 1 auto;white-space:normal}
 .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
 .row .mi{min-width:150px}
 /* garage */
@@ -171,7 +198,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 #touch .tb.on{background:rgba(255,154,60,.5);border-color:#fff}
 #tBrake{right:max(18px,env(safe-area-inset-right));bottom:max(26px,env(safe-area-inset-bottom));width:78px;height:78px}
 #tNitro{right:calc(max(18px,env(safe-area-inset-right)) + 92px);bottom:max(18px,env(safe-area-inset-bottom));width:66px;height:66px;color:var(--ice)}
-#tDrift{right:max(26px,env(safe-area-inset-right));bottom:calc(max(26px,env(safe-area-inset-bottom)) + 92px);width:62px;height:62px;color:#ffd29a}
+#tDrift{right:max(26px,env(safe-area-inset-right));bottom:calc(max(26px,env(safe-area-inset-bottom)) + 92px);width:62px;height:62px;color:#ffd29a;font-size:9.5px;letter-spacing:.02em}
 #tPause{position:absolute;left:50%;top:max(8px,env(safe-area-inset-top));transform:translateX(-50%);width:44px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,.4);background:rgba(6,8,16,.5);pointer-events:auto;font:900 13px var(--hud)}
 /* hot pursuit: heat line and bust meter, top centre */
 .hud .hpb{position:absolute;left:50%;top:max(12px,env(safe-area-inset-top));transform:translateX(-50%);width:clamp(190px,30vw,320px);text-align:center}
@@ -227,6 +254,12 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   .hud:not(.split) .spd{bottom:calc(max(14px,env(safe-area-inset-bottom)) + 178px)}
   .hud .card{left:50%;right:auto;bottom:auto;top:calc(max(10px,env(safe-area-inset-top)) + 108px);transform:translateX(-50%);text-align:center;width:max-content;max-width:calc(100vw - 32px)}
 }
+/* phones held sideways: the speedometer sits left of the thumb buttons, the drift meter low in the middle */
+@media (pointer:coarse) and (max-height:520px){
+  .hud:not(.split) .spd{bottom:max(12px,env(safe-area-inset-bottom));right:calc(max(16px,env(safe-area-inset-right)) + 190px)}
+  .hud .drf{min-width:140px;left:calc(max(18px,env(safe-area-inset-left)) + 96px);bottom:calc(max(22px,env(safe-area-inset-bottom)) + 70px)}
+  .hud .drf .dang{width:130px}
+}
 @media (max-width:860px){
   .gar{grid-template-columns:1fr;max-width:560px}
   .gar .spacer{height:34vh}
@@ -251,7 +284,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   <div class="steer" id="tSteer"><div class="sbar"><span style="left:14px">◀</span><span style="right:14px">▶</span><i id="tKnob"></i></div></div>
   <div class="tb" id="tBrake">BRAKE</div>
   <div class="tb" id="tNitro">NITRO</div>
-  <div class="tb" id="tDrift">DRIFT</div>
+  <div class="tb" id="tDrift">E-BRAKE</div>
   <button type="button" id="tPause" aria-label="Pause">II</button>
 </div>
 
@@ -261,8 +294,9 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   <!-- title -->
   <section class="scr" id="sTitle">
     <h1 class="logo"><span class="a">YESTERDAYLAND</span><span class="b">Night Drive</span></h1>
-    <div class="sub">Six drives · 1984 – 1986</div>
+    <div class="sub">Six drives and the city · 1984 – 1986</div>
     <div class="menu">
+      <button class="mi" type="button" data-go="city">City <small>open world · new</small></button>
       <button class="mi" type="button" data-go="gp">Grand Prix <small>vs 5 rivals</small></button>
       <button class="mi" type="button" data-go="free">Free Race <small>your rules</small></button>
       <button class="mi" type="button" data-go="hp">Hot Pursuit <small>outrun the police</small></button>
@@ -283,6 +317,15 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     <p class="p" id="tkSub">Finish in the top 3 to open the next drive.</p>
     <div class="tracks" id="tkList"></div>
     <div class="row"><button class="mi ghost" type="button" data-go="back">◀ Back</button><button class="mi ghost" type="button" data-go="garage" id="tkGarage">Garage</button></div>
+  </section>
+
+  <!-- the city: free roam, races, options -->
+  <section class="scr" id="sCity" hidden>
+    <h2 class="h2">YESTERDAYLAND City</h2>
+    <p class="p">Manhattan, the Vegas Strip, Sunset and Ocean Drive in one city. Go anywhere. Race between the lights, drift for nitro, lose the cops.</p>
+    <div class="tracks" id="cityList"></div>
+    <div class="carpick cityopts"><button class="mi" type="button" data-city="opt:traffic">Traffic: <span id="ctTraffic"></span></button><button class="mi" type="button" data-city="opt:police">Police: <span id="ctPolice"></span></button><button class="mi" type="button" data-city="opt:rivals">Rivals: <span id="ctRivals"></span></button><button class="mi" type="button" data-city="opt:diff">Difficulty: <span id="ctDiff"></span></button></div>
+    <div class="row"><button class="mi ghost" type="button" data-go="back">◀ Back</button><button class="mi ghost" type="button" data-go="garage">Garage</button></div>
   </section>
 
   <!-- 2P setup -->
@@ -338,6 +381,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
         <button class="mi" type="button" data-set="units">Speed: <span></span></button>
         <button class="mi" type="button" data-set="cam">Camera: <span></span></button>
         <button class="mi" type="button" data-set="film">Film look: <span></span></button>
+        <button class="mi" type="button" data-set="refl">Wet-road reflections: <span></span></button>
       </div>
       <h3 class="h2" style="font-size:13px;margin-top:20px">Controls</h3>
       <div class="keys" style="max-width:540px;margin:6px auto 0">
@@ -345,11 +389,12 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
         <kbd>↓ / S · LT · B</kbd><span>Brake and reverse</span>
         <kbd>← → / A D · stick</kbd><span>Steer</span>
         <kbd>Space · X / Y</kbd><span>Nitro</span>
-        <kbd>Shift · RB / LB</kbd><span>Drift: hold through a corner, let go for a turbo kick</span>
+        <kbd>Shift · RB / LB</kbd><span>E-brake: tap it with the wheel turned to kick the back out, then hold the drift with steering and gas. Counter-steer to catch it; too much angle and you spin. Drifting fills nitro and pays street cash.</span>
+        <kbd>Slipstream</kbd><span>Ride close behind any car to fill the slipstream meter, then pull out for a slingshot.</span>
         <kbd>C · Select</kbd><span>Camera</span>
         <kbd>Esc / P · Start</kbd><span>Pause</span>
         <kbd>M</kbd><span>Sound on / off</span>
-        <kbd>Touch</kbd><span>Gas is automatic. Slide your left thumb to steer; Brake, Nitro and Drift are on the right.</span>
+        <kbd>Touch</kbd><span>Gas is automatic. Slide your left thumb to steer; Brake, Nitro and E-brake are on the right.</span>
         <kbd>Hot Pursuit</kbd><span>Keep moving. A cruiser on your bumper while you're slow fills the bust meter. Ram them hard for a takedown.</span>
       </div>
       <div class="row"><button class="mi ghost" type="button" data-go="back">◀ Back</button></div>
@@ -396,7 +441,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 <script>
 (function () {
   'use strict';
-  var GAME_ID = 'night-drive', BUILD = '2026100901-nd';
+  var GAME_ID = 'night-drive', BUILD = '2026101001-nd';
   var $ = function (id) { return document.getElementById(id); };
   var EMBED = false; try { EMBED = window.top !== window; } catch (e) { EMBED = true; }
   function post(type, extra) { try { if (EMBED) window.parent.postMessage(Object.assign({ arcade: type, game: GAME_ID }, extra || {}), '*'); } catch (e) {} }
@@ -593,6 +638,10 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     else if (n === 'takedown') { noise(0.5, 0.5, 'lowpass', 900); [0, 0.08, 0.16, 0.3].forEach(function (d, i) { var f = [659, 784, 988, 1319][i]; tone('square', f, f, 0.16, 0.1, null, AC.currentTime + 0.1 + d); }); }
     else if (n === 'nearmiss') { noise(0.25, 0.3 * v, 'bandpass', 1800, null, null, 1.5); tone('triangle', 1175, 1568, 0.12, 0.08); }
     else if (n === 'scrape') noise(0.12, 0.22 * v, 'highpass', 2600);
+    else if (n === 'drift') { [0, 0.07, 0.14].forEach(function (d, i) { var f = [988, 1319, 1760][i]; tone('triangle', f, f, 0.14, 0.07 + 0.05 * v, null, AC.currentTime + d); }); }
+    else if (n === 'spin') { noise(0.7, 0.35, 'bandpass', 1300, null, null, 2); tone('sawtooth', 300, 120, 0.5, 0.06); }
+    else if (n === 'slipready') { tone('sine', 660, 990, 0.18, 0.07); tone('sine', 990, 1320, 0.18, 0.06, null, AC.currentTime + 0.1); }
+    else if (n === 'sling') { noise(0.7, 0.4, 'bandpass', 1100, null, null, 0.8); tone('sawtooth', 120, 420, 0.6, 0.12); tone('square', 600, 1500, 0.35, 0.05); }
     else if (n === 'wreck') { noise(1.1, 0.8, 'lowpass', 500); noise(0.6, 0.45, 'bandpass', 2000, null, null, 1); tone('sine', 70, 25, 0.9, 0.6); [0.15, 0.32, 0.5].forEach(function (d) { noise(0.18, 0.3, 'highpass', 3500, null, AC.currentTime + d); }); }
     else if (n === 'lights') { tone('square', 988, 740, 0.12, 0.08); tone('square', 988, 740, 0.12, 0.08, null, AC.currentTime + 0.16); }
     else if (n === 'move') tone('square', 660, 660, 0.05, 0.06);
@@ -651,6 +700,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     t4: { bpm: 98, key: 3, prog: [[0, 'm'], [-4, 'M'], [3, 'M'], [-2, 'M']], drums: 2 },
     t5: { bpm: 110, key: 5, prog: [[0, 'm'], [-4, 'M'], [-7, 'M'], [-2, 'M']], drums: 2 },
     t6: { bpm: 118, key: 10, prog: [[0, 'm'], [-4, 'M'], [-2, 'M'], [-5, 'M']], drums: 2 },
+    city: { bpm: 108, key: 4, prog: [[0, 'm'], [-4, 'M'], [3, 'M'], [-5, 'M']], drums: 2 },
     pursuit: { bpm: 128, key: 7, prog: [[0, 'm'], [1, 'M'], [0, 'm'], [-2, 'M']], drums: 2 },
     results: { bpm: 92, key: 0, prog: [[0, 'M'], [-3, 'm'], [5, 'M'], [7, 'M']], drums: 1 }
   };
@@ -880,6 +930,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   var _f = { p: new THREE.Vector3(), t: new THREE.Vector3(), r: new THREE.Vector3(), u: new THREE.Vector3(), k: 0, i: 0 };
   function frameAt(TR, s, out) {
     out = out || { p: new THREE.Vector3(), t: new THREE.Vector3(), r: new THREE.Vector3(), u: new THREE.Vector3() };
+    if (TR.lin) return TR.lin(s, out);   // a straight city block face (no wrap)
     var L = TR.L; s = ((s % L) + L) % L;
     var fi = s / TR.step, i = Math.floor(fi) % TR.n, j = (i + 1) % TR.n, f = fi - Math.floor(fi);
     out.p.copy(TR.P[i]).lerp(TR.P[j], f); out.t.copy(TR.T[i]).lerp(TR.T[j], f).normalize();
@@ -1173,7 +1224,9 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     }
     var rt = roadTex(def.theme);
     var roadMat = th.wet ? new THREE.MeshPhongMaterial({ map: rt, color: 0x9aa4b8, specular: 0x8899bb, shininess: 60 }) : new THREE.MeshLambertMaterial({ map: rt, color: 0xd8d4d0 });
-    scene.add(new THREE.Mesh(road.geo(), roadMat));
+    var REFL_AMT = { strip: 0.6, freeway: 0.45, desert: 0.22, nyc: 1.0, miami: 0.62, vegas: 0.7 };
+    var roadMesh = new THREE.Mesh(road.geo(), wetRoad(roadMat, REFL_AMT[def.theme] || 0.5)); scene.add(roadMesh);
+    out.refl = { hide: [roadMesh] };
     scene.add(new THREE.Mesh(skirt.geo(), new THREE.MeshLambertMaterial({ map: gt, color: 0xb0a8a0, side: THREE.DoubleSide })));
     var ct = concreteTex(th.walk || '#8a8680');
     scene.add(new THREE.Mesh(side.geo(), new THREE.MeshLambertMaterial({ map: ct, vertexColors: true, side: THREE.DoubleSide })));
@@ -1211,7 +1264,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     scene.add(new THREE.Mesh(poles.geo(), new THREE.MeshLambertMaterial({ vertexColors: true })));
     var lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(lampPos, 3));
     scene.add(new THREE.Points(lg, new THREE.PointsMaterial({ color: th.lamp, size: 5, map: GLOW, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })));
-    scene.add(new THREE.Mesh(pools.geo(), new THREE.MeshBasicMaterial({ map: SOFTBOX, vertexColors: true, transparent: true, opacity: th.pool, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 })));
+    var poolMesh = new THREE.Mesh(pools.geo(), new THREE.MeshBasicMaterial({ map: SOFTBOX, vertexColors: true, transparent: true, opacity: th.pool, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }));
+    scene.add(poolMesh); out.refl.hide.push(poolMesh, chk);
 
     // chevrons on the outside of the tight corners (white on black, like real ones)
     var chev = new Merger(), chevTex = (function () { var c2 = cvs(128, 128), x = c2.getContext('2d'); x.fillStyle = '#121214'; x.fillRect(0, 0, 128, 128); x.strokeStyle = '#f2f2ec'; x.lineWidth = 20; x.beginPath(); x.moveTo(42, 18); x.lineTo(88, 64); x.lineTo(42, 110); x.stroke(); return texOf(c2); })();
@@ -1233,12 +1287,27 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   }
 
   /* ── per-drive dressing ── */
+  // The pieces citySide collects. The city calls citySide once per block face and side, into one of these per
+  // district, then flushes each once (so the whole city is a few dozen draw calls).
+  function cityAcc(opt) { return { signT: atlas(SHOP_SIGNS, 512, 128), list: [], parked: new Merger(), people: new Merger(), parkList: [], FAC: (opt.facades || []).map(facadeSet) }; }
+  function cityFlush(scene, acc, rng) {
+    scene.add(buildingsMesh(acc.list, rng, acc.signT));
+    acc.FAC.forEach(function (fk) { facadeMesh(scene, fk); });
+    var parked = acc.parked, parkList = acc.parkList, people = acc.people;
+    if (!parked.empty()) {
+      // drawn the classic way at once, swapped for photo cars as soon as those are built
+      var procParked = new THREE.Mesh(parked.geo(), new THREE.MeshPhongMaterial({ vertexColors: true, shininess: 60, specular: 0x444444 }));
+      scene.add(procParked);
+      Promise.all(['hatch', 'muscle', 'gull', 'sedan', 'wagon'].map(buildPhotoCar)).then(function () { if (photoParked(scene, parkList)) { scene.remove(procParked); procParked.geometry.dispose(); } });
+    }
+    if (!people.empty()) scene.add(new THREE.Mesh(people.geo(), new THREE.MeshLambertMaterial({ vertexColors: true })));
+  }
   function citySide(scene, TR, rng, gy, WALK, opt) {
-    var signT = atlas(SHOP_SIGNS, 512, 128), list = [], parked = new Merger(), people = new Merger(), parkList = [];
+    var acc = opt.acc || cityAcc(opt), signT = acc.signT, list = acc.list, parked = acc.parked, people = acc.people, parkList = acc.parkList;
     // ContentPad facades (YESTERDAYLAND renders, flat front elevations): most buildings wear one on the street side
-    var FAC = (opt.facades || []).map(facadeSet);
+    var FAC = acc.FAC;
     // buildings shoulder to shoulder along each sidewalk, with the odd gap (lots, alleys)
-    [-1, 1].forEach(function (sd) {
+    (opt.sides || [-1, 1]).forEach(function (sd) {
       for (var s = rng() * 8; s < TR.L - 4;) {
         var w = opt.w[0] + rng() * (opt.w[1] - opt.w[0]), f = frameAt(TR, s + w / 2), p0 = f.p.clone().addScaledVector(f.r, sd * (HALF + WALK + 0.3)), o = { p: p0, f: f, side: sd };
         var h = opt.h[0] + Math.pow(rng(), opt.hp || 1) * (opt.h[1] - opt.h[0]), d = 14 + rng() * 12, ok = rng() > (opt.gapP || 0.06);
@@ -1261,15 +1330,14 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
         s += w + (rng() < 0.25 ? 3 + rng() * 8 : 0.4);
       }
     });
-    scene.add(buildingsMesh(list, rng, signT));
-    FAC.forEach(function (fk) { facadeMesh(scene, fk); });
     // Parking: straight stretches get a run of parked cars along one curb. The wall moves in to the
     // cars for the length of the run (tapering at each end), so they are solid, not ghosts.
-    for (var s = 170; s < TR.L - 200;) {
-      var len = Math.min(40 + rng() * 90, TR.L - 70 - s), straight = len > 30;
+    var p0s = opt.parkFrom == null ? 170 : opt.parkFrom, p1s = opt.parkTo == null ? 200 : opt.parkTo, p2s = opt.parkTo == null ? 70 : opt.parkTo;
+    for (var s = p0s; s < TR.L - p1s;) {
+      var len = Math.min(opt.parkMax || (40 + rng() * 90), TR.L - p2s - s), straight = len > (opt.parkMax ? 12 : 30);
       for (var q = s - 10; q < s + len + 10; q += 5) if (Math.abs(sampleAt(TR.K, TR, q)) > 1 / 160) { straight = false; break; }
       if (!straight || rng() < opt.parkGap) { s += 25 + rng() * 40; continue; }
-      var sd = rng() < 0.5 ? -1 : 1, arr = sd > 0 ? TR.wr : TR.wl;
+      var sds = opt.sides || [-1, 1], sd = sds[Math.floor(rng() * sds.length)], arr = sd > 0 ? TR.wr : TR.wl;
       for (var c = s + 5; c < s + len - 5;) {
         var prof = CIV[Math.floor(rng() * CIV.length)], taxi = opt.taxis && rng() < opt.taxis, cm = c + prof.L / 2;
         if (cm + prof.L / 2 > s + len - 3) break;
@@ -1277,6 +1345,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
         var PM = frameMtx(pc, f.t, f.r, rng() < 0.85 ? 0 : Math.PI), pcol = taxi ? 0xffc61a : CIVCOL[Math.floor(rng() * CIVCOL.length)];
         addCarToMerger(parked, prof, PM, pcol, taxi);
         var pr = rng(); parkList.push({ m: PM, col: pcol, model: taxi ? 'sedan' : prof === CIV[1] ? 'wagon' : prof === CIV[0] ? (pr < 0.7 ? 'sedan' : 'muscle') : (pr < 0.6 ? 'hatch' : 'gull') });   // photo car the size of the space
+        if (opt.parkOut) opt.parkOut.push({ x: pc.x, z: pc.z, tx: f.t.x, tz: f.t.z, L: prof.L, W: prof.Wd, seg: opt.seg, side: sd });
         c += prof.L + 1.0 + rng() * 2.5;
       }
       for (var i = 0; i < TR.n; i++) { var si = i * TR.step; if (si < s || si > s + len) continue; var wgt = clamp(Math.min(si - s, s + len - si) / 7, 0, 1); arr[i] = Math.min(arr[i], HALF - 2.35 * wgt); }
@@ -1284,17 +1353,11 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     }
     // people on the sidewalks
     for (s = 10; s < TR.L; s += opt.people * (0.5 + rng())) {
-      var fp = frameAt(TR, s), sdp = rng() < 0.5 ? -1 : 1, pp = fp.p.clone().addScaledVector(fp.r, sdp * (HALF + 0.9 + rng() * (WALK - 1.6))); pp.y += 0.18;
+      var sdl = opt.sides || [-1, 1], fp = frameAt(TR, s), sdp = sdl[Math.floor(rng() * sdl.length)], pp = fp.p.clone().addScaledVector(fp.r, sdp * (HALF + 0.9 + rng() * (WALK - 1.6))); pp.y += 0.18;
       if (TR.near(pp.x, pp.z) < HALF + 0.5) continue;
       addPerson(people, pp, Math.atan2(fp.t.x, fp.t.z) + (rng() < 0.5 ? 0 : Math.PI), rng, opt.umbrellas);
     }
-    if (!parked.empty()) {
-      // drawn the classic way at once, swapped for photo cars as soon as those are built
-      var procParked = new THREE.Mesh(parked.geo(), new THREE.MeshPhongMaterial({ vertexColors: true, shininess: 60, specular: 0x444444 }));
-      scene.add(procParked);
-      Promise.all(['hatch', 'muscle', 'gull', 'sedan', 'wagon'].map(buildPhotoCar)).then(function () { if (photoParked(scene, parkList)) { scene.remove(procParked); procParked.geometry.dispose(); } });
-    }
-    if (!people.empty()) scene.add(new THREE.Mesh(people.geo(), new THREE.MeshLambertMaterial({ vertexColors: true })));
+    if (!opt.acc) cityFlush(scene, acc, rng);
   }
   function billboards(scene, TR, rng, idx, every, dMin, dMax, baseH) {
     var t = atlas(idx.map(function (i) { return BILLBOARDS[i]; }), 1024, 256), m = new Merger(), poles = new Merger(), bh = baseH || 8;
@@ -1683,42 +1746,82 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var st = stats(def, upg);
     return { def: def, st: st, upg: upg || {}, paint: paint, name: name, human: human, s: 0, d: 0, yaw: 0, v: 0, total: 0, laps: 0, lapStart: 0, lapTimes: [], best: 0,
       finished: false, finishT: 0, place: 0, tank: st.cap * 0.5, boost: false, turbo: 0, drift: 0, driftT: 0, steerSm: 0, vis: 0, rub: 1, wallCd: 0, spin: 0,
-      kd: 0, spinT: 0, spinDir: 0, hold: 0, inv: 0, wreck: null,
+      kd: 0, spinT: 0, spinDir: 0, hold: 0, inv: 0, wreck: null, slip: 0, slipV: 0, draft: 0, sling: 0,
       inp: { thr: 0, brk: 0, steer: 0, nitro: false, drift: false }, ai: null, mesh: null };
   }
-  function stepCar(c, h, TR, ev) {
-    if (c.hold > 0) { c.hold -= h; c.inp = { thr: 0, brk: 1, steer: 0, nitro: false, drift: false }; }
-    if (c.inv > 0) c.inv -= h;
+  /* The driving model, shared by the drives and the city. It moves c.v (speed along the line of travel) and returns how
+     fast the line of travel turns. c.slip is the body's angle off that line: the rear stepping out.
+     E-brake (the drift button) locks the rear and kicks it out the way you're steering. Steering into the slide and
+     throttle hold it (or deepen it), counter-steer catches it, and when you come off both the tyres pull it straight.
+     The deeper the angle, the tighter the car carves round the corner, and the more speed the slide scrubs off.
+     Past about 80 degrees you spin. Slipstream (c.draft) cuts drag; a slingshot (c.sling) is a short burst. */
+  var SPIN_AT = 1.26;
+  function smooth01(t) { t = t < 0 ? 0 : t > 1 ? 1 : t; return t * t * (3 - 2 * t); }
+  function drive(c, h, ev) {
     var st = c.st, inp = c.inp, v = c.v, av = Math.abs(v);
     var boosting = inp.nitro && c.tank > 0.03 && v > 5;
     if (boosting) c.tank = Math.max(0, c.tank - h); else c.tank = Math.min(st.cap, c.tank + st.cap * st.regen * h);
     if (boosting && !c.boost && ev) ev.push(['nitro', c]);
     c.boost = boosting;
     if (c.turbo > 0) c.turbo -= h;
-    var vmax = st.top * c.rub * (boosting ? 1.22 : 1) * (c.turbo > 0 ? 1.08 : 1);
+    if (c.sling > 0) c.sling -= h;
+    var dr = c.draft || 0, sl = c.sling > 0;
+    var vmax = st.top * c.rub * (boosting ? 1.22 : 1) * (c.turbo > 0 ? 1.08 : 1) * (1 + 0.06 * dr) * (sl ? 1.12 : 1);
     if (inp.brk > 0.05) {
-      if (v > 0.5) v -= BRAKE * inp.brk * h; else v = Math.max(-11, v - 7 * inp.brk * h);
+      if (v > 0.5) v -= BRAKE * inp.brk * h; else if (c.hold > 0) v = Math.max(0, v); else v = Math.max(-11, v - 7 * inp.brk * h);
     } else if (inp.thr > 0.02) {
       if (v < 0) v = Math.min(0, v + BRAKE * h);
-      var a = st.acc * c.rub * inp.thr * Math.max(0, 1 - Math.pow(Math.max(v, 0) / vmax, 2.2)) + (boosting ? 11 : 0) + (c.turbo > 0 ? 6 : 0);
+      var a = st.acc * c.rub * inp.thr * Math.max(0, 1 - Math.pow(Math.max(v, 0) / vmax, 2.2)) + (boosting ? 11 : 0) + (c.turbo > 0 ? 6 : 0) + dr * 2.5 + (sl ? 9 : 0);
       v += a * h;
     } else v -= Math.sign(v) * Math.min(Math.abs(v), (0.6 + Math.abs(v) * 0.05) * h);
     if (v > vmax) v -= Math.min(v - vmax, 9 * h);
-    // steering
     c.steerSm += (inp.steer - c.steerSm) * Math.min(1, h * (c.human != null ? 9 : 6));
-    var latMax = LAT * st.grip, yawMax = Math.min(1.9, latMax / Math.max(av, 7));
-    if (inp.drift && av > 18 && Math.abs(inp.steer) > 0.25 && !c.drift) { c.drift = Math.sign(inp.steer); c.driftT = 0; }
-    if (c.drift && (!inp.drift || av < 12)) {
-      if (c.driftT > 0.5 && av >= 12) { c.turbo = Math.min(1.5, 0.35 + c.driftT * 0.55); c.tank = Math.min(st.cap, c.tank + 0.12 * c.driftT); if (ev) ev.push(['turbo', c]); }
-      c.drift = 0;
-    }
-    var yawRate = c.steerSm * yawMax * (v < -0.5 ? -1 : 1);
-    if (c.spinT > 0) {   // spun out (a PIT, a hard side hit): the car rotates on its own and scrubs speed
-      // physically it ends up about 70° off the road; on screen it does a full 360 on the way there
-      c.spinT -= h; yawRate = c.spinDir * 1.45; v -= v * 1.0 * h; c.drift = 0;
+    var latMax = LAT * st.grip, yawMax = Math.min(1.9, latMax / Math.max(av, 7)), yawRate;
+    var eb = inp.drift && av > 3 && c.spinT <= 0;
+    if (eb) v -= Math.sign(v) * Math.min(Math.abs(v), (2.5 + av * 0.1) * h);   // the handbrake drags
+    var live = clamp(av / 24, 0, 1.25), sliding = Math.abs(c.slip) > 0.035 || Math.abs(c.slipV) > 0.25;
+    if (c.spinT > 0) {   // spun out (a PIT, a hard side hit, or too much angle): the car rotates on its own and scrubs speed
+      // physically it ends up about 70 degrees off the road; on screen it does a full 360 on the way there
+      c.spinT -= h; yawRate = c.spinDir * 1.45; v -= v * 1.0 * h; c.slip = 0; c.slipV = 0;
       c.visSpin = c.spinDir * (1 - Math.max(0, c.spinT) / 0.85) * Math.PI * 2; if (c.spinT <= 0) c.visSpin = 0;
-    } else if (c.drift) { c.driftT += h; yawRate = (c.drift * 0.5 + c.steerSm * 0.75) * yawMax * 1.35; v -= v * 0.09 * h; }
-    else if (Math.abs(c.steerSm) < 0.08 && Math.abs(c.yaw) < 0.6 && av > 3) c.yaw -= c.yaw * 0.7 * h;   // a little help to straighten up
+    } else {
+      if (eb && av > 9) {
+        var kick = Math.abs(c.steerSm) > 0.15 ? Math.sign(c.steerSm) : sliding ? Math.sign(c.slip) : 0;
+        if (Math.abs(c.slip) < 0.9 || kick !== Math.sign(c.slip)) c.slipV += kick * 4.2 * live * h;   // the rear lets go (once it's well out, the e-brake only drags)
+        sliding = sliding || kick !== 0;
+      }
+      if (sliding) {
+        var sg = c.slip >= 0 ? 1 : -1, x = c.slip, ax = Math.abs(x);
+        // into the slide deepens it; counter-steer catches it (and fades as it straightens, so it doesn't snap the other way)
+        var into = c.steerSm * sg > 0, sk = into ? 1 : smooth01((ax - 0.04) / 0.26);
+        c.slipV += c.steerSm * 3.4 * live * sk * (eb && into ? 0.6 : 1) * h;
+        c.slipV += sg * Math.max(0, inp.thr) * 2.0 * (eb ? 0.3 : 1) * live * smooth01((ax - 0.12) / 0.3) * h;          // throttle keeps the rear out, once it's really out
+        var grip = (eb ? (ax < 0.45 ? 0.55 : 1.6) : 3.2) * (1 - 0.35 * Math.max(0, inp.thr)) * (0.65 + 0.35 * st.grip) + (inp.brk > 0.3 ? 1.2 : 0);
+        c.slipV -= (x + 1.2 * x * x * x) * grip * h;                                               // the tyres pull it straight
+        c.slipV *= Math.max(0, 1 - 3.4 * h);
+        c.slip += c.slipV * h;
+        if (av < 6) { c.slip *= Math.max(0, 1 - 3 * h); c.slipV *= Math.max(0, 1 - 3 * h); }
+        if (Math.abs(c.slip) > SPIN_AT && av > 8) {   // too much: around she goes
+          c.spinT = 0.85; c.spinDir = c.slip > 0 ? 1 : -1; v *= 0.8; c.slip = 0; c.slipV = 0; if (ev) ev.push(['spinout', c]);
+        } else if (!eb && Math.abs(c.slip) < 0.03 && Math.abs(c.slipV) < 0.15) { c.slip = 0; c.slipV = 0; }
+        var ss = Math.abs(Math.sin(c.slip));
+        v -= Math.sign(v) * Math.min(Math.abs(v), av * (0.45 * ss * ss + 0.1 * ss) * h);     // a slide scrubs speed
+        var carve = clamp(Math.sin(c.slip) * 1.6, -1.05, 1.05);
+        yawRate = (carve * latMax * 1.2 / Math.max(av, 7) + c.steerSm * yawMax * 0.25) * (v < -0.5 ? -1 : 1);
+      } else {
+        yawRate = c.steerSm * yawMax * (v < -0.5 ? -1 : 1);
+        if (Math.abs(c.steerSm) < 0.08 && Math.abs(c.yaw) < 0.6 && av > 3 && c.straighten) c.yaw -= c.yaw * 0.7 * h;   // a little help to straighten up (drives only)
+      }
+    }
+    c.drift = Math.abs(c.slip) > 0.12 ? (c.slip > 0 ? 1 : -1) : 0;
+    c.v = v;
+    return yawRate;
+  }
+  function stepCar(c, h, TR, ev) {
+    if (c.hold > 0) { c.hold -= h; c.inp = { thr: 0, brk: 1, steer: 0, nitro: false, drift: false }; }
+    if (c.inv > 0) c.inv -= h;
+    c.straighten = true;
+    var yawRate = drive(c, h, ev), v = c.v, av = Math.abs(v);
     var fi = c.s / TR.step, i0 = Math.floor(fi) % TR.n, k = lerp(TR.K[i0], TR.K[(i0 + 1) % TR.n], fi - Math.floor(fi));
     var cy = Math.cos(c.yaw), sy = Math.sin(c.yaw);
     var ds = v * cy * h / Math.max(0.5, 1 - k * c.d);
@@ -1737,7 +1840,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
         // slammed into the wall hard enough (usually shoved there by someone): a wreck
         if (vlat > 15 && av > 22 && ev && !c.block && (c.human != null || c.cop || Math.abs(c.kd) > 1 || c.spinT > 0 || (c.hitBy && (TR.now || 0) - (c.hitT || -9) < 3))) ev.push(['wreck', c, vlat, 'wall']);
         else if (vlat > 2.5 && c.wallCd <= 0 && ev) { ev.push(['hit', c, vlat]); c.wallCd = 0.35; }
-        v *= 1 - loss; c.yaw *= 0.25;
+        v *= 1 - loss; c.yaw *= 0.25; c.slip *= 0.4; c.slipV *= 0.3;
       }
       if (av > 14 && ev && c.human != null && Math.random() < h * 12) ev.push(['scrape', c, av]);
       v -= Math.sign(v) * Math.min(Math.abs(v), 3 * h); c.touch = sd;
@@ -1745,7 +1848,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     if (c.wallCd > 0) c.wallCd -= h;
     c.s = ((c.s + ds) % TR.L + TR.L) % TR.L; c.total += ds; c.v = v;
     c.spin += v * h / 0.34;
-    c.vis += ((c.drift ? c.drift * 0.38 : 0) - c.vis) * Math.min(1, h * 6);
+    c.vis += (c.slip - c.vis) * Math.min(1, h * 14);
   }
   // car-to-car: push apart across the road, the one behind loses a little speed. Roadblock cars don't move;
   // police cruisers take damage from hard hits (enough of it and they're wrecked).
@@ -1871,7 +1974,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var M = c._M || (c._M = new THREE.Matrix4()); M.makeBasis(F, f.u, Rg); m.quaternion.setFromRotationMatrix(M);
     var fx = m.userData.fx; for (var i = 0; i < fx.wheels.length; i++) fx.wheels[i].rotation.z = -c.spin;
     if (fx.wheelMat) fx.wheelMat.uniforms.spin.value = c.spin % 6.2832;
-    if (fx.flames) { var on = c.boost || c.turbo > 0; fx.flames.forEach(function (fl) { fl.visible = on; if (on) { var s = 0.8 + Math.random() * 0.6; fl.scale.set(1, s * (c.boost ? 1.4 : 0.9), 1); } }); }
+    if (fx.flames) { var on = c.boost || c.turbo > 0 || c.sling > 0; fx.flames.forEach(function (fl) { fl.visible = on; if (on) { var s = 0.8 + Math.random() * 0.6; fl.scale.set(1, s * (c.boost ? 1.4 : 0.9), 1); } }); }
     return f;
   }
   function updateCam(cam, c, TR, h, mode, snap) {
@@ -2253,6 +2356,90 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     bl.src.value = F.c.texture; bl.dir.value.set(0, 1 / F.c.height); pass(F.blur, F.d);
     var u = F.comp.uniforms; u.src.value = F.rt.texture; u.bloomA.value = F.a.texture; u.bloomB.value = F.d.texture; u.time.value = (performance.now() % 10000) / 10; u.res.value.set(F.w, F.h);
     pass(F.comp, null);
+  }
+
+  /* ════════════════ WET-ROAD REFLECTIONS ════════════════
+     Before each view is drawn, the scene is drawn again from a camera mirrored under the road (half size, clipped at
+     the road surface) into a texture. The road shader looks that texture up where each pixel would reflect, smears it
+     along the screen's vertical into streaks the way wet asphalt does, and lays it on: strongest at grazing angles
+     and in the puddles, so the neon, lamps, tail lights and light bars run down the street. Settings → Reflections. */
+  var REFL = { rt: null, w: 0, h: 0, cam: new THREE.PerspectiveCamera(), U: { tRef: { value: null }, refM: { value: new THREE.Matrix4() }, refTexel: { value: new THREE.Vector2(1 / 512, 1 / 512) }, refOn: { value: 0 } } };
+  function reflOn() { return SET.refl == null ? !TOUCH && !REFL.slow : !!SET.refl; }
+  // if the machine can't keep up (frames over ~26 ms for a few seconds), the default reflections switch themselves off
+  function perfWatch(dt) {
+    if (SET.refl != null || REFL.slow || !(STATE === 'race')) return;
+    REFL.ema = REFL.ema == null ? dt : REFL.ema * 0.95 + dt * 0.05;
+    REFL.slowT = REFL.ema > 0.026 ? (REFL.slowT || 0) + dt : 0;
+    if (REFL.slowT > 3) REFL.slow = true;
+  }
+  // make a road material reflective (amt: how wet this world is)
+  function wetRoad(mat, amt) {
+    mat.onBeforeCompile = function (sh) {
+      sh.uniforms.tRef = REFL.U.tRef; sh.uniforms.refM = REFL.U.refM; sh.uniforms.refTexel = REFL.U.refTexel; sh.uniforms.refOn = REFL.U.refOn; sh.uniforms.refAmt = { value: amt };
+      sh.vertexShader = 'uniform mat4 refM; varying vec4 vRefP; varying vec3 vRW;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\n vec4 rW = modelMatrix * vec4(transformed, 1.0); vRefP = refM * rW; vRW = rW.xyz;');
+      sh.fragmentShader = [
+        'uniform sampler2D tRef; uniform vec2 refTexel; uniform float refOn, refAmt; varying vec4 vRefP; varying vec3 vRW;',
+        'float rH(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453); }',
+        'float rN(vec2 p){ vec2 i = floor(p), f = fract(p); f = f*f*(3.0-2.0*f); return mix(mix(rH(i), rH(i+vec2(1.0,0.0)), f.x), mix(rH(i+vec2(0.0,1.0)), rH(i+vec2(1.0,1.0)), f.x), f.y); }'
+      ].join('\n') + '\n' + sh.fragmentShader.replace('gl_FragColor = vec4( outgoingLight, diffuseColor.a );', [
+        'gl_FragColor = vec4( outgoingLight, diffuseColor.a );',
+        'if (refOn > 0.5) {',
+        ' vec3 V = normalize(cameraPosition - vRW);',
+        ' float fres = 0.1 + 0.9 * pow(1.0 - clamp(V.y, 0.0, 1.0), 3.0);',
+        ' float wet = smoothstep(0.42, 0.72, rN(vRW.xz * 0.09) * 0.6 + rN(vRW.xz * 0.31) * 0.4);',   // puddles
+        ' vec2 uv = vRefP.xy / vRefP.w;',
+        ' uv.x += (rN(vRW.xz * 3.1) - 0.5) * 0.004 * (1.0 - wet);',
+        ' float spread = 2.5 + 7.0 * (1.0 - wet);',
+        ' vec3 r = vec3(0.0); float ws = 0.0;',
+        ' for (int i = -4; i <= 4; i++) { float w = 1.0 - abs(float(i)) / 5.0; r += texture2D(tRef, uv + vec2(0.0, float(i) * refTexel.y * spread)).rgb * w; ws += w; }',
+        ' r /= ws;',
+        ' float k = refAmt * fres * mix(0.5, 1.0, wet);',
+        ' gl_FragColor.rgb = gl_FragColor.rgb * (1.0 - 0.3 * wet * refAmt) + r * k;',
+        '}'].join('\n'));
+    };
+    mat.needsUpdate = true;
+    return mat;
+  }
+  var _rN = new THREE.Vector3(0, 1, 0), _rP = new THREE.Vector3(), _rV = new THREE.Vector3(), _rT = new THREE.Vector3(), _rL = new THREE.Vector3(), _rRot = new THREE.Matrix4(), _rPl = new THREE.Plane(), _rC = new THREE.Vector4(), _rQ = new THREE.Vector4();
+  // draw the mirrored view for camera cam with the road at height py into REFL.rt; w,h: the view's pixel size
+  function reflRender(S, cam, py, w, h) {
+    if (!reflOn() || !S.refl) { REFL.U.refOn.value = 0; return; }
+    var rw = Math.max(64, Math.round(w * 0.5)), rh = Math.max(64, Math.round(h * 0.5));
+    if (!REFL.rt || REFL.w !== rw || REFL.h !== rh) {
+      if (REFL.rt) REFL.rt.dispose();
+      REFL.rt = new THREE.WebGLRenderTarget(rw, rh, { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat });
+      REFL.w = rw; REFL.h = rh; REFL.U.tRef.value = REFL.rt.texture; REFL.U.refTexel.value.set(1 / rw, 1 / rh);
+    }
+    _rP.set(cam.position.x, py, cam.position.z);
+    cam.updateMatrixWorld();
+    _rV.copy(_rP).sub(cam.position);
+    if (_rV.dot(_rN) > 0) { REFL.U.refOn.value = 0; return; }   // camera under the road
+    _rV.reflect(_rN).negate().add(_rP);
+    _rRot.extractRotation(cam.matrixWorld);
+    _rL.set(0, 0, -1).applyMatrix4(_rRot).add(cam.position);
+    _rT.copy(_rP).sub(_rL).reflect(_rN).negate().add(_rP);
+    var mc = REFL.cam;
+    mc.position.copy(_rV); mc.up.set(0, 1, 0).applyMatrix4(_rRot).reflect(_rN); mc.lookAt(_rT);
+    mc.far = cam.far; mc.near = cam.near; mc.updateMatrixWorld(); mc.projectionMatrix.copy(cam.projectionMatrix);
+    REFL.U.refM.value.set(0.5, 0, 0, 0.5, 0, 0.5, 0, 0.5, 0, 0, 0.5, 0.5, 0, 0, 0, 1).multiply(mc.projectionMatrix).multiply(mc.matrixWorldInverse);
+    // oblique near plane at the road surface, so nothing under the road shows
+    _rPl.setFromNormalAndCoplanarPoint(_rN, _rP); _rPl.applyMatrix4(mc.matrixWorldInverse);
+    _rC.set(_rPl.normal.x, _rPl.normal.y, _rPl.normal.z, _rPl.constant);
+    var e = mc.projectionMatrix.elements;
+    _rQ.x = (Math.sign(_rC.x) + e[8]) / e[0]; _rQ.y = (Math.sign(_rC.y) + e[9]) / e[5]; _rQ.z = -1.0; _rQ.w = (1.0 + e[10]) / e[14];
+    _rC.multiplyScalar(2.0 / _rC.dot(_rQ));
+    e[2] = _rC.x; e[6] = _rC.y; e[10] = _rC.z + 1.0 - 0.06; e[14] = _rC.w;
+    // draw it without the road (and things lying on it)
+    var hid = S.refl.hide; for (var i = 0; i < hid.length; i++) hid[i].visible = false;
+    var prevT = renderer.getRenderTarget(), prevSc = renderer.getScissorTest();
+    REFL.U.refOn.value = 0;
+    S.sky.position.copy(mc.position);
+    renderer.setRenderTarget(REFL.rt); renderer.setScissorTest(false); renderer.clear();
+    renderer.render(S.scene, mc);
+    for (i = 0; i < hid.length; i++) hid[i].visible = true;
+    S.sky.position.copy(cam.position);
+    renderer.setRenderTarget(prevT); renderer.setScissorTest(prevSc);
+    REFL.U.refOn.value = 1;
   }
 
   /* ════════════════ TRAFFIC ════════════════
@@ -2710,6 +2897,1443 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     return { on: on, near: near, ahead: ahead };
   }
 
+  /* ════════════════ DRIFT SCORE · SLIPSTREAM · TYRE SMOKE + SKID MARKS ════════════════
+     Drift: hold an angle over 10 degrees at speed and the points run (angle × speed × multiplier). The multiplier
+     climbs every 1.4 s you hold it (up to ×5), and short gaps between corners (under 0.6 s) keep the chain alive.
+     While you're sliding, nitro fills, faster the deeper the angle and the longer the chain. Come out clean and the
+     points bank as street cash (and a long one gives a little exit turbo). Spin out or hit something and they're lost.
+     Slipstream: tuck in behind any car moving the same way (rival, traffic, cop) within about 30 m and the air gets
+     easy: less drag, and the meter fills. Once it's full, pull out and you slingshot past. */
+  function driftStep(R, c, hi, h) {
+    var D = c.dr || (c.dr = { on: false, t: 0, pts: 0, mult: 1, quiet: 0, show: 0 }), B = R.bonus[hi];
+    var ang = Math.abs(c.slip), av = Math.abs(c.v);
+    if (c.wreck || c.busted || c.finished) { if (D.on) driftEnd(R, c, hi, false); return; }
+    if (ang > 0.17 && av > 11 && c.spinT <= 0) {
+      if (!D.on) { D.on = true; D.t = 0; D.pts = 0; D.mult = 1; }
+      D.quiet = 0; D.t += h;
+      var m = Math.min(5, 1 + Math.floor(D.t / 1.4)); if (m > D.mult) { D.mult = m; D.bump = 0.35; }
+      var deg = Math.min(75, ang * 57.3), inten = clamp(deg / 45, 0.3, 1.5);
+      D.pts += deg * av * 0.12 * D.mult * h;
+      c.tank = Math.min(c.st.cap, c.tank + c.st.cap * (0.035 + 0.075 * inten) * (1 + Math.min(D.t, 4) * 0.3) * h);
+    } else if (D.on) {
+      D.quiet += h;
+      if (D.quiet > 0.6 || av < 8) driftEnd(R, c, hi, true);
+    }
+    if (D.bump > 0) D.bump -= h;
+  }
+  function driftEnd(R, c, hi, clean) {
+    var D = c.dr, B = R.bonus[hi]; if (!D || !D.on) return;
+    D.on = false;
+    var pts = Math.round(D.pts);
+    if (pts < 60 || D.t < 0.45) { D.pts = 0; return; }
+    if (clean) {
+      var cash = Math.round(pts / 8 / 5) * 5;
+      B.cash += cash; B.dpts = (B.dpts || 0) + pts; B.drifts = (B.drifts || 0) + 1; if (pts > (B.dbest || 0)) B.dbest = pts;
+      D.last = { pts: pts, cash: cash, t: 1.6, ok: true };
+      if (D.t > 1.6) { c.turbo = Math.max(c.turbo, Math.min(1.2, 0.3 + D.t * 0.2)); }
+      sfx('drift', Math.min(1, pts / 2500));
+    } else {
+      D.last = { pts: pts, cash: 0, t: 1.4, ok: false };
+      sfx('no');
+    }
+    D.pts = 0;
+  }
+  // anything bad while the points are running ends the chain with nothing
+  function driftFail(R, c) { if (c.human == null || !c.dr || !c.dr.on) return; driftEnd(R, c, c.human, false); }
+
+  // How much air the car behind is getting: 1 tucked right in, 0 out of the wake. rel(o) gives [along, across, its speed]
+  function draftOf(c, list, rel) {
+    var best = 0, v = c.v;
+    if (v < 18 || c.wreck || c.spinT > 0) return 0;
+    for (var i = 0; i < list.length; i++) {
+      var o = list[i]; if (o === c || o.ghost || o.gone || o.block || o.wreck || o.inv > 0) continue;
+      var r = rel(o); if (!r) continue;
+      var ds = r[0], dd = Math.abs(r[1]), ov = r[2];
+      if (ds < 3.5 || ds > 30 || dd > 1.8 || ov < 14) continue;
+      var k = (1 - (ds - 3.5) / 26.5) * (1 - dd / 1.8 * 0.6);
+      if (k > best) best = k;
+    }
+    return best;
+  }
+  function slipstream(R, c, best, h) {
+    c.draft += (best - c.draft) * Math.min(1, h * 4);
+    if (c.human == null) return;
+    var S = c.ss || (c.ss = { m: 0, out: 0, full: false });
+    if (best > 0.05 && !c.wreck) {
+      S.m = Math.min(1, S.m + h * (0.3 + 0.45 * best)); S.out = 0;
+      if (S.m >= 1 && !S.full) { S.full = true; R.ev.push(['slipready', c]); }
+    } else {
+      S.out += h;
+      if (S.full && S.out > 0.12 && c.v > 15 && !c.wreck) {   // pulled out of the wake with a full meter: slingshot
+        S.full = false; S.m = 0; c.sling = 2.4; c.tank = Math.min(c.st.cap, c.tank + c.st.cap * 0.15); R.ev.push(['sling', c]);
+      } else if (!S.full) S.m = Math.max(0, S.m - h * 0.3);
+      else if (S.out > 4) { S.full = false; S.m = 0.5; }
+    }
+  }
+  function draftTrack(R, c, h) {
+    var TR = R.TR;
+    var best = draftOf(c, R.cars, function (o) { return [wrapD(o.s - c.s, TR.L), o.d - c.d, o.v * Math.cos(o.yaw)]; });
+    if (R.traffic.length) best = Math.max(best, draftOf(c, R.traffic, function (o) { return o.dir > 0 && !o.loose ? [wrapD(o.s - c.s, TR.L), o.d - c.d, o.v] : null; }));
+    slipstream(R, c, best, h);
+  }
+
+  /* ── tyre smoke and skid marks (one of each per race) ── */
+  var SKID_N = 1400, SMOKE_N = 360;
+  function makeTyreFx(R, scene) {
+    // skid marks: a ring buffer of dark quads on the road that fade with age
+    var g = new THREE.BufferGeometry(), pos = new Float32Array(SKID_N * 4 * 3), born = new Float32Array(SKID_N * 4), idx = [];
+    for (var i = 0; i < SKID_N; i++) { var o = i * 4; idx.push(o, o + 1, o + 2, o, o + 2, o + 3); born[o] = born[o + 1] = born[o + 2] = born[o + 3] = -999; }
+    for (i = 0; i < pos.length; i += 3) pos[i + 1] = -999;
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('born', new THREE.BufferAttribute(born, 1)); g.setIndex(idx);
+    var skidMat = new THREE.ShaderMaterial({
+      uniforms: { now: { value: 0 } },
+      vertexShader: 'attribute float born; uniform float now; varying float vA; void main(){ vA = clamp(1.0 - (now - born) / 40.0, 0.0, 1.0) * 0.62; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }',
+      fragmentShader: 'varying float vA; void main(){ if (vA <= 0.0) discard; gl_FragColor = vec4(0.025,0.022,0.025, vA); }',
+      transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -5
+    });
+    var skid = new THREE.Mesh(g, skidMat); skid.frustumCulled = false; skid.renderOrder = 1; scene.add(skid);
+    // smoke: soft puffs that grow and drift, lit dimly by the night
+    var sg = new THREE.BufferGeometry(), sp = new Float32Array(SMOKE_N * 3), ss = new Float32Array(SMOKE_N), sa = new Float32Array(SMOKE_N);
+    for (i = 0; i < SMOKE_N; i++) sp[i * 3 + 1] = -999;
+    sg.setAttribute('position', new THREE.BufferAttribute(sp, 3)); sg.setAttribute('size', new THREE.BufferAttribute(ss, 1)); sg.setAttribute('alpha', new THREE.BufferAttribute(sa, 1));
+    var smokeMat = new THREE.ShaderMaterial({
+      uniforms: { map: { value: SOFTBOX }, scale: { value: 600 }, col: { value: new THREE.Color(0x8c8a94) } },
+      vertexShader: 'attribute float size; attribute float alpha; uniform float scale; varying float vA; void main(){ vA = alpha; vec4 mv = modelViewMatrix * vec4(position,1.0); gl_PointSize = size * scale / max(0.5, -mv.z); gl_Position = projectionMatrix * mv; }',
+      fragmentShader: 'uniform sampler2D map; uniform vec3 col; varying float vA; void main(){ float a = texture2D(map, gl_PointCoord).a * vA; if (a < 0.004) discard; gl_FragColor = vec4(col, a); }',
+      transparent: true, depthWrite: false
+    });
+    var smoke = new THREE.Points(sg, smokeMat); smoke.frustumCulled = false; smoke.renderOrder = 2; scene.add(smoke);
+    return { skid: skid, pos: pos, born: born, si: 0, smoke: smoke, sp: sp, ss: ss, sa: sa, vel: new Float32Array(SMOKE_N * 3), life: new Float32Array(SMOKE_N), mi: 0, t: 0, dirty: false };
+  }
+  function disposeTyreFx(R, scene) { var F = R.tfx; if (!F) return; var S = R.W && R.W.S; if (S && S.refl) { var k = S.refl.hide.indexOf(F.skid); if (k >= 0) S.refl.hide.splice(k, 1); } [F.skid, F.smoke].forEach(function (m) { scene.remove(m); m.geometry.dispose(); m.material.dispose(); }); R.tfx = null; }
+  var _w0 = new THREE.Vector3(), _w1 = new THREE.Vector3();
+  // per car per frame: lay rubber and smoke from the rear tyres while sliding, spinning, locking up, or launching
+  function tyreFx(R, c, dt) {
+    var F = R.tfx; if (!F || !c.mesh || c.gone || c.wreck) { if (c.tw) c.tw = null; return; }
+    var av = Math.abs(c.v), slide = Math.abs(c.slip), lock = c.inp.brk > 0.6 && av > 16, launch = c.inp.thr > 0.9 && av < 9 && av > 0.5 && c.human != null;
+    var k = c.spinT > 0 ? 1 : slide > 0.1 && av > 6 ? clamp((slide - 0.1) / 0.4, 0.25, 1) : lock ? 0.35 : launch ? 0.6 : 0;
+    var m = c.mesh; m.updateMatrixWorld();
+    var rx = -(c.def.wheelX || c.def.L * 0.32), rz = (c.def.Wd || 1.8) / 2 - 0.22, tw = c.tw || (c.tw = [null, null]);
+    if (k <= 0) { tw[0] = tw[1] = null; return; }
+    for (var s = 0; s < 2; s++) {
+      _w0.set(rx, 0, s ? rz : -rz); m.localToWorld(_w0); _w0.y = m.position.y + 0.035;
+      var last = tw[s];
+      if (last && (k > 0.3 || lock)) {
+        var dx = _w0.x - last.x, dz = _w0.z - last.z, d2 = dx * dx + dz * dz;
+        if (d2 > 0.36) {
+          if (d2 < 25) {   // a quad from the last point to this one
+            var L = Math.sqrt(d2), nx = -dz / L * 0.15, nz = dx / L * 0.15, i = F.si = (F.si + 1) % SKID_N, o = i * 12, P = F.pos;
+            P[o] = last.x + nx; P[o + 1] = last.y; P[o + 2] = last.z + nz; P[o + 3] = last.x - nx; P[o + 4] = last.y; P[o + 5] = last.z - nz;
+            P[o + 6] = _w0.x - nx; P[o + 7] = _w0.y; P[o + 8] = _w0.z - nz; P[o + 9] = _w0.x + nx; P[o + 10] = _w0.y; P[o + 11] = _w0.z + nz;
+            for (var q = 0; q < 4; q++) F.born[i * 4 + q] = F.t;
+            F.dirty = true;
+          }
+          tw[s] = { x: _w0.x, y: _w0.y, z: _w0.z };
+        }
+      } else tw[s] = { x: _w0.x, y: _w0.y, z: _w0.z };
+      // smoke puffs
+      var n = Math.floor(k * dt * 70 + Math.random());
+      for (var p = 0; p < n; p++) {
+        var j = F.mi = (F.mi + 1) % SMOKE_N, oj = j * 3;
+        F.sp[oj] = _w0.x + rnd(-0.3, 0.3); F.sp[oj + 1] = _w0.y + 0.35; F.sp[oj + 2] = _w0.z + rnd(-0.3, 0.3);
+        F.vel[oj] = rnd(-1, 1) * 1.2; F.vel[oj + 1] = 0.6 + Math.random() * 0.8; F.vel[oj + 2] = rnd(-1, 1) * 1.2;
+        F.life[j] = 1.6 + Math.random() * 1.4; F.ss[j] = 1.2 + k * 0.8; F.sa[j] = 0.09 + k * 0.13;
+      }
+    }
+  }
+  function stepTyreFx(R, dt) {
+    var F = R.tfx; if (!F) return;
+    F.t += dt; F.skid.material.uniforms.now.value = F.t;
+    if (F.dirty) { F.skid.geometry.attributes.position.needsUpdate = true; F.skid.geometry.attributes.born.needsUpdate = true; F.dirty = false; }
+    var any = false;
+    for (var j = 0; j < SMOKE_N; j++) {
+      if (F.life[j] <= 0) { if (F.sa[j] > 0) { F.sa[j] = 0; any = true; } continue; }
+      var o = j * 3; F.life[j] -= dt; any = true;
+      F.sp[o] += F.vel[o] * dt; F.sp[o + 1] += F.vel[o + 1] * dt; F.sp[o + 2] += F.vel[o + 2] * dt;
+      F.vel[o] *= 1 - dt * 0.8; F.vel[o + 2] *= 1 - dt * 0.8;
+      F.ss[j] += dt * 3.4; F.sa[j] *= 1 - dt * 0.7;
+      if (F.life[j] <= 0) F.sa[j] = 0;
+    }
+    if (any) { var a = F.smoke.geometry.attributes; a.position.needsUpdate = true; a.size.needsUpdate = true; a.alpha.needsUpdate = true; }
+  }
+  // one race event (crashes, sparks, nitro, drift, slipstream...), shared by the drives and the city
+  function raceEvent(R, e) {
+    var c = e[1], hi = c.human;
+    if (c.cop && e[0] === 'hit') copHit(c, e[2], null);
+    if (e[0] === 'copdmg') { if (hi != null && e[2] < 100) popMsg(hi, 'COP HIT', 'damage ' + e[2] + '%'); emitSparks(R, e[3], 8, 0.8); return; }
+    if (e[0] === 'wreck') { driftFail(R, c); startWreck(R, c, e[2], e[3]); return; }
+    if (e[0] === 'spark') { emitSparks(R, c, Math.min(26, 4 + e[2]), Math.min(1.5, e[2] / 14)); if (e[3]) emitSparks(R, e[3], 3, 0.6); return; }
+    if (e[0] === 'scrape') { emitSparks(R, c, 3, 0.6); sfx('scrape', 0.6); return; }
+    if (e[0] === 'pit') { driftFail(R, c); if (hi != null) { hudMsg(hi, 'SPUN OUT<small>PIT maneuver</small>', 'warn', 1.4); sfx('crash', 0.7); c.cam.userData.shake = 0.6; } emitSparks(R, c, 14, 1); return; }
+    if (hi == null) return;
+    if (e[0] === 'hit') { driftFail(R, c); sfx('hit', clamp(e[2] / 12, 0.3, 1)); c.cam.userData.shake = Math.min(0.5, e[2] / 30); }
+    else if (e[0] === 'crash') { driftFail(R, c); sfx('crash', clamp(e[2] / 25, 0.5, 1)); c.cam.userData.shake = Math.min(0.8, e[2] / 25); }
+    else if (e[0] === 'bump') { if (e[2] > 4) driftFail(R, c); sfx('bump', clamp(e[2] / 10, 0.3, 1)); }
+    else if (e[0] === 'nitro') sfx('nitro');
+    else if (e[0] === 'spinout') { driftFail(R, c); hudMsg(hi, 'SPUN OUT<small>too much angle · counter-steer to catch it</small>', 'warn', 1.5); sfx('spin'); }
+    else if (e[0] === 'slipready') { popMsg(hi, 'SLIPSTREAM FULL', 'pull out to slingshot'); sfx('slipready'); }
+    else if (e[0] === 'sling') { hudMsg(hi, 'SLINGSHOT', '', 0.9); sfx('sling'); c.cam.userData.shake = 0.15; }
+  }
+  // the drift meter on the HUD: running points, multiplier, a bar for the angle; then the banked result (or LOST)
+  function driftHud(H, c, dt) {
+    if (!H.drf) return;
+    var D = c.dr, on = D && D.on && D.pts > 25, L = D && D.last;
+    if (L && L.t > 0) L.t -= dt;
+    var cls = 'drf' + (on ? ' on' : L && L.t > 0 ? ' on ' + (L.ok ? 'bank' : 'lost') : '') + (on && D.bump > 0 ? ' bump' : '');
+    if (H.drf.className !== cls) H.drf.className = cls;
+    if (on) {
+      var p = Math.round(D.pts).toLocaleString('en-US');
+      if (H.last.dp !== p) { H.dpts.textContent = p; H.last.dp = p; }
+      var m = '×' + D.mult; if (H.last.dm !== m) { H.dmul.textContent = m; H.last.dm = m; }
+      H.dang.style.width = clamp(Math.abs(c.slip) / SPIN_AT * 100, 0, 100).toFixed(0) + '%';
+      H.dang.parentNode.classList.toggle('edge', Math.abs(c.slip) > SPIN_AT * 0.8);
+      if (H.last.dl !== 'DRIFT') { H.dlbl.textContent = 'DRIFT'; H.last.dl = 'DRIFT'; }
+    } else if (L && L.t > 0 && H.last.dl !== 'R' + L.pts + L.ok) {
+      H.last.dl = 'R' + L.pts + L.ok; H.last.dp = H.last.dm = null;
+      H.dpts.textContent = L.pts.toLocaleString('en-US'); H.dmul.textContent = '';
+      H.dlbl.textContent = L.ok ? '+ $' + L.cash.toLocaleString('en-US') + ' · NITRO' : 'DRIFT LOST';
+      H.dang.style.width = '0%';
+    }
+  }
+
+  /* ════════════════ YESTERDAYLAND CITY: the open world ════════════════
+     Drive 07. The show's districts joined into one street grid you can drive anywhere in: Manhattan in the rain to the
+     north-west, the Las Vegas Strip to the north-east, Sunset Boulevard to the south-west, Ocean Drive and the beach to
+     the south-east. Two-way four-lane streets with sidewalks, lamps and flashing amber signals at the corners, traffic on
+     every street, patrols, and two open lots to drift in. Here the physics is in world space (x, z and a heading);
+     the six drives keep their track-relative physics. Both use the same driving model (drive()). */
+  THEMES.city = Object.assign({}, THEMES.strip, { fog: 0x2a2636, fogN: 70, fogF: 720, glowAmt: 0.42, stars: 0.3, hzv: 0.27, rep: 4, lamp: 0xffa548, pool: 0.36, hemi: [0xffc8a0, 0x2a2238, 0.62] });
+  var CITY = { id: 'city', ep: '07', name: 'YESTERDAYLAND City', place: 'Open world · 1985', theme: 'city', pay: 2.2, laps: 1, skill: 0.92, rupg: 1,
+    still: ART + '67b55da3-1645-4ba4-a3f9-db88aa38f32e.png', hz: ART + '40e80e09-fb37-4583-bbf4-ace63f724f55.png',
+    rivals: ['muscle', 'gull', 'wedge', 'gull', 'muscle'] };
+  var CG = (function () {
+    var dx = [118, 104, 126, 112, 132, 108, 122, 100], dz = [110, 128, 102, 120, 116, 130, 104, 118], xs = [0], zs = [0];
+    dx.forEach(function (d) { xs.push(xs[xs.length - 1] + d); }); dz.forEach(function (d) { zs.push(zs[zs.length - 1] + d); });
+    var N = 8, NN = N + 1;
+    function district(i, j) { var w = i < 4, n = j < 4; return n ? (w ? 'nyc' : 'vegas') : (w ? 'strip' : 'miami'); }
+    var LOTS = { '2,5': 'drive-in', '5,2': 'lot' };
+    var blocks = [];
+    for (var i = 0; i < N; i++) for (var j = 0; j < N; j++) blocks.push({ i: i, j: j, x0: xs[i] + HALF, x1: xs[i + 1] - HALF, z0: zs[j] + HALF, z1: zs[j + 1] - HALF, dist: district(i, j), lot: LOTS[i + ',' + j] || null });
+    var E = 4000, X0 = xs[0] - HALF, X1 = xs[N] + HALF, Z0 = zs[0] - HALF, Z1 = zs[N] + HALF;
+    var outer = [{ x0: -E, x1: X0, z0: -E, z1: E }, { x0: X1, x1: E, z0: -E, z1: E }, { x0: X0, x1: X1, z0: -E, z1: Z0 }, { x0: X0, x1: X1, z0: Z1, z1: E }];
+    var nodes = [];
+    for (i = 0; i < NN; i++) for (j = 0; j < NN; j++) nodes.push({ id: i * NN + j, i: i, j: j, x: xs[i], z: zs[j], nb: [] });
+    var segs = [];
+    function seg(a, b, axis) { var A = nodes[a], B = nodes[b], s = { id: segs.length, a: a, b: b, axis: axis, len: Math.hypot(B.x - A.x, B.z - A.z), park: {} }; segs.push(s); A.nb.push({ n: b, s: s }); B.nb.push({ n: a, s: s }); }
+    for (i = 0; i < NN; i++) for (j = 0; j < N; j++) seg(i * NN + j, i * NN + j + 1, 'z');
+    for (j = 0; j < NN; j++) for (i = 0; i < N; i++) seg(i * NN + j, (i + 1) * NN + j, 'x');
+    return { xs: xs, zs: zs, N: N, NN: NN, blocks: blocks, outer: outer, nodes: nodes, segs: segs, X0: X0, X1: X1, Z0: Z0, Z1: Z1, cx: (xs[0] + xs[N]) / 2, cz: (zs[0] + zs[N]) / 2, district: district };
+  })();
+  function cgIdx(arr, v) { var k = -1; while (k + 1 < arr.length && arr[k + 1] <= v) k++; return k; }   // street line at or before v
+  function blockAt(x, z) { var i = cgIdx(CG.xs, x), j = cgIdx(CG.zs, z); if (i < 0 || j < 0 || i >= CG.N || j >= CG.N) return null; return CG.blocks[i * CG.N + j]; }
+  function districtAt(x, z) { var i = clamp(cgIdx(CG.xs, x), 0, CG.N - 1), j = clamp(cgIdx(CG.zs, z), 0, CG.N - 1); return CG.district(i, j); }
+  // how far a spot is from the nearest street centre line
+  function cityNear(x, z) {
+    var best = 1e9, k, d;
+    for (k = 0; k < CG.xs.length; k++) { d = Math.abs(x - CG.xs[k]); var oz = z < CG.Z0 ? CG.Z0 - z : z > CG.Z1 ? z - CG.Z1 : 0; d = Math.hypot(d, oz); if (d < best) best = d; }
+    for (k = 0; k < CG.zs.length; k++) { d = Math.abs(z - CG.zs[k]); var ox = x < CG.X0 ? CG.X0 - x : x > CG.X1 ? x - CG.X1 : 0; d = Math.hypot(d, ox); if (d < best) best = d; }
+    return best;
+  }
+  function nearestNode(x, z) { var i = 0, j = 0, bi = 1e9, bj = 1e9; CG.xs.forEach(function (v, k) { if (Math.abs(v - x) < bi) { bi = Math.abs(v - x); i = k; } }); CG.zs.forEach(function (v, k) { if (Math.abs(v - z) < bj) { bj = Math.abs(v - z); j = k; } }); return CG.nodes[i * CG.NN + j]; }
+  // A straight stretch of street (a block face) dressed with the drives' citySide: a track-shaped object whose frame
+  // is computed directly, so it never wraps round.
+  function lineTR(ax, az, bx, bz) {
+    var L = Math.hypot(bx - ax, bz - az), tx = (bx - ax) / L, tz = (bz - az) / L, n = Math.max(2, Math.round(L / 2)), step = L / n;
+    var P = [], T = [], Rr = [], U = [], K = [], wl = [], wr = [];
+    for (var i = 0; i < n; i++) { P.push(V3(ax + tx * i * step, 0, az + tz * i * step)); T.push(V3(tx, 0, tz)); Rr.push(V3(-tz, 0, tx)); U.push(V3(0, 1, 0)); K.push(0); wl.push(HALF); wr.push(HALF); }
+    var TR = { def: CITY, L: L, n: n, step: step, P: P, T: T, R: Rr, U: U, K: K, vb: [], line: [], wl: wl, wr: wr, near: cityNear, ymin: 0, ymax: 0 };
+    TR.lin = function (s, out) { out.p.set(ax + tx * s, 0, az + tz * s); out.t.set(tx, 0, tz); out.r.set(-tz, 0, tx); out.u.set(0, 1, 0); out.k = 0; out.i = Math.floor(clamp(s, 0, L - 0.01) / step); out.f = 0; return out; };
+    return TR;
+  }
+  // which block lies on side sd of street segment sg (null outside the grid)
+  function sideBlock(sg, sd) {
+    var A = CG.nodes[sg.a];
+    if (sg.axis === 'z') { var i = sd > 0 ? A.i - 1 : A.i; if (i < 0 || i >= CG.N) return null; return CG.blocks[i * CG.N + A.j]; }   // facing +z, +R is -x
+    var j = sd > 0 ? A.j : A.j - 1; if (j < 0 || j >= CG.N) return null; return CG.blocks[A.i * CG.N + j];   // facing +x, +R is +z
+  }
+
+  var CITY_STYLE = {
+    strip: { w: [12, 24], h: [5, 13], facades: 'strip', cols: [0xc8a890, 0xa8b0c0, 0xd8c0a0, 0x9890a0, 0xc09080], bright: 1.5, signs: [0, 1, 2, 3, 4, 5, 6, 14, 15], signP: 0.7, shopP: 0.7, parkGap: 0.55, people: 8 },
+    nyc: { w: [14, 24], h: [26, 150], hp: 1.6, facades: 'nyc', facadeBase: true, facadeP: 0.97, cols: [0xa8a49c, 0x8c8880, 0xb09a88, 0x9a8a7a, 0x7a7c84], bright: 1.3, signs: [7, 6, 9, 3, 8, 15, 14, 2], signP: 0.8, shopP: 0.9, parkGap: 0.45, people: 6, umbrellas: 1, taxis: 0.45 },
+    miami: { w: [18, 32], h: [10, 30], facades: 'miami', facadeP: 0.97, cols: [0xffc8d8, 0xb8f0e0, 0xffd8b8, 0xd8c8ff, 0xfff0c8, 0xc0e8ff], bright: 2.6, signs: [10, 11, 12, 8, 4, 0], signP: 0.85, shopP: 0.8, parkGap: 0.55, people: 7 },
+    vegas: { w: [16, 30], h: [8, 80], hp: 2.2, facades: 'vegas', facadeBase: true, facadeP: 0.95, cols: [0xe8dcc8, 0xd8c0a0, 0xc8b8a8, 0xf0e4d0, 0xb8a890], bright: 1.4, signs: [0, 3, 8, 4, 13, 15], signP: 0.6, shopP: 0.8, parkGap: 0.6, people: 6, taxis: 0.15 }
+  };
+  function cityTex(kind) {
+    var c = cvs(256, 256), x = c.getContext('2d');
+    x.fillStyle = '#26252a'; x.fillRect(0, 0, 256, 256); noiseFill(x, 256, 256, 2600, 0.03, 0.09);
+    for (var k = 0; k < 10; k++) { x.fillStyle = 'rgba(0,0,0,' + (0.05 + Math.random() * 0.08) + ')'; x.fillRect(Math.random() * 230, Math.random() * 230, 20 + Math.random() * 40, 20 + Math.random() * 40); }
+    x.fillStyle = 'rgba(235,235,230,.85)';
+    if (kind === 'isect') {   // crosswalk bars on all four sides; the texture spans the 18 m square
+      for (var b = 0; b < 9; b++) { var u = 22 + b * 24; x.fillRect(u, 2, 12, 22); x.fillRect(u, 232, 12, 22); x.fillRect(2, u, 22, 12); x.fillRect(232, u, 22, 12); }
+    } else if (kind === 'lot') {   // parking bays (the texture spans 32 m)
+      for (var r = 0; r < 4; r++) { var y0 = 20 + r * 62; x.fillRect(10, y0, 236, 3); for (var q = 0; q <= 12; q++) x.fillRect(10 + q * 19.6, y0 - 18, 2.5, 18); }
+    }
+    return texOf(c, kind === 'lot');
+  }
+  function buildCity() {
+    var th = THEMES.city, rng = seeded(7777), scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(th.fog, th.fogN, th.fogF); scene.background = new THREE.Color(th.bot);
+    var sky = skyMesh(th); scene.add(sky);
+    var gy = -0.3, RAD = Math.hypot(CG.X1 - CG.X0, CG.Z1 - CG.Z0) / 2, RING = RAD + 700;
+    var ring = ringFallback(th, rng, CG.cx, CG.cz, RING); scene.add(ring);
+    var out = { scene: scene, sky: sky, ring: ring, th: th, lamps: [], city: true, refl: { hide: [] }, parked: [], extra: {} };
+    loadArt(CITY.hz, 2048).then(function (tex) { if (!tex || !tex.image || !tex.image.width) return; var pano = ringPano(th, tex, CG.cx, CG.cz, RING, gy, sky); scene.remove(out.ring); scene.add(pano); out.ring = pano; });
+    scene.add(new THREE.HemisphereLight(th.hemi[0], th.hemi[1], th.hemi[2]));
+    var dl = new THREE.DirectionalLight(0xffd8b0, 0.35); dl.position.set(-0.4, 0.6, 0.8); scene.add(dl);
+    var gt = groundTex('strip'); gt.repeat.set(RING / 12, RING / 12);
+    var gp = new THREE.Mesh(new THREE.CircleGeometry(RING - 30, 64), new THREE.MeshBasicMaterial({ map: gt })); gp.rotation.x = -Math.PI / 2; gp.position.set(CG.cx, gy, CG.cz); scene.add(gp);
+
+    // ── streets, intersections, lots ──
+    var road = new Merger(), isect = new Merger(), lots = new Merger(), vS = 1 / 24;
+    CG.segs.forEach(function (sg) {
+      var A = CG.nodes[sg.a], B = CG.nodes[sg.b], tx = (B.x - A.x) / sg.len, tz = (B.z - A.z) / sg.len, rx = -tz, rz = tx;
+      var a = V3(A.x + tx * HALF, 0, A.z + tz * HALF), b = V3(B.x - tx * HALF, 0, B.z - tz * HALF), L2 = sg.len - ROAD_W;
+      var aL = a.clone().add(V3(-rx * HALF, 0, -rz * HALF)), aR = a.clone().add(V3(rx * HALF, 0, rz * HALF)), bL = b.clone().add(V3(-rx * HALF, 0, -rz * HALF)), bR = b.clone().add(V3(rx * HALF, 0, rz * HALF));
+      road.quad(aR, bR, bL, aL, 0xffffff, [[1, 0], [1, L2 * vS], [0, L2 * vS], [0, 0]]);
+    });
+    CG.nodes.forEach(function (n) { var p = [V3(n.x - HALF, 0, n.z - HALF), V3(n.x + HALF, 0, n.z - HALF), V3(n.x + HALF, 0, n.z + HALF), V3(n.x - HALF, 0, n.z + HALF)]; isect.quad(p[3], p[2], p[1], p[0], 0xffffff, [[0, 0], [1, 0], [1, 1], [0, 1]]); });
+    CG.blocks.forEach(function (bk) { if (!bk.lot) return; var p = [V3(bk.x0, 0, bk.z0), V3(bk.x1, 0, bk.z0), V3(bk.x1, 0, bk.z1), V3(bk.x0, 0, bk.z1)]; var su = (bk.x1 - bk.x0) / 32, sv = (bk.z1 - bk.z0) / 32; lots.quad(p[3], p[2], p[1], p[0], 0xffffff, [[0, 0], [su, 0], [su, sv], [0, sv]]); });
+    var rt = roadTex('strip'), it = cityTex('isect'), lt = cityTex('lot');
+    var roadM = new THREE.Mesh(road.geo(), wetRoad(new THREE.MeshLambertMaterial({ map: rt, color: 0xd0ccc8 }), 0.75));
+    var isM = new THREE.Mesh(isect.geo(), wetRoad(new THREE.MeshLambertMaterial({ map: it, color: 0xd0ccc8 }), 0.75));
+    var lotM = new THREE.Mesh(lots.geo(), wetRoad(new THREE.MeshLambertMaterial({ map: lt, color: 0xc8c4c0 }), 0.6));
+    [roadM, isM, lotM].forEach(function (m) { scene.add(m); out.refl.hide.push(m); });
+    // ── blocks: a raised slab with curbs, the sidewalk round the edge (buildings stand on it) ──
+    var slab = new Merger(), ct = concreteTex('#7a7470');
+    function slabBox(x0, x1, z0, z1, col) { var w = x1 - x0, d = z1 - z0, g = new THREE.BoxGeometry(w, 0.18, d), uv = g.attributes.uv; for (var q = 0; q < uv.count; q++) uv.setXY(q, uv.getX(q) * w / 3, uv.getY(q) * (q >= 8 && q < 16 ? d : 0.2) / 3); slab.add(g, mtx((x0 + x1) / 2, 0.09, (z0 + z1) / 2), col); }
+    CG.blocks.forEach(function (bk) { if (bk.lot) return; slabBox(bk.x0, bk.x1, bk.z0, bk.z1, { nyc: 0x8c8c94, vegas: 0xb0a898, strip: 0xa8a098, miami: 0xb8b0a4 }[bk.dist]); });
+    // the city's edge: a sidewalk ring outside the outer streets (Ocean Drive's beach side stays open)
+    var W2 = 60;
+    slabBox(CG.X0 - W2, CG.X0, CG.Z0 - W2, CG.Z1 + W2, 0xa09890);
+    slabBox(CG.X0, CG.X1 + W2, CG.Z0 - W2, CG.Z0, 0x9890a0);
+    slabBox(CG.X0, CG.X1, CG.Z1, CG.Z1 + W2, 0xa8a098);
+    slabBox(CG.X1, CG.X1 + 7, CG.Z0, CG.Z1, 0xb8b0a4);
+    scene.add(new THREE.Mesh(slab.geo(), new THREE.MeshLambertMaterial({ map: ct, vertexColors: true })));
+
+    // ── buildings: each block face dressed with its district's look, collected per district ──
+    var acc = {}, parkOut = out.parked;
+    ['nyc', 'vegas', 'strip', 'miami'].forEach(function (d) { acc[d] = cityAcc({ facades: FACADES[CITY_STYLE[d].facades] }); });
+    var M = HALF + 4.5 + 0.3;
+    CG.segs.forEach(function (sg) {
+      var A = CG.nodes[sg.a], B = CG.nodes[sg.b], tx = (B.x - A.x) / sg.len, tz = (B.z - A.z) / sg.len;
+      var TR = lineTR(A.x + tx * M, A.z + tz * M, B.x - tx * M, B.z - tz * M);
+      [-1, 1].forEach(function (sd) {
+        var bk = sideBlock(sg, sd), dist;
+        if (bk) { if (bk.lot) return; dist = bk.dist; }
+        else {   // outside the grid: the edge of the city takes the look of the district it's next to
+          var other = sideBlock(sg, -sd); dist = other ? other.dist : 'strip';
+          var east = sg.axis === 'z' && A.i === CG.N && sd < 0;
+          if (east) return;   // the beach (south) and the desert edge of the Strip (north) stay open
+        }
+        var st = CITY_STYLE[dist], o = Object.assign({}, st, { acc: acc[dist], sides: [sd], parkFrom: 10 + rng() * 30, parkTo: 8, parkMax: 18 + rng() * 22, parkGap: 0.82, people: st.people * 3.2, parkOut: parkOut, seg: sg.id, facades: null });
+        citySide(scene, TR, rng, gy, 4.5, o);
+      });
+    });
+    ['nyc', 'vegas', 'strip', 'miami'].forEach(function (d) { cityFlush(scene, acc[d], rng); });
+    parkOut.forEach(function (p) { CG.segs[p.seg].park[p.side] = true; });
+
+    // ── lamps along every block face, warm pools on the road; amber signals blinking at the corners ──
+    var poles = new Merger(), lampPos = [], pools = new Merger();
+    CG.segs.forEach(function (sg, k) {
+      var A = CG.nodes[sg.a], B = CG.nodes[sg.b], tx = (B.x - A.x) / sg.len, tz = (B.z - A.z) / sg.len, rx = -tz, rz = tx, n = Math.max(1, Math.round((sg.len - 30) / 40));
+      for (var q = 0; q < n; q++) {
+        var s = 15 + (q + 0.5) * (sg.len - 30) / n, sd = (q + k) % 2 ? 1 : -1;
+        if (!sideBlock(sg, sd) && sg.axis === 'z' && A.i === CG.N) sd = -sd;
+        var bx = A.x + tx * s + rx * sd * (HALF + 1.0), bz = A.z + tz * s + rz * sd * (HALF + 1.0), ph = 8.5, armL = 3.2;
+        poles.add(new THREE.CylinderGeometry(0.12, 0.18, ph, 6), mtx(bx, ph / 2, bz), 0x55525a);
+        var ax = bx - rx * sd * armL, az = bz - rz * sd * armL;
+        poles.add(new THREE.BoxGeometry(0.12, 0.12, armL + 0.2), mtx((bx + ax) / 2, ph, (bz + az) / 2, Math.atan2(rx, rz)), 0x55525a);
+        poles.add(new THREE.BoxGeometry(0.42, 0.22, 0.9), mtx(ax, ph - 0.1, az, Math.atan2(rx, rz)), 0x55525a);
+        lampPos.push(ax, ph - 0.3, az); out.lamps.push(V3(ax, ph - 0.3, az));
+        var cx = A.x + tx * s + rx * sd * (HALF - armL - 0.4), cz = A.z + tz * s + rz * sd * (HALF - armL - 0.4), hw = 7, hl = 11;
+        pools.quad(V3(cx - rx * hw - tx * hl, 0.05, cz - rz * hw - tz * hl), V3(cx + rx * hw - tx * hl, 0.05, cz + rz * hw - tz * hl), V3(cx + rx * hw + tx * hl, 0.05, cz + rz * hw + tz * hl), V3(cx - rx * hw + tx * hl, 0.05, cz - rz * hw + tz * hl), th.lamp);
+      }
+    });
+    var sigA = [], sigB = [];
+    CG.nodes.forEach(function (n, k) {
+      if (n.nb.length < 3) return;
+      [[-1, -1], [1, 1]].forEach(function (c, q) {
+        var px = n.x + c[0] * (HALF + 1.2), pz = n.z + c[1] * (HALF + 1.2);
+        poles.add(new THREE.CylinderGeometry(0.1, 0.12, 5, 6), mtx(px, 2.5, pz), 0x3a3a40);
+        poles.add(new THREE.BoxGeometry(0.4, 1.1, 0.4), mtx(px, 5.2, pz), 0x2a2a30);
+        ((k + q) % 2 ? sigA : sigB).push(px, 5.45, pz);
+      });
+    });
+    scene.add(new THREE.Mesh(poles.geo(), new THREE.MeshLambertMaterial({ vertexColors: true })));
+    var lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(lampPos, 3));
+    scene.add(new THREE.Points(lg, new THREE.PointsMaterial({ color: th.lamp, size: 5, map: GLOW, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })));
+    var poolM = new THREE.Mesh(pools.geo(), new THREE.MeshBasicMaterial({ map: SOFTBOX, vertexColors: true, transparent: true, opacity: th.pool, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }));
+    scene.add(poolM); out.refl.hide.push(poolM);
+    function pts(arr, col, size) { var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3)); var p = new THREE.Points(g, new THREE.PointsMaterial({ color: col, size: size, map: GLOW, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); scene.add(p); return p; }
+    out.extra.signals = [pts(sigA, 0xffb020, 1.8), pts(sigB, 0xffb020, 1.8)];
+
+    // ── district dressing ──
+    cityPalms(scene, rng);
+    cityVegas(scene, rng, gy, out.extra);
+    cityMiami(scene, rng, gy, out.extra);
+    cityRain(scene, out.extra);
+    cityLots(scene, rng, out);
+    return out;
+  }
+  // palms along the sidewalks of Sunset and Ocean Drive, a few in Vegas
+  function cityPalms(scene, rng) {
+    var list = [];
+    CG.segs.forEach(function (sg) {
+      var A = CG.nodes[sg.a], B = CG.nodes[sg.b], tx = (B.x - A.x) / sg.len, tz = (B.z - A.z) / sg.len, rx = -tz, rz = tx;
+      [-1, 1].forEach(function (sd) {
+        var bk = sideBlock(sg, sd), dist = bk ? bk.dist : districtAt((A.x + B.x) / 2 - rx * sd * 20, (A.z + B.z) / 2 - rz * sd * 20);
+        if (bk && bk.lot) return;
+        var every = dist === 'miami' ? 26 : dist === 'strip' ? 30 : dist === 'vegas' ? 60 : 0; if (!every) return;
+        for (var s = 18 + rng() * 6; s < sg.len - 18; s += every * (0.8 + rng() * 0.4)) list.push({ p: V3(A.x + tx * s + rx * sd * (HALF + 3.3), 0.18, A.z + tz * s + rz * sd * (HALF + 3.3)), rot: rng() * 6.28, sc: 0.9 + rng() * 0.45 });
+      });
+    });
+    // and the beach
+    for (var z = CG.zs[4] + 10; z < CG.Z1 + 40; z += 11 + rng() * 6) list.push({ p: V3(CG.X1 + 9 + rng() * 26, 0.6, z), rot: rng() * 6.28, sc: 1 + rng() * 0.5 });
+    scene.add(instanced(palmGeo(), new THREE.MeshBasicMaterial({ color: 0x110c14, side: THREE.DoubleSide }), list));
+  }
+  // the Strip: pylon signs with chasing bulbs on the Vegas blocks, billboards, searchlights out in the desert
+  function cityVegas(scene, rng, gy, ex) {
+    var sT = atlas(PYLONS, 512, 256), sm = new Merger(), legs = new Merger(), bA = [], bB = [], k = 0;
+    CG.segs.forEach(function (sg) {
+      var A = CG.nodes[sg.a], B = CG.nodes[sg.b], tx = (B.x - A.x) / sg.len, tz = (B.z - A.z) / sg.len, rx = -tz, rz = tx;
+      [-1, 1].forEach(function (sd) {
+        var bk = sideBlock(sg, sd); if (!bk || bk.dist !== 'vegas' || bk.lot || rng() < 0.35) return;
+        var s = 25 + rng() * (sg.len - 50), base = V3(A.x + tx * s + rx * sd * (HALF + 4.5 - 0.9), 0, A.z + tz * s + rz * sd * (HALF + 4.5 - 0.9));
+        var w = 9 + rng() * 3, h = w / 2, H = 15 + rng() * 12, c = base.clone().add(V3(0, H, 0)), r = V3(rx, 0, rz), t = V3(tx, 0, tz);
+        var a = c.clone().addScaledVector(r, -w / 2), b = c.clone().addScaledVector(r, w / 2), uvk = atlasUV(sT, k % sT.n); k++;
+        [[-1, a, b], [1, b, a]].forEach(function (fc) { var o = t.clone().multiplyScalar(fc[0] * 0.42), l = fc[1].clone().add(o), r2 = fc[2].clone().add(o); sm.quad(l, r2, r2.clone().add(V3(0, h, 0)), l.clone().add(V3(0, h, 0)), 0xffffff, uvk); });
+        [-1, 1].forEach(function (q) { var lp = c.clone().addScaledVector(r, q * w * 0.28); legs.add(new THREE.BoxGeometry(0.7, H, 0.7), mtx(lp.x, H / 2, lp.z), 0x3a3238); });
+        legs.add(new THREE.BoxGeometry(0.4, h + 0.6, w + 0.6), frameMtx(c.clone().add(V3(0, h / 2, 0)), t, r), 0x241c20);
+        var per = 2 * (w + h), nb = Math.round(per / 0.45);
+        for (var i = 0; i < nb; i++) {
+          var u = i / nb * per, p;
+          if (u < w) p = a.clone().addScaledVector(r, u).add(V3(0, -0.15, 0));
+          else if (u < w + h) p = b.clone().add(V3(0, u - w, 0)).addScaledVector(r, 0.15);
+          else if (u < 2 * w + h) p = b.clone().add(V3(0, h + 0.15, 0)).addScaledVector(r, -(u - w - h));
+          else p = a.clone().add(V3(0, h - (u - 2 * w - h), 0)).addScaledVector(r, -0.15);
+          var arr = i % 2 ? bA : bB; [-0.5, 0.5].forEach(function (q) { arr.push(p.x + t.x * q, p.y, p.z + t.z * q); });
+        }
+      });
+    });
+    scene.add(new THREE.Mesh(sm.geo(), new THREE.MeshBasicMaterial({ map: sT })));
+    scene.add(new THREE.Mesh(legs.geo(), new THREE.MeshLambertMaterial({ vertexColors: true })));
+    function bulbs(arr) { var g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3)); var p = new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffd890, size: 0.75, map: GLOW, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })); scene.add(p); return p; }
+    ex.chase = [bulbs(bA), bulbs(bB)];
+    var beams = [], bmat = new THREE.ShaderMaterial({
+      vertexShader: 'varying vec2 vU; void main(){ vU = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: 'varying vec2 vU; void main(){ float a = pow(1.0 - vU.y, 1.6) * 0.16 * (0.6 + 0.4 * sin(vU.x * 6.2832)); gl_FragColor = vec4(vec3(0.95, 0.92, 1.0) * a, 1.0); }',
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false });
+    for (var q = 0; q < 5; q++) {
+      var piv = new THREE.Group(); piv.position.set(CG.xs[5] + q * 160 + rng() * 60, gy, CG.Z0 - 220 - rng() * 200);
+      var cone = new THREE.Mesh(new THREE.CylinderGeometry(38, 2, 1400, 18, 1, true), bmat); cone.geometry.translate(0, 700, 0); cone.rotation.x = 0.32 + rng() * 0.2; cone.frustumCulled = false;
+      piv.add(cone); scene.add(piv); beams.push({ g: piv, sp: (rng() < 0.5 ? -1 : 1) * (0.08 + rng() * 0.08), ph: rng() * 6 });
+    }
+    ex.beams = beams;
+    // desert past the Strip's east edge
+    var dz0 = CG.Z0 - 60, dz1 = CG.zs[4], sand = new THREE.Mesh(new THREE.PlaneGeometry(400, dz1 - dz0), new THREE.MeshLambertMaterial({ color: 0x3a2c26 }));
+    sand.rotation.x = -Math.PI / 2; sand.position.set(CG.X1 + 200, -0.05, (dz0 + dz1) / 2); scene.add(sand);
+  }
+  // Ocean Drive: the beach and the sea east of the grid's south half
+  function cityMiami(scene, rng, gy, ex) {
+    var th = THEMES.city, z0 = CG.zs[4], z1 = CG.Z1 + 300;
+    var ocean = new THREE.Mesh(new THREE.PlaneGeometry(2400, z1 - z0 + 1200), new THREE.ShaderMaterial({
+      uniforms: { t: { value: 0 }, fogC: { value: new THREE.Color(th.fog) } },
+      vertexShader: 'varying vec3 vW; void main(){ vec4 w = modelMatrix*vec4(position,1.0); vW = w.xyz; gl_Position = projectionMatrix*viewMatrix*w; }',
+      fragmentShader: 'uniform float t; uniform vec3 fogC; varying vec3 vW; float h(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }\nvoid main(){ vec3 col = vec3(0.02,0.04,0.09); vec2 g = floor(vec2(vW.z*0.45, vW.x*1.4 + t*1.5)); float sp = h(g); col += vec3(0.8,0.8,0.75) * step(0.989, sp) * 0.35; col += vec3(0.2,0.25,0.4) * 0.1; float d = distance(vW, cameraPosition); col = mix(col, fogC, smoothstep(250.0, 1300.0, d)*0.85); gl_FragColor = vec4(col,1.0); }'
+    }));
+    ocean.rotation.x = -Math.PI / 2; ocean.position.set(CG.X1 + 46 + 1200, -0.6, (z0 + z1) / 2); scene.add(ocean);
+    var sand = new THREE.Mesh(new THREE.PlaneGeometry(40, z1 - z0), new THREE.MeshLambertMaterial({ color: 0x8a7a68 })); sand.rotation.x = -Math.PI / 2; sand.position.set(CG.X1 + 7 + 20, 0.02, (z0 + z1) / 2); scene.add(sand);
+    // a low sea wall at the edge of the sidewalk so the beach reads as a place, not a hole
+    var wall = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.7, z1 - z0), new THREE.MeshLambertMaterial({ color: 0xc8c0b0 })); wall.position.set(CG.X1 + 7, 0.35, (z0 + z1) / 2); scene.add(wall);
+    ex.ocean = ocean;
+  }
+  // Manhattan's rain: streaks in a box that follows the camera, shown while you're in (or near) Manhattan
+  function cityRain(scene, ex) {
+    var NR = TOUCH ? 900 : 1700, pos = new Float32Array(NR * 6);
+    for (var i = 0; i < NR; i++) { var x = rnd(-40, 40), y = rnd(-6, 34), z = rnd(-40, 40); pos.set([x, y, z, x + 0.04, y - 1.3, z], i * 6); }
+    var rg = new THREE.BufferGeometry(); rg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    var rain = new THREE.LineSegments(rg, new THREE.LineBasicMaterial({ color: 0xa8b8d8, transparent: true, opacity: 0.32, fog: false })); rain.frustumCulled = false; scene.add(rain);
+    ex.rain = rain; ex.rainPos = pos; ex.rainN = NR; ex.rainZone = 'nyc';
+  }
+  // the two open lots: a drive-in on Sunset (a screen and parked cars) and a casino lot in Vegas, lamps all round
+  function cityLots(scene, rng, out) {
+    var m = new Merger(), lampPos = [], bb = [];
+    CG.blocks.forEach(function (bk) {
+      if (!bk.lot) return;
+      var cx = (bk.x0 + bk.x1) / 2, cz = (bk.z0 + bk.z1) / 2;
+      for (var x = bk.x0 + 10; x < bk.x1 - 5; x += 26) for (var z = bk.z0 + 10; z < bk.z1 - 5; z += 26) { m.add(new THREE.CylinderGeometry(0.15, 0.2, 9, 6), mtx(x, 4.5, z), 0x55525a); lampPos.push(x, 9, z); }
+      if (bk.lot === 'drive-in') {   // the screen on its frame, along the north edge
+        m.add(new THREE.BoxGeometry(34, 14, 0.8), mtx(cx, 11, bk.z0 + 2), 0xd8d4cc);
+        [-12, 0, 12].forEach(function (o) { m.add(new THREE.BoxGeometry(0.8, 18, 0.8), mtx(cx + o, 9, bk.z0 + 2.8), 0x3a3238); });
+        bb.push({ x: cx, z: bk.z0 + 2.5, w: 34, h: 14 });
+      }
+      // a few parked cars, solid
+      for (var q = 0; q < 7; q++) {
+        var px = bk.x0 + 12 + rng() * (bk.x1 - bk.x0 - 24), pz = bk.z0 + 16 + rng() * (bk.z1 - bk.z0 - 28), ang = rng() < 0.5 ? 0 : Math.PI / 2;
+        if (out.parked.some(function (o) { return Math.hypot(o.x - px, o.z - pz) < 8; })) continue;
+        out.parked.push({ x: px, z: pz, tx: Math.cos(ang), tz: Math.sin(ang), L: 4.8, W: 1.85, lot: true, col: CIVCOL[Math.floor(rng() * CIVCOL.length)] });
+      }
+    });
+    scene.add(new THREE.Mesh(m.geo(), new THREE.MeshLambertMaterial({ vertexColors: true })));
+    var lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(lampPos, 3));
+    scene.add(new THREE.Points(lg, new THREE.PointsMaterial({ color: 0xffd8a0, size: 6, map: GLOW, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })));
+    // the drive-in screen shows the YESTERDAYLAND title card
+    if (bb.length) {
+      var t = atlas([{ style: 'paint', bg: '#1a1a1a', bg2: '#3a2a4a', l: [{ t: 'YESTERDAYLAND', s: 58, y: .4, c: '#f4f7ff', f: 'Michroma, sans-serif', w: 400 }, { t: 'Go back for a while', s: 40, y: .74, c: '#ffc98c', f: 'Yellowtail, cursive', w: 400 }] }], 1024, 256), sm = new Merger();
+      bb.forEach(function (b) { var a = V3(b.x - b.w / 2 + 0.8, 4.6, b.z + 0.45), c = V3(b.x + b.w / 2 - 0.8, 4.6, b.z + 0.45); sm.quad(a, c, c.clone().add(V3(0, b.h - 1.2, 0)), a.clone().add(V3(0, b.h - 1.2, 0)), 0xffffff, atlasUV(t, 0)); });
+      scene.add(new THREE.Mesh(sm.geo(), new THREE.MeshBasicMaterial({ map: t, side: THREE.DoubleSide })));
+    }
+    // lot cars drawn with the photo cars when they're ready
+    var lotCars = out.parked.filter(function (p) { return p.lot; });
+    if (lotCars.length) {
+      var mg = new Merger(), list = [];
+      lotCars.forEach(function (p) { var M = new THREE.Matrix4().makeBasis(V3(p.tx, 0, p.tz), UP, V3(-p.tz, 0, p.tx)).setPosition(V3(p.x, 0, p.z)); addCarToMerger(mg, CIV[0], M, p.col, false); list.push({ m: M, col: p.col, model: 'sedan' }); });
+      var proc = new THREE.Mesh(mg.geo(), new THREE.MeshPhongMaterial({ vertexColors: true, shininess: 60, specular: 0x444444 })); scene.add(proc);
+      Promise.all(['sedan'].map(buildPhotoCar)).then(function () { if (photoParked(scene, list)) { scene.remove(proc); proc.geometry.dispose(); } });
+    }
+  }
+
+  /* ── collision with the city: blocks, the edge of the map, parked cars ── */
+  var PARKHASH = null, PH_CS = 30;
+  function parkHash(list) { var H = {}; list.forEach(function (p) { var k = Math.floor(p.x / PH_CS) + ',' + Math.floor(p.z / PH_CS); (H[k] = H[k] || []).push(p); }); return H; }
+  var _ct = { x: 0, z: 0, n: 0 };
+  // push a circle (x, z, r) out of everything solid: returns the total push (in _ct) and how many things it touched
+  function cityPush(x, z, r) {
+    var px = 0, pz = 0, n = 0;
+    function rect(b) {
+      var cx = clamp(x, b.x0, b.x1), cz = clamp(z, b.z0, b.z1), dx = x - cx, dz = z - cz, d2 = dx * dx + dz * dz;
+      if (d2 >= r * r) return;
+      if (d2 > 1e-8) { var d = Math.sqrt(d2), k = (r - d) / d; px += dx * k; pz += dz * k; }
+      else {   // centre inside: out the nearest side
+        var l = x - b.x0, rr = b.x1 - x, t = z - b.z0, bo = b.z1 - z, m = Math.min(l, rr, t, bo);
+        if (m === l) px -= l + r; else if (m === rr) px += rr + r; else if (m === t) pz -= t + r; else pz += bo + r;
+      }
+      n++;
+    }
+    var i = cgIdx(CG.xs, x), j = cgIdx(CG.zs, z);
+    for (var a = i - 1; a <= i + 1; a++) for (var b = j - 1; b <= j + 1; b++) { if (a < 0 || b < 0 || a >= CG.N || b >= CG.N) continue; var bk = CG.blocks[a * CG.N + b]; if (!bk.lot) rect(bk); }
+    if (x - r < CG.X0 || x + r > CG.X1 || z - r < CG.Z0 || z + r > CG.Z1) CG.outer.forEach(rect);
+    if (PARKHASH) {
+      var ci = Math.floor(x / PH_CS), cj = Math.floor(z / PH_CS);
+      for (var u = ci - 1; u <= ci + 1; u++) for (var w = cj - 1; w <= cj + 1; w++) {
+        var l2 = PARKHASH[u + ',' + w]; if (!l2) continue;
+        for (var q = 0; q < l2.length; q++) {   // a parked car: a box in its own frame
+          var p = l2[q], ox = x - p.x, oz = z - p.z, al = ox * p.tx + oz * p.tz, ac = -ox * p.tz + oz * p.tx, hl = p.L / 2, hw = p.W / 2;
+          var qa = clamp(al, -hl, hl), qc = clamp(ac, -hw, hw), da = al - qa, dc = ac - qc, dd = da * da + dc * dc;
+          if (dd >= r * r) continue;
+          var ea, ec;
+          if (dd > 1e-8) { var dl = Math.sqrt(dd), kk = (r - dl) / dl; ea = da * kk; ec = dc * kk; }
+          else { var ma = hl - Math.abs(al), mc = hw - Math.abs(ac); if (ma < mc) { ea = (ma + r) * (al >= 0 ? 1 : -1); ec = 0; } else { ea = 0; ec = (mc + r) * (ac >= 0 ? 1 : -1); } }
+          px += ea * p.tx - ec * p.tz; pz += ea * p.tz + ec * p.tx; n++;
+        }
+      }
+    }
+    _ct.x = px; _ct.z = pz; _ct.n = n; return _ct;
+  }
+  // is the straight line between two spots clear of buildings? (police line of sight)
+  function cityLOS(ax, az, bx, bz) {
+    var L = Math.hypot(bx - ax, bz - az), n = Math.ceil(L / 8);
+    for (var k = 1; k < n; k++) { var t = k / n, x = ax + (bx - ax) * t, z = az + (bz - az) * t, bk = blockAt(x, z); if (bk && !bk.lot && x > bk.x0 + 1 && x < bk.x1 - 1 && z > bk.z0 + 1 && z < bk.z1 - 1) return false; }
+    return true;
+  }
+
+  /* ── a car in the city: x, z, th (direction of travel), v along it, kx/kz knock-back, plus the body slip ── */
+  function stepCity(c, h, R, ev) {
+    if (c.hold > 0) { c.hold -= h; c.inp = { thr: 0, brk: 1, steer: 0, nitro: false, drift: false }; }
+    if (c.inv > 0) c.inv -= h;
+    c.straighten = false;
+    var yr = drive(c, h, ev), v = c.v, av = Math.abs(v);
+    c.th += yr * h; if (c.th > Math.PI) c.th -= 2 * Math.PI; if (c.th < -Math.PI) c.th += 2 * Math.PI;
+    var dx = Math.cos(c.th), dz = Math.sin(c.th);
+    c.x += (dx * v + c.kx) * h; c.z += (dz * v + c.kz) * h;
+    if (c.kx || c.kz) { var kd = Math.max(0, 1 - 2.6 * h); c.kx *= kd; c.kz *= kd; if (Math.abs(c.kx) + Math.abs(c.kz) < 0.08) c.kx = c.kz = 0; }
+    // the body: three circles along it
+    var bh = c.th + c.slip, bx = Math.cos(bh), bz = Math.sin(bh), half = Math.max(0.4, c.def.L / 2 - c.def.Wd / 2), r = c.def.Wd / 2 + 0.05, sx = 0, sz = 0, hit = 0;
+    for (var q = -1; q <= 1; q++) { var p = cityPush(c.x + bx * half * q, c.z + bz * half * q, r); if (p.n) { hit++; if (Math.abs(p.x) > Math.abs(sx)) sx = p.x; if (Math.abs(p.z) > Math.abs(sz)) sz = p.z; } }
+    c.touch = 0;
+    if (hit) {
+      c.x += sx; c.z += sz;
+      var pl = Math.hypot(sx, sz) || 1, nx = sx / pl, nz = sz / pl, Vx = dx * v + c.kx, Vz = dz * v + c.kz, vn = Vx * nx + Vz * nz;
+      if (vn < 0) {
+        var imp = -vn, tx = Vx - nx * vn, tz = Vz - nz * vn, keep = 1 - Math.min(0.45, 0.05 + imp * 0.012), bounce = Math.min(2.5, imp * 0.15);
+        tx *= keep; tz *= keep;
+        var sp = Math.hypot(tx, tz);
+        if (sp > 2 && v >= 0) { c.th = Math.atan2(tz, tx); c.v = sp; } else c.v = (tx * dx + tz * dz);
+        c.kx = nx * bounce; c.kz = nz * bounce; c.slip *= 0.4; c.slipV *= 0.3;
+        if (imp > 15 && av > 22 && ev && !c.block && (c.human != null || c.cop || c.spinT > 0 || (c.hitBy && (R.t || 0) - (c.hitT || -9) < 3))) ev.push(['wreck', c, imp, 'wall']);
+        else if (imp > 2.5 && c.wallCd <= 0 && ev) { ev.push(['hit', c, imp]); c.wallCd = 0.35; }
+      }
+      if (av > 14 && ev && c.human != null && Math.random() < h * 12) ev.push(['scrape', c, av]);
+      c.v -= Math.sign(c.v) * Math.min(Math.abs(c.v), 3 * h); c.touch = 1;
+    }
+    if (c.wallCd > 0) c.wallCd -= h;
+    c.spin += c.v * h / 0.34;
+    c.vis += (c.slip - c.vis) * Math.min(1, h * 14);
+  }
+  // put a city car's mesh where it is; keeps c._f (position + frame) for the camera, sparks and wrecks
+  function placeCity(c) {
+    var f = c._f || (c._f = { p: new THREE.Vector3(), t: new THREE.Vector3(), r: new THREE.Vector3(), u: new THREE.Vector3(0, 1, 0), k: 0 });
+    var th = c.th, ct = Math.cos(th), st = Math.sin(th);
+    f.p.set(c.x, 0, c.z); f.t.set(ct, 0, st); f.r.set(-st, 0, ct);
+    var yaw = th + (c.vis || 0) + (c.visSpin || 0), F = c._F || (c._F = new THREE.Vector3()), Rg = c._R || (c._R = new THREE.Vector3());
+    F.set(Math.cos(yaw), 0, Math.sin(yaw)); Rg.set(-F.z, 0, F.x);
+    var m = c.mesh; m.position.set(c.x, 0, c.z);
+    var M = c._M || (c._M = new THREE.Matrix4()); M.makeBasis(F, f.u, Rg); m.quaternion.setFromRotationMatrix(M);
+    var fx = m.userData.fx; if (fx) {
+      for (var i = 0; i < fx.wheels.length; i++) fx.wheels[i].rotation.z = -c.spin;
+      if (fx.wheelMat) fx.wheelMat.uniforms.spin.value = c.spin % 6.2832;
+      if (fx.flames) { var on = c.boost || c.turbo > 0 || c.sling > 0; fx.flames.forEach(function (fl) { fl.visible = on; if (on) { var s = 0.8 + Math.random() * 0.6; fl.scale.set(1, s * (c.boost ? 1.4 : 0.9), 1); } }); }
+    }
+    return f;
+  }
+  // car against car: two circles each; a proper impulse, the sideways part carried as knock-back
+  function bodyOf(c) { var bh = c.th + (c.slip || 0); return { x: c.x, z: c.z, bx: Math.cos(bh), bz: Math.sin(bh), half: Math.max(0.4, c.def.L / 2 - c.def.Wd / 2), r: c.def.Wd / 2 }; }
+  function velOf(c) { return c.loose ? [c.vx, c.vz] : [Math.cos(c.th) * c.v + (c.kx || 0), Math.sin(c.th) * c.v + (c.kz || 0)]; }
+  function setVel(c, vx, vz) {
+    if (c.loose) { c.vx = vx; c.vz = vz; return; }
+    var dx = Math.cos(c.th), dz = Math.sin(c.th), al = vx * dx + vz * dz;
+    c.v = al; c.kx = vx - dx * al; c.kz = vz - dz * al;
+  }
+  function massOf(c) { return c.block ? 1e6 : c.def.heavy ? 3.2 : c.cop ? 1.35 : c.traffic ? 1.5 : 1; }
+  var _bA = {}, _bB = {};
+  function contact(A, B) {   // deepest overlap between A's and B's circles: [nx, nz, depth, which circle of B (-1 rear .. 1 front)]
+    var a = bodyOf(A), b = bodyOf(B), best = null;
+    if (Math.abs(a.x - b.x) > 8 || Math.abs(a.z - b.z) > 8) return null;
+    for (var i = -1; i <= 1; i += 2) for (var j = -1; j <= 1; j += 2) {
+      var ax = a.x + a.bx * a.half * i, az = a.z + a.bz * a.half * i, bx = b.x + b.bx * b.half * j, bz = b.z + b.bz * b.half * j;
+      var dx = bx - ax, dz = bz - az, d = Math.hypot(dx, dz), rr = a.r + b.r;
+      if (d < rr && (!best || rr - d > best[2])) best = d > 1e-6 ? [dx / d, dz / d, rr - d, j, i] : [1, 0, rr, j, i];
+    }
+    return best;
+  }
+  function cityImpact(R, A, B, ct, ev) {
+    var nx = ct[0], nz = ct[1], dep = ct[2], mA = massOf(A), mB = massOf(B), sA = mB / (mA + mB), sB = mA / (mA + mB);
+    if (!A.block) { A.x -= nx * dep * sA; A.z -= nz * dep * sA; }
+    if (!B.block) { B.x += nx * dep * sB; B.z += nz * dep * sB; }
+    var va = velOf(A), vb = velOf(B), rel = (va[0] - vb[0]) * nx + (va[1] - vb[1]) * nz;
+    if (rel <= 0) return 0;
+    var e = 0.18, j = (1 + e) * rel / (1 / mA + 1 / mB);
+    if (!A.block) setVel(A, va[0] - nx * j / mA, va[1] - nz * j / mA);
+    if (!B.block) setVel(B, vb[0] + nx * j / mB, vb[1] + nz * j / mB);
+    // police: a front corner on your back quarter while they mean it is the PIT; a shove while attacking is harder
+    [[A, B, ct[3], 1], [B, A, ct[4], -1]].forEach(function (o) {
+      var att = o[0], vic = o[1], where = o[2];
+      if (!att.cop || att.cop.tgt !== vic || !att.cop.atk || vic.block) return;
+      var dir = o[3];
+      if (!vic.loose) { vic.kx += nx * dir * 3.5; vic.kz += nz * dir * 3.5; }
+      if (att.cop.atk === 'pit' && where < 0 && vic.spinT <= 0 && vic.v > 14 && rel > 1.5) {
+        var side = (-Math.sin(vic.th) * (att.x - vic.x) + Math.cos(vic.th) * (att.z - vic.z)) > 0 ? -1 : 1;
+        vic.spinT = 0.85; vic.spinDir = side; vic.v *= 0.82; att.cop.atkCd = 6; if (ev) ev.push(['pit', vic, rel, att]);
+      }
+    });
+    return rel;
+  }
+  function cityCollide(R, ev) {
+    var cars = R.cars;
+    for (var a = 0; a < cars.length; a++) for (var b = a + 1; b < cars.length; b++) {
+      var A = cars[a], B = cars[b]; if (A.ghost || B.ghost || A.gone || B.gone || A.wreck || B.wreck || A.inv > 0 || B.inv > 0) continue;
+      var ct = contact(A, B); if (!ct) continue;
+      var imp = cityImpact(R, A, B, ct, ev);
+      if (ev && imp > 3) {
+        if (A.human != null || B.human != null) ev.push([imp > 14 ? 'crash' : 'bump', A.human != null ? A : B, imp]);
+        if (A.cop) copHit(A, imp, B, ev);
+        if (B.cop) copHit(B, imp, A, ev);
+        if (A.human != null && B.human == null) { B.hitBy = A; B.hitT = R.t; }
+        if (B.human != null && A.human == null) { A.hitBy = B; A.hitT = R.t; }
+        if (imp > 6) ev.push(['spark', A, imp, B]);
+      }
+    }
+  }
+
+  /* ── city traffic: period cars in their lanes on every street, kept in a bubble round you ──
+     Each car follows its street (right-hand traffic: the inner lane, or the curb lane where nobody's parked) and picks
+     a way at each corner. The corners work like a four-way stop with the signals on flashing amber: one direction
+     through at a time. Hit one and it's knocked loose: it slides, stops, and is towed away out of sight. */
+  var CT_LANE = [2.25, 6.3];
+  function trafficCount(level) { return [0, TOUCH ? 16 : 26, TOUCH ? 24 : 40, TOUCH ? 30 : 54][level] || 0; }
+  function ctFrame(t) {   // the street it's on: from node P to node Q
+    var sg = CG.segs[t.seg], P = CG.nodes[t.dir > 0 ? sg.a : sg.b], Q = CG.nodes[t.dir > 0 ? sg.b : sg.a];
+    var ux = (Q.x - P.x) / sg.len, uz = (Q.z - P.z) / sg.len;
+    return { sg: sg, P: P, Q: Q, ux: ux, uz: uz, rx: -uz, rz: ux };
+  }
+  function ctLane(t) { var sg = CG.segs[t.seg]; return t.lane && !sg.park[t.dir > 0 ? 1 : -1] ? CT_LANE[1] : CT_LANE[0]; }
+  function ctPlace(t, F) {
+    F = F || ctFrame(t);
+    t.off += (ctLane(t) - t.off) * 0.08;
+    t.x = F.P.x + F.ux * t.s + F.rx * t.off; t.z = F.P.z + F.uz * t.s + F.rz * t.off; t.th = Math.atan2(F.uz, F.ux);
+  }
+  function newTrafficCar(R, truckP) {
+    var models = ['sedan', 'wagon', 'sedan', 'hatch', 'sedan', 'wagon', 'muscle', 'sedan', 'gull'], taxi = Math.random() < 0.18, truck = !taxi && Math.random() < truckP;
+    var def = CAR[taxi ? 'sedan' : truck ? 'truck' : models[Math.floor(Math.random() * models.length)]];
+    var t = { traffic: true, def: def, L: def.L, Wd: def.Wd, seg: 0, dir: 1, lane: Math.random() < 0.4 ? 1 : 0, off: 2.25, s: 0, v: 10, vWant: 11 + Math.random() * 5, th: 0, x: 0, z: 0, slip: 0, vis: 0, spin: 0, boost: false, turbo: 0, hitCd: 0, nm: [null, null], turn: null, wait: 0, loose: false, kx: 0, kz: 0 };
+    if (truck) t.vWant *= 0.85;
+    t.mesh = makeCar(def, null, { paintHex: taxi ? 0xffc61a : TRAFFIC_COLS[Math.floor(Math.random() * TRAFFIC_COLS.length)], bare: true, expo: 0.92 });
+    var sh = new THREE.Mesh(new THREE.PlaneGeometry(def.L + 0.5, def.Wd + 0.5), new THREE.MeshBasicMaterial({ map: SOFTBOX, color: 0x000000, transparent: true, opacity: 0.6, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -6 }));
+    sh.rotation.x = -Math.PI / 2; sh.position.y = 0.03; t.mesh.add(sh);
+    R.W.S.scene.add(t.mesh);
+    return t;
+  }
+  // put a traffic car somewhere on a street between dMin and dMax metres from the players, clear of everything
+  function ctSpawn(R, t, dMin, dMax) {
+    for (var tries = 0; tries < 40; tries++) {
+      var sg = CG.segs[Math.floor(Math.random() * CG.segs.length)], A = CG.nodes[sg.a], B = CG.nodes[sg.b], s = HALF + 4 + Math.random() * (sg.len - 2 * HALF - 8);
+      t.seg = sg.id; t.dir = Math.random() < 0.5 ? 1 : -1; t.s = t.dir > 0 ? s : sg.len - s; t.off = ctLane(t); t.turn = null; t.loose = false; t.wait = 0; t.kx = t.kz = 0;
+      ctPlace(t);
+      var dmin = 1e9; R.humans.forEach(function (h) { dmin = Math.min(dmin, Math.hypot(h.x - t.x, h.z - t.z)); });
+      if (dmin < dMin || dmin > dMax) continue;
+      var clear = R.cars.concat(R.traffic).every(function (o) { return o === t || o.gone || Math.hypot(o.x - t.x, o.z - t.z) > 14; });
+      if (!clear) continue;
+      t.v = t.vWant * 0.8; t.mesh.visible = true; t.gone = false; t.mesh.rotation.set(0, 0, 0);
+      return true;
+    }
+    t.gone = true; t.mesh.visible = false; return false;
+  }
+  function makeCityTraffic(R, level) {
+    var out = [], n = trafficCount(level); R.traffic = out;
+    for (var i = 0; i < n; i++) { var t = newTrafficCar(R, 0.1); out.push(t); ctSpawn(R, t, 35, 300); }
+    return out;
+  }
+  // the next street at the corner ahead, and the curve through it
+  function ctTurn(R, t, F) {
+    var Q = F.Q, opts = Q.nb.filter(function (o) { return o.s.id !== t.seg; });
+    var pick = opts.length ? opts[Math.floor(Math.random() * opts.length)] : Q.nb[0];
+    // mostly straight on when it can
+    var straight = opts.filter(function (o) { var N = CG.nodes[o.n]; return Math.abs(((N.x - Q.x) * F.ux + (N.z - Q.z) * F.uz) / o.s.len - 1) < 0.01; })[0];
+    if (straight && Math.random() < 0.55) pick = straight;
+    var ns = pick.s, ndir = ns.a === Q.id ? 1 : -1, N2 = CG.nodes[pick.n], ux2 = (N2.x - Q.x) / ns.len, uz2 = (N2.z - Q.z) / ns.len;
+    var lane2 = t.lane && !ns.park[ndir > 0 ? 1 : -1] ? CT_LANE[1] : CT_LANE[0];
+    var x0 = t.x, z0 = t.z, x2 = Q.x + ux2 * HALF - uz2 * lane2, z2 = Q.z + uz2 * HALF + ux2 * lane2;
+    var cross = F.ux * uz2 - F.uz * ux2, cx, cz;
+    if (Math.abs(cross) < 0.01) { cx = (x0 + x2) / 2; cz = (z0 + z2) / 2; }
+    else { var a = (x2 - x0) * F.ux + (z2 - z0) * F.uz; cx = x0 + F.ux * a; cz = z0 + F.uz * a; }
+    var L = 0, px = x0, pz = z0; for (var k = 1; k <= 8; k++) { var u = k / 8, qx = (1 - u) * (1 - u) * x0 + 2 * u * (1 - u) * cx + u * u * x2, qz = (1 - u) * (1 - u) * z0 + 2 * u * (1 - u) * cz + u * u * z2; L += Math.hypot(qx - px, qz - pz); px = qx; pz = qz; }
+    t.turn = { x0: x0, z0: z0, cx: cx, cz: cz, x2: x2, z2: z2, L: Math.max(4, L), u: 0, seg: ns.id, dir: ndir, sharp: Math.abs(cross) > 0.5, axis: Math.abs(cross) > 0.5 ? 'both' : (Math.abs(F.ux) > 0.5 ? 'x' : 'z'), node: Q.id };
+  }
+  function stepCityTraffic(R, h) {
+    var T = R.traffic, now = R.t, locks = R.locks || (R.locks = {});
+    for (var i = 0; i < T.length; i++) {
+      var t = T[i]; if (t.gone) continue;
+      if (t.hitCd > 0) t.hitCd -= h;
+      if (t.loose) {   // knocked about: slides to a stop, then gets towed away when nobody's looking
+        t.th += t.spinR * h; t.spinR *= Math.max(0, 1 - 1.5 * h);
+        var sp = Math.hypot(t.vx, t.vz), dec = Math.max(0, sp - 7 * h) / (sp || 1); t.vx *= dec; t.vz *= dec;
+        t.x += t.vx * h; t.z += t.vz * h; t.looseT += h;
+        var bx = Math.cos(t.th), bz = Math.sin(t.th), half = Math.max(0.4, t.def.L / 2 - t.def.Wd / 2);
+        for (var q = -1; q <= 1; q += 2) { var p = cityPush(t.x + bx * half * q, t.z + bz * half * q, t.def.Wd / 2); if (p.n) { t.x += p.x; t.z += p.z; var pl = Math.hypot(p.x, p.z) || 1, vn = (t.vx * p.x + t.vz * p.z) / pl; if (vn < 0) { t.vx -= p.x / pl * vn * 1.3; t.vz -= p.z / pl * vn * 1.3; } } }
+        t.v = sp; continue;
+      }
+      var F = ctFrame(t), want = t.vWant, gap = 1e9, j, o;
+      // whoever's ahead in its lane (traffic, racers, cops), in world space so it works through the turns
+      var hx = t.turn ? Math.cos(t.th) : F.ux, hz = t.turn ? Math.sin(t.th) : F.uz;
+      for (j = 0; j < T.length; j++) { o = T[j]; if (o === t || o.gone) continue; var dx = o.x - t.x, dz = o.z - t.z, al = dx * hx + dz * hz; if (al <= 0 || al > 40) continue; var lat = Math.abs(-dx * hz + dz * hx); if (lat < 2.2 && al < gap) gap = al; }
+      for (j = 0; j < R.cars.length; j++) { o = R.cars[j]; if (o.gone || o.ghost || o.inv > 0) continue; var dx2 = o.x - t.x, dz2 = o.z - t.z, al2 = dx2 * hx + dz2 * hz; if (al2 <= 0 || al2 > 40) continue; var lat2 = Math.abs(-dx2 * hz + dz2 * hx); if (lat2 < 2.4 && al2 < gap) gap = al2; }
+      if (gap < 9 + t.v * 0.9) want = Math.min(want, Math.max(0, (gap - 7.5) * 0.9));
+      if (!t.turn) {
+        var toStop = F.sg.len - HALF - 1.5 - t.s;   // the stop line at the next corner
+        if (toStop < 6 + t.v * 0.8 && !t.granted) {
+          var L0 = locks[F.Q.id], myAxis = Math.abs(F.ux) > 0.5 ? 'x' : 'z';
+          if (L0 && L0.until > now && (L0.axis === 'both' || L0.axis !== myAxis) && L0.by !== t) { want = Math.min(want, Math.max(0, toStop * 0.8)); t.wait += h; }
+          else if (toStop < 3 + t.v * 0.3) { ctTurn(R, t, F); var tt = t.turn; t.granted = true; locks[F.Q.id] = { axis: tt.axis, until: now + (tt.L + 10) / Math.max(4, t.v) + 0.5, by: t }; t.wait = 0; }
+        }
+        if (t.turn) want = Math.min(want, t.turn.sharp ? 8 : 12);
+      } else want = Math.min(want, t.turn.sharp ? 8 : 13);
+      t.v = Math.max(0, t.v + clamp(want - t.v, -8 * h, 3 * h));
+      if (t.turn) {
+        var tu = t.turn; tu.u += t.v * h / tu.L;
+        if (tu.u >= 1) { t.seg = tu.seg; t.dir = tu.dir; var sg2 = CG.segs[t.seg]; t.s = HALF; t.turn = null; t.granted = false; t.off = ctLane(t); ctPlace(t); }
+        else { var u = tu.u, iu = 1 - u; var nx = iu * iu * tu.x0 + 2 * u * iu * tu.cx + u * u * tu.x2, nz = iu * iu * tu.z0 + 2 * u * iu * tu.cz + u * u * tu.z2; var ddx = 2 * iu * (tu.cx - tu.x0) + 2 * u * (tu.x2 - tu.cx), ddz = 2 * iu * (tu.cz - tu.z0) + 2 * u * (tu.z2 - tu.cz); t.x = nx; t.z = nz; t.th = Math.atan2(ddz, ddx); }
+      } else { t.s += t.v * h; if (t.s > F.sg.len - HALF + 2) { t.s = F.sg.len - HALF + 2; } ctPlace(t, F); }
+      t.spin += t.v * h / 0.34;
+    }
+  }
+  // keep the bubble full: cars far from every player (or towed) come back on a street out of sight
+  function cityTrafficBubble(R, dt) {
+    R.bubT = (R.bubT || 0) - dt; if (R.bubT > 0) return; R.bubT = 0.5;
+    R.traffic.forEach(function (t) {
+      var dmin = 1e9; R.humans.forEach(function (h) { dmin = Math.min(dmin, Math.hypot(h.x - t.x, h.z - t.z)); });
+      var cam = R.humans[0] && R.humans[0].cam, seen = false;
+      if (cam && dmin < 140) { var dx = t.x - cam.position.x, dz = t.z - cam.position.z, fx = -Math.sin(cam.rotation.y), fz = -Math.cos(cam.rotation.y); seen = true; }
+      if (t.gone || dmin > 340 || (t.loose && t.looseT > 6 && dmin > 60) || (t.wait > 25 && dmin > 80)) ctSpawn(R, t, 170, 320);
+    });
+  }
+  // racers and cruisers against traffic: an impulse like any two cars; traffic that takes a real hit is knocked loose
+  function cityCollideTraffic(R, ev) {
+    var T = R.traffic, cars = R.cars;
+    for (var i = 0; i < cars.length; i++) {
+      var c = cars[i]; if (c.ghost || c.gone || c.block || c.wreck || c.inv > 0 || c.wrecked) continue;
+      for (var j = 0; j < T.length; j++) {
+        var t = T[j]; if (t.gone) continue;
+        if (Math.abs(t.x - c.x) > 8 || Math.abs(t.z - c.z) > 8) continue;
+        if (!t.loose) { t.vx = Math.cos(t.th) * t.v; t.vz = Math.sin(t.th) * t.v; }
+        var wasLoose = t.loose; t.loose = true;   // treat it as a free body for the hit
+        var ct = contact(c, t); if (!ct) { t.loose = wasLoose; continue; }
+        var dx = Math.cos(c.th), dz = Math.sin(c.th), tv = [t.vx, t.vz], closing = (Math.cos(c.th) * c.v - tv[0]) * ct[0] + (Math.sin(c.th) * c.v - tv[1]) * ct[1];
+        var head = ((t.vx * dx + t.vz * dz) < -3), front = ct[4] > 0;
+        var imp = cityImpact(R, c, t, ct, ev);
+        if (imp > 2.5 || wasLoose) { if (!wasLoose) { t.looseT = 0; t.spinR = (Math.random() - 0.5) * Math.min(3, imp * 0.15); } }
+        else { t.loose = false; t.v = Math.max(0, t.v * 0.6); t.stun = 1; ctPlace(t); }
+        if (imp <= 0) continue;
+        // rivals are pros: on their own they only wreck in a big head-on; with you (or a cop) in the mix, like anyone
+        var pro = c.cop || (c.human == null && !(c.hitBy && R.t - (c.hitT || -9) < 3) && c.spinT <= 0);
+        if (front && imp > (pro ? (head ? 38 : 1e9) : t.def.heavy ? 20 : 25)) { ev.push(['wreck', c, imp, head ? 'oncoming' : 'traffic']); continue; }
+        if (t.hitCd <= 0) { t.hitCd = 0.6; ev.push([imp > 9 ? 'crash' : 'bump', c, imp]); ev.push(['spark', c, imp]); if (c.cop) copHit(c, imp, null); }
+      }
+    }
+  }
+  // near misses in the city: a car slips past you within about a metre at speed
+  function cityNearMisses(R, dt) {
+    R.humans.forEach(function (c, hi) {
+      if (c.finished || c.busted || c.wreck || c.hold > 0) return;
+      var B = R.bonus[hi], dx = Math.cos(c.th), dz = Math.sin(c.th);
+      if (B.comboT > 0) { B.comboT -= dt; if (B.comboT <= 0) B.combo = 0; }
+      for (var j = 0; j < R.traffic.length; j++) {
+        var t = R.traffic[j]; if (t.gone || t.loose) continue;
+        var ox = t.x - c.x, oz = t.z - c.z, al = ox * dx + oz * dz, prev = t.nm[hi]; t.nm[hi] = al;
+        if (!(prev != null && prev > 0 && al <= 0 && prev < 30)) continue;
+        var gap = Math.abs(-ox * dz + oz * dx) - (c.def.Wd + t.Wd) / 2, tdot = Math.cos(t.th) * dx + Math.sin(t.th) * dz, rel = c.v - tdot * t.v;
+        if (gap < 0 || gap > 1.25 || c.v < 22 || rel < 12) continue;
+        var onc = tdot < -0.5, cash = (onc ? 150 : 75) * (1 + Math.min(4, B.combo) * 0.5);
+        B.combo++; B.comboT = 3; B.nm++; B.cash += Math.round(cash / 5) * 5;
+        c.tank = Math.min(c.st.cap, c.tank + (onc ? 0.55 : 0.35));
+        popMsg(hi, (onc ? 'ONCOMING ' : '') + 'NEAR MISS' + (B.combo > 1 ? ' ×' + B.combo : ''), '+$' + (Math.round(cash / 5) * 5));
+        sfx('nearmiss', 0.8);
+      }
+    });
+  }
+  function placeTraffic(t) {
+    var m = t.mesh, yaw = t.th; m.position.set(t.x, 0, t.z); m.rotation.set(0, -yaw, 0);
+    var fx = m.userData.fx; if (fx) { for (var i = 0; i < fx.wheels.length; i++) fx.wheels[i].rotation.z = -t.spin; if (fx.wheelMat) fx.wheelMat.uniforms.spin.value = t.spin % 6.2832; }
+  }
+
+  /* ── routes: shortest way through the grid to a node (Dijkstra over 81 corners) ── */
+  function routeTo(target) {
+    var n = CG.nodes.length, D = new Float64Array(n).fill(1e9), next = new Int32Array(n).fill(-1), done = new Uint8Array(n);
+    D[target] = 0;
+    for (var it = 0; it < n; it++) {
+      var u = -1, best = 1e9; for (var k = 0; k < n; k++) if (!done[k] && D[k] < best) { best = D[k]; u = k; }
+      if (u < 0) break; done[u] = 1;
+      CG.nodes[u].nb.forEach(function (o) { var nd = D[u] + o.s.len; if (nd < D[o.n]) { D[o.n] = nd; next[o.n] = u; } });
+    }
+    return { D: D, next: next, target: target };
+  }
+  // where a car is in the grid: the street it's on (both ends) or the corner it's in
+  function streetOf(x, z) {
+    var i = cgIdx(CG.xs, x), j = cgIdx(CG.zs, z), NN = CG.NN;
+    var ni = Math.abs(x - CG.xs[clamp(i, 0, CG.N)]) < HALF + 3 ? clamp(i, 0, CG.N) : Math.abs(x - CG.xs[clamp(i + 1, 0, CG.N)]) < HALF + 3 ? clamp(i + 1, 0, CG.N) : -1;
+    var nj = Math.abs(z - CG.zs[clamp(j, 0, CG.N)]) < HALF + 3 ? clamp(j, 0, CG.N) : Math.abs(z - CG.zs[clamp(j + 1, 0, CG.N)]) < HALF + 3 ? clamp(j + 1, 0, CG.N) : -1;
+    if (ni >= 0 && nj >= 0) return { ends: [ni * NN + nj] };
+    if (ni >= 0) { var j0 = clamp(j, 0, CG.N - 1); return { ends: [ni * NN + j0, ni * NN + j0 + 1] }; }
+    if (nj >= 0) { var i0 = clamp(i, 0, CG.N - 1); return { ends: [i0 * NN + nj, (i0 + 1) * NN + nj] }; }
+    var nn = nearestNode(x, z); return { ends: [nn.id], lost: true };   // in a lot, or somewhere odd
+  }
+  // the next corner to head for, toward a route's target: whichever end of this street gets there sooner
+  function firstNode(x, z, th, route) {
+    var so = streetOf(x, z), best = null, bs = 1e9, hx = Math.cos(th), hz = Math.sin(th);
+    so.ends.forEach(function (id) { var N = CG.nodes[id], d = Math.hypot(N.x - x, N.z - z), back = ((N.x - x) * hx + (N.z - z) * hz) < -4 ? 25 : 0, sc = d + route.D[id] + back; if (sc < bs) { bs = sc; best = id; } });
+    return best;
+  }
+  // distance along the route from a spot to the target
+  function routeDist(x, z, n0, route) { var N = CG.nodes[n0]; return Math.hypot(N.x - x, N.z - z) + route.D[n0]; }
+
+  /* ── rivals (and cruisers) driving the grid: pure pursuit along the route, corner speeds, dodging ── */
+  function cityDrive(c, R, h, route, opt) {
+    opt = opt || {};
+    var ai = c.ai, v = Math.max(c.v, 0);
+    if (ai.n0 == null || ai.route !== route) { ai.n0 = firstNode(c.x, c.z, c.th, route); ai.route = route; ai.dPrev = 1e9; ai.farT = 0; }
+    var N0 = CG.nodes[ai.n0], d0 = Math.hypot(N0.x - c.x, N0.z - c.z);
+    // reached the corner (or passed it): on to the next one
+    if (ai.n0 !== route.target && (d0 < 7 || (d0 < 16 && ((N0.x - c.x) * Math.cos(c.th) + (N0.z - c.z) * Math.sin(c.th)) < 0))) { ai.n0 = route.next[ai.n0]; N0 = CG.nodes[ai.n0]; d0 = Math.hypot(N0.x - c.x, N0.z - c.z); ai.dPrev = 1e9; }
+    // getting further from it for a while (overshot a turn): pick again
+    if (d0 > ai.dPrev + 0.05) ai.farT += h; else ai.farT = Math.max(0, ai.farT - h); ai.dPrev = d0;
+    if (ai.farT > 1.2) { ai.n0 = firstNode(c.x, c.z, c.th, route); ai.farT = 0; ai.dPrev = 1e9; N0 = CG.nodes[ai.n0]; d0 = Math.hypot(N0.x - c.x, N0.z - c.z); }
+    // the path ahead: here → n0 → n1 → n2
+    var path = [[c.x, c.z], [N0.x, N0.z]], k = ai.n0, rr = route;
+    for (var q = 0; q < 3; q++) {
+      if (k === rr.target) { if (opt.then && rr !== opt.then) rr = opt.then; else break; }   // past the checkpoint: the leg after it
+      if (rr.next[k] < 0) break;
+      k = rr.next[k]; path.push([CG.nodes[k].x, CG.nodes[k].z]);
+    }
+    // speed: each corner ahead allows a speed for its angle; brake in time for it
+    var vt = c.st.top * 1.2, dist = d0, grip = c.st.grip * (ai.skill || 1);
+    for (q = 1; q < path.length - 1; q++) {
+      var ax = path[q][0] - path[q - 1][0], az = path[q][1] - path[q - 1][1], bx = path[q + 1][0] - path[q][0], bz = path[q + 1][1] - path[q][1];
+      var la = Math.hypot(ax, az) || 1, lb = Math.hypot(bx, bz) || 1, cosA = (ax * bx + az * bz) / (la * lb);
+      if (cosA < 0.9) { var vc = Math.sqrt(LAT * grip * (cosA < -0.5 ? 3.5 : cosA < 0.5 ? 15 : 40)) * (opt.cornerK || 1); vt = Math.min(vt, Math.sqrt(vc * vc + 2 * 13 * Math.max(0, dist - 10))); }
+      if (q < path.length - 1) dist += lb;
+    }
+    if (opt.vMax != null) vt = Math.min(vt, opt.vMax);
+    // pure pursuit: a point on the path a little ahead (not past the next corner until close to it)
+    var look = 8 + v * 0.42, tx = N0.x, tz = N0.z, rem = look;
+    for (q = 1; q < path.length; q++) {
+      var sx = path[q][0] - path[q - 1][0], sz = path[q][1] - path[q - 1][1], sl = Math.hypot(sx, sz) || 1;
+      if (rem <= sl || q === path.length - 1) { var f = Math.min(1, rem / sl); tx = path[q - 1][0] + sx * f; tz = path[q - 1][1] + sz * f; break; }
+      rem -= sl;
+    }
+    // lane: hold an offset to the right of the line (racers vary it, cruising cops keep right)
+    var px = path[1][0] - c.x, pz = path[1][1] - c.z, pl = Math.hypot(px, pz) || 1, ux = px / pl, uz = pz / pl, rx = -uz, rz = ux;
+    ai.laneT = (ai.laneT || 0) - h; if (ai.laneT <= 0 && opt.lane == null) { ai.laneT = 3 + Math.random() * 4; ai.lane = rnd(-2.5, 3.5); }
+    var lane = opt.lane != null ? opt.lane : (ai.lane || 0);
+    // dodge whatever is ahead in the way (closing fast = look further)
+    var thrCap = 1, brkMin = 0, bestG = 1e9, dodge = 0;
+    function obstacle(o, ovx, ovz, hw) {
+      var dx = o.x - c.x, dz = o.z - c.z, al = dx * ux + dz * uz; if (al <= 0) return;
+      var closing = v - (ovx * ux + ovz * uz);
+      if (al > 12 + Math.max(0, closing) * 1.6 || al > bestG) return;
+      var lat = dx * rx + dz * rz; if (Math.abs(lat - lane) > 1.7 + hw) return;
+      bestG = al; var side = lane >= lat ? 1 : -1; dodge = lat + side * (2.4 + hw) - lane;
+      if (closing > 0 && al < 6 + closing * 0.45) thrCap = 0.3;
+      var need = closing > 0 ? closing * closing / (2 * Math.max(1, al - 5)) : 0;
+      if (need > 6 && al < 14) { brkMin = clamp(need / BRAKE, 0.3, 1); }
+    }
+    for (q = 0; q < R.cars.length; q++) { var o = R.cars[q]; if (o === c || o.gone || o.ghost || o.inv > 0 || o === ai.ignore) continue; var ov = velOf(o); obstacle(o, ov[0], ov[1], 1); }
+    for (q = 0; q < R.traffic.length; q++) { var t2 = R.traffic[q]; if (t2.gone) continue; obstacle(t2, Math.cos(t2.th) * t2.v, Math.sin(t2.th) * t2.v, t2.Wd / 2); }
+    // and the parked cars (they're always on the curb side)
+    if (PARKHASH) { var ci = Math.floor(c.x / PH_CS), cj = Math.floor(c.z / PH_CS); for (var a = ci - 1; a <= ci + 1; a++) for (var b = cj - 1; b <= cj + 1; b++) { var l2 = PARKHASH[a + ',' + b]; if (l2) l2.forEach(function (p) { obstacle(p, 0, 0, 1); }); } }
+    var off = clamp(lane + dodge, -(HALF - 1.6), HALF - 1.6);
+    tx += rx * off; tz += rz * off;
+    // steer toward it
+    var want = Math.atan2(tz - c.z, tx - c.x), err = want - c.th; while (err > Math.PI) err -= 2 * Math.PI; while (err < -Math.PI) err += 2 * Math.PI;
+    var yawMax = Math.min(1.9, LAT * c.st.grip / Math.max(v, 7)), ld = Math.max(6, Math.hypot(tx - c.x, tz - c.z));
+    var yawCmd = 2 * v * Math.sin(err) / ld * 1.15 + err * 0.6;
+    c.inp.steer = clamp(yawCmd / yawMax, -1, 1);
+    var thr = v < vt - 1 ? 1 : v < vt + 0.5 ? 0.3 : 0, brk = v > vt + 1.5 ? clamp((v - vt) / 4, 0.3, 1) : 0;
+    if (Math.abs(err) > 1.2 && v > 8) { thr = Math.min(thr, 0.3); brk = Math.max(brk, 0.3); }   // facing the wrong way: slow, turn round
+    if (c.v < -0.5) { thr = 1; brk = 0; }
+    var nitro = false;
+    if (c.tank > c.st.cap * 0.5 && vt > v + 14 && Math.abs(err) < 0.1 && !opt.noNitro) ai.nitroOn = true;
+    if (ai.nitroOn) { nitro = true; if (c.tank < 0.2 || vt < v + 4 || Math.abs(err) > 0.2) ai.nitroOn = false; }
+    c.inp.thr = Math.min(thr, thrCap); c.inp.brk = Math.max(brk, brkMin); c.inp.nitro = nitro && !brkMin && !c.inp.brk; c.inp.drift = false;
+    // stuck nose-in against something, or facing away from where it needs to go at low speed: back up with the wheel
+    // turned the other way (a three-point turn), then try again
+    if (Math.abs(c.v) < 1.5 && c.inp.thr > 0.2) ai.stuckT = (ai.stuckT || 0) + h; else if (!ai.rev) ai.stuckT = 0;
+    ai.revN = Math.max(0, (ai.revN || 0) - h / 8);
+    if (!ai.rev && (ai.stuckT > 0.8 || (Math.abs(err) > 1.6 && Math.abs(c.v) < 6 && (ai.awayT = (ai.awayT || 0) + h) > 0.5))) {
+      ai.revN++; ai.rev = ai.revN > 1.5 ? 2.2 : 1.3; ai.revSteer = Math.abs(err) > 1.6 ? -Math.sign(err) : -Math.sign(c.inp.steer || (Math.random() - 0.5)); ai.stuckT = 0; ai.awayT = 0;
+      if (ai.revN > 3) ai.reset = true;   // still stuck after three tries: put it back on the street (out of sight)
+    }
+    if (Math.abs(err) <= 1.6) ai.awayT = 0;
+    if (ai.rev) { ai.rev = Math.max(0, ai.rev - h); c.inp.thr = 0; c.inp.brk = 1; c.inp.steer = ai.revSteer; c.inp.nitro = false; }
+    return vt;
+  }
+
+  /* ── police in the city ──
+     Patrols park at the curb or cruise the right lane with the bar glowing dim. Fly past one (or hit it) and it lights
+     up. With you in sight and close it drives straight at you: rams, PITs your back quarter, slams your side. Lose
+     sight of it round a few corners and it routes after you through the grid. Far enough away for long enough and it
+     gives up. Slow down with one on you and you're pulled over (in free roam that's a fine). */
+  function cityPoliceSetup(R, level) {
+    R.pol = { level: level, n: 0, warnCd: 0, chasing: 0, lostCd: 0 };
+    if (!level) return;
+    var n = level >= 2 ? (TOUCH ? 6 : 8) : (TOUCH ? 3 : 5);
+    for (var i = 0; i < n; i++) { var c = copCar(R, Math.random() < 0.25); c.x = c.z = 0; c.th = 0; c.kx = c.kz = 0; cityCopPlace(R, c, 120, 600); R.cars.push(c); }
+  }
+  // a patrol somewhere between dMin and dMax from the players: parked at the curb, or cruising
+  function cityCopPlace(R, c, dMin, dMax) {
+    var P = c.cop;
+    for (var tries = 0; tries < 50; tries++) {
+      var sg = CG.segs[Math.floor(Math.random() * CG.segs.length)], A = CG.nodes[sg.a], B = CG.nodes[sg.b], s = HALF + 12 + Math.random() * (sg.len - 2 * HALF - 24);
+      var dir = Math.random() < 0.5 ? 1 : -1, ux = (B.x - A.x) / sg.len * dir, uz = (B.z - A.z) / sg.len * dir, S0 = dir > 0 ? A : B, sp = dir > 0 ? s : sg.len - s, park = Math.random() < 0.5 && !sg.park[dir > 0 ? 1 : -1];
+      var lat = park ? 7.4 : 2.25, x = S0.x + ux * sp - uz * lat, z = S0.z + uz * sp + ux * lat;
+      var dmin = 1e9; R.humans.forEach(function (h) { dmin = Math.min(dmin, Math.hypot(h.x - x, h.z - z)); });
+      if (dmin < dMin || dmin > dMax) continue;
+      if (R.cars.concat(R.traffic).some(function (o) { return o !== c && !o.gone && Math.hypot(o.x - x, o.z - z) < 12; })) continue;
+      c.x = x; c.z = z; c.th = Math.atan2(uz, ux); c.v = park ? 0 : 12; c.slip = 0; c.kx = c.kz = 0; c.gone = false; c.wrecked = false; c.dmg = 0; c.mesh.visible = true;
+      P.mode = 'patrol'; P.on = false; P.tgt = null; P.park = park; P.cruise = 13 + Math.random() * 3; P.wander = null; P.cool = 2;
+      if (c.smoke) { c.mesh.remove(c.smoke); c.smoke = null; }
+      c.ai = { skill: c.def.fast ? 1.08 : 1.05, lane: 2.25, laneNow: 0, laneT: 3, nitroOn: false };
+      return true;
+    }
+    c.gone = true; c.mesh.visible = false; return false;
+  }
+  function cityPatrolWatch(c, R) {
+    var P = c.cop, lim = R.pol.level >= 2 ? 3 : 2; if (P.cool > 0) return;
+    for (var i = 0; i < R.racers.length; i++) {
+      var r = R.racers[i]; if (r.finished || r.busted || r.wreck || r.hold > 0) continue;
+      var dx = r.x - c.x, dz = r.z - c.z, d = Math.hypot(dx, dz), al = dx * Math.cos(r.th) + dz * Math.sin(r.th), prev = P.pass[i]; P.pass[i] = al;
+      var hit = c.hitBy === r && R.t - (c.hitT || 0) < 1;
+      var passed = prev != null && prev < 0 && al >= 0 && d < 16 && r.v > 27;
+      var clocked = d < 34 && r.v > 40 && cityLOS(c.x, c.z, r.x, r.z);
+      if ((hit || passed || clocked) && (r.human == null || chasersOf(R, r) < lim)) { lightUp(R, c, r, hit ? 'hit' : 'pass'); P.route = null; return; }
+    }
+  }
+  function cityCopDrive(c, R, h) {
+    var P = c.cop;
+    R_TYPE_HP = false;
+    if (P.cool > 0) P.cool -= h;
+    if (P.hold > 0) { P.hold -= h; c.inp.thr = 0; c.inp.brk = 1; c.inp.steer = 0; c.inp.nitro = false; if (P.hold <= 0) giveUp(R, c, true); return; }
+    if (P.mode === 'patrol' || P.mode === 'leave') {
+      copStats(c, null); cityPatrolWatch(c, R);
+      if (P.mode === 'chase') return;
+      if (P.park) { c.inp = { thr: 0, brk: 1, steer: 0, nitro: false, drift: false }; c.v = 0; return; }
+      if (!P.wander || (P.wanderT -= h) < 0 || Math.hypot(CG.nodes[P.wander.target].x - c.x, CG.nodes[P.wander.target].z - c.z) < 12) { P.wander = routeTo(Math.floor(Math.random() * CG.nodes.length)); P.wanderT = 40; }
+      cityDrive(c, R, h, P.wander, { lane: 2.25, vMax: P.cruise, noNitro: true, cornerK: 0.75 });
+      return;
+    }
+    var T = P.tgt;
+    if (!T || T.busted || T.finished || T.gone) { giveUp(R, c, true); return; }
+    if (T.hold > 0) { P.hold = 2.5; return; }
+    copStats(c, T); c.ai.ignore = T;
+    var dx = T.x - c.x, dz = T.z - c.z, d = Math.hypot(dx, dz), los = d < 90 && cityLOS(c.x, c.z, T.x, T.z);
+    if (d > 330 || (!los && d > 180)) { P.lostT += h; if (P.lostT > (d > 330 ? 5 : 7)) { giveUp(R, c); return; } } else P.lostT = Math.max(0, P.lostT - h * 2);
+    if (P.atkCd > 0) P.atkCd -= h;
+    if (P.atk) { P.atkT -= h; if (P.atkT <= 0 || d > 45) { P.atk = null; P.atkCd = 1 + Math.random(); } }
+    if (los && d < 75) {
+      // straight at them: where they'll be in a moment, plus the attack's offset in their frame
+      var tf = Math.cos(T.th), tz2 = Math.sin(T.th), tr = -tz2, trz = tf, lead = clamp(d / 40, 0.1, 0.6), ax = T.x + tf * T.v * lead, az = T.z + tz2 * T.v * lead;
+      var side = (dx * tr + dz * trz) < 0 ? 1 : -1, behind = (dx * tf + dz * tz2) > 0, vw;
+      if (!P.atk && P.atkCd <= 0 && d < 26 && behind) { var rr = Math.random(); P.atk = rr < 0.4 ? 'pit' : rr < 0.7 ? 'slam' : 'ram'; P.atkT = 4; P.side = side; }
+      if (P.atk === 'pit') { ax += -tf * 1.6 + tr * P.side * (d > 5 ? 1.6 : 0.3); az += -tz2 * 1.6 + trz * P.side * (d > 5 ? 1.6 : 0.3); vw = T.v + clamp(d * 0.7, 3.5, 24); }
+      else if (P.atk === 'slam') { ax += tr * P.side * (d > 3 ? 2.5 : -0.8); az += trz * P.side * (d > 3 ? 2.5 : -0.8); vw = T.v + clamp(d * 0.7, 2.5, 24); }
+      else if (P.atk === 'ram') { vw = T.v + clamp(d * 0.8, 6, 26); }
+      else if (Math.abs(T.v) < 10) { vw = clamp((d - 6) * 0.6, 0, 16); }   // they've slowed or stopped: pull right up and box them in
+      else if (!behind) { vw = T.v - 2.5; }   // in front: sit in their path and brake-check
+      else { ax += tr * side * 2.2; az += trz * side * 2.2; vw = T.v + clamp(d * 0.6, 3, 24); }
+      var want = Math.atan2(az - c.z, ax - c.x), err = want - c.th; while (err > Math.PI) err -= 2 * Math.PI; while (err < -Math.PI) err += 2 * Math.PI;
+      var v = Math.max(c.v, 0), yawMax = Math.min(1.9, LAT * c.st.grip / Math.max(v, 7)), ld = Math.max(5, Math.hypot(ax - c.x, az - c.z));
+      c.inp.steer = clamp((2 * v * Math.sin(err) / ld * 1.15 + err * 0.6) / yawMax, -1, 1);
+      // don't drive into a building to get there: if a wall is close ahead, follow the streets instead
+      var wx = c.x + Math.cos(c.th) * 7, wz = c.z + Math.sin(c.th) * 7, bk = blockAt(wx, wz);
+      if (bk && !bk.lot && wx > bk.x0 && wx < bk.x1 && wz > bk.z0 && wz < bk.z1) { P.direct = false; }
+      else {
+        c.inp.thr = c.v < vw - 1 ? 1 : 0.3; c.inp.brk = c.v > vw + 1 ? clamp((c.v - vw) / 9, 0.15, 1) : 0; c.inp.nitro = d > 40 && c.tank > 0.3 && Math.abs(err) < 0.15 && !c.inp.brk; c.inp.drift = false;
+        if (Math.abs(err) > 1.3 && v > 10) { c.inp.thr = 0.3; c.inp.brk = 0.4; }
+        P.lastTgt = T; P.lastHit = R.t; return;
+      }
+    }
+    // out of sight: through the streets to them
+    P.rT = (P.rT || 0) - h;
+    if (!P.route || P.rT <= 0) { P.route = routeTo(nearestNode(T.x, T.z).id); P.rT = 0.7; }
+    cityDrive(c, R, h, P.route, { cornerK: 1.05 });
+    if (d > 60 && c.tank > 0.3 && !c.inp.brk && Math.abs(c.inp.steer) < 0.2) c.inp.nitro = true;
+  }
+  function cityPoliceStep(R, h) {
+    R.racers.forEach(function (c) {
+      if (c.busted || c.finished || c.hold > 0) return;
+      var near = false, close = 0;
+      for (var i = 0; i < R.cars.length; i++) {
+        var o = R.cars[i]; if (!o.cop || o.wrecked || o.gone || !(o.block || (o.cop.mode === 'chase' && o.cop.tgt === c))) continue;
+        var d = Math.hypot(o.x - c.x, o.z - c.z);
+        if (d < 40) near = true; if (d < 9.5) close++;
+      }
+      var v = Math.abs(c.v);
+      if (close && (v < 11 || c.wreck)) c.bust = Math.min(1, (c.bust || 0) + h * close / (v < 3 ? 1.6 : 2.6));
+      else c.bust = Math.max(0, (c.bust || 0) - h / (near ? 6 : 3));
+      if (c.bust >= 1) {
+        bust(R, c);
+        if (R.mode === 'roam' && c.human != null) { var fine = Math.min(250, Math.max(0, SAVE.cash)); if (fine) { addCash(-fine); R.bonus[c.human].fines = (R.bonus[c.human].fines || 0) + fine; } hudMsg(c.human, 'PULLED OVER<small>' + (fine ? 'fine ' + money(fine) : 'a warning this time') + ' · lose them next time</small>', 'warn bust', 3); }
+      }
+    });
+    R.cars.forEach(function (c) { if (!c.cop || c.block || c.wrecked) return; if (c.hitCd > 0) c.hitCd -= h; if ((c.dmg || 0) >= (c.hp || 100)) wreckCop(R, c); });
+  }
+  function cityPoliceTick(R, dt) {
+    var me = R.humans[0]; if (!me || R.state !== 'run') return;
+    R.cars.forEach(function (c) {
+      if (!c.cop) return;
+      if (c.wrecked && !c.gone) { c.wreckT += dt; if (c.smoke) c.smoke.material.opacity = 0.5 * (1 - c.wreckT / 8); if (c.wreckT > 8) { c.gone = true; c.mesh.visible = false; c.respT = 12; } }
+      else if (c.gone && c.respT != null) { c.respT -= dt; if (c.respT <= 0) { c.respT = null; c.wrecked = false; c.cop.on = false; if (c.mesh.userData.fx.bar) c.mesh.userData.fx.bar.on = false; cityCopPlace(R, c, 200, 450); } }
+      else if (c.cop.mode !== 'chase' && !c.gone && Math.hypot(c.x - me.x, c.z - me.z) > 650) cityCopPlace(R, c, 220, 500);   // keep patrols around you
+    });
+    var dmin = 1e9; R.cars.forEach(function (c) { if (c.cop && c.cop.on && !c.wrecked && !c.gone) dmin = Math.min(dmin, Math.hypot(c.x - me.x, c.z - me.z)); });
+    if (!R.siren && AC && dmin < 400) R.siren = Siren();
+    if (R.siren) R.siren.set(me.busted || me.finished ? 400 : dmin, dt);
+  }
+  function cityPoliceRadar(R, c) {
+    var on = 0, near = 1e9, ahead = 1e9, hx = Math.cos(c.th), hz = Math.sin(c.th);
+    R.cars.forEach(function (o) {
+      if (!o.cop || o.gone || o.wrecked || o.block) return;
+      var dx = o.x - c.x, dz = o.z - c.z, d = Math.hypot(dx, dz);
+      if (o.cop.mode === 'chase' && o.cop.tgt === c) { on++; near = Math.min(near, d); }
+      else if (o.cop.mode === 'patrol' && d < ahead && (dx * hx + dz * hz) > d * 0.6 && d < 320 && cityLOS(c.x, c.z, o.x, o.z)) ahead = d;
+    });
+    return { on: on, near: near, ahead: ahead };
+  }
+
+  /* ── city races: checkpoint sprints across the districts; you pick your own way between the lights ── */
+  var CITY_RACES = [
+    { id: 'c1', name: 'Sunset to the Strip', place: 'Sunset Blvd → Las Vegas', start: [1, 6], dir: [1, 0], cps: [[3, 6], [3, 4], [5, 4], [6, 2], [7, 1], [5, 0]], pay: 1, still: ART + '67b55da3-1645-4ba4-a3f9-db88aa38f32e.png', rivals: ['muscle', 'gull', 'muscle', 'hatch', 'gull'], rupg: 1, skill: 0.9 },
+    { id: 'c2', name: 'Manhattan in the Rain', place: 'Midtown loop', start: [1, 1], dir: [1, 0], cps: [[3, 1], [3, 3], [1, 3], [1, 2], [2, 0], [0, 0]], pay: 1.15, still: ART + '6c0e3e01-234b-42f1-942c-f41f45d654da.png', rivals: ['gull', 'wedge', 'gull', 'muscle', 'wedge'], rupg: 1, skill: 0.92 },
+    { id: 'c3', name: 'Ocean Drive Dash', place: 'Miami Beach', start: [5, 8], dir: [1, 0], cps: [[8, 8], [8, 6], [6, 6], [6, 4], [8, 4], [7, 7]], pay: 1.3, still: ART + '6744575c-3fca-4897-bf2c-efa98431b203.png', rivals: ['wedge', 'exotic', 'wedge', 'gull', 'exotic'], rupg: 2, skill: 0.93 },
+    { id: 'c4', name: 'The Grand Tour', place: 'All four districts', start: [1, 8], dir: [1, 0], cps: [[4, 8], [4, 5], [1, 5], [1, 1], [4, 1], [4, 3], [7, 3], [7, 7], [5, 7]], pay: 1.8, still: ART + '1e97b00b-26fb-49db-8924-da5c9508c8e3.png', rivals: ['exotic', 'wedge', 'exotic', 'exotic', 'wedge'], rupg: 2, skill: 0.95 }
+  ];
+  function nodeId(ij) { return ij[0] * CG.NN + ij[1]; }
+  var CITY_SAVE = Object.assign({ best: {}, wins: 0 }, lsj('nd_city') || {});
+  function saveCity() { ls('nd_city', JSON.stringify(CITY_SAVE)); }
+  var CITY_OPT = Object.assign({ traffic: 2, police: 1, rivals: 5, diff: 1 }, lsj('nd_city_opt') || {});
+  function saveCityOpt() { ls('nd_city_opt', JSON.stringify(CITY_OPT)); }
+
+  // tall light columns over the checkpoints (amber = next, dim = the one after), the start markers in free roam
+  function beaconMesh(col, r, hgt) {
+    var g = new THREE.Group(), m = new THREE.ShaderMaterial({
+      uniforms: { col: { value: new THREE.Color(col) }, a: { value: 1 } },
+      vertexShader: 'varying vec2 vU; void main(){ vU = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: 'uniform vec3 col; uniform float a; varying vec2 vU; void main(){ float k = pow(1.0 - vU.y, 1.4) * (0.55 + 0.45 * pow(abs(sin(vU.x * 3.1416)), 0.5)); gl_FragColor = vec4(col * k * a, 1.0); }',
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false });
+    var cyl = new THREE.Mesh(new THREE.CylinderGeometry(r, r, hgt, 24, 1, true), m); cyl.position.y = hgt / 2; g.add(cyl);
+    var ring = new THREE.Mesh(new THREE.RingGeometry(r - 0.6, r, 40), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.8, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide }));
+    ring.rotation.x = -Math.PI / 2; ring.position.y = 0.09; g.add(ring);
+    g.userData.mat = m; g.userData.ring = ring; return g;
+  }
+  function routeArrow() {
+    var s = new THREE.Shape(); s.moveTo(0, 0.9); s.lineTo(0.75, -0.2); s.lineTo(0.28, -0.2); s.lineTo(0.28, -0.85); s.lineTo(-0.28, -0.85); s.lineTo(-0.28, -0.2); s.lineTo(-0.75, -0.2); s.lineTo(0, 0.9);
+    var g = new THREE.ShapeGeometry(s); g.rotateX(-Math.PI / 2);
+    var m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: 0xffc070, transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide, fog: false }));
+    m.renderOrder = 5; return m;
+  }
+
+  // mode: 'roam' (free roam) or 'race' (opt.race: index into CITY_RACES)
+  function startCity(def, opt) {
+    opt = opt || {};
+    LAST = { type: 'city', def: def, opt: opt };
+    endRace(true);
+    var W = loadWorld(def), racers = [], humans = [], race = opt.mode === 'race' ? CITY_RACES[opt.race || 0] : null;
+    PARKHASH = parkHash(W.S.parked);
+    var TR = { L: 1e9, now: 0, theme: 'city', fake: true };
+    var u0 = myCar(SAVE.car), me = newCar(CAR[SAVE.car], u0, u0.paint, 'You', 0); humans.push(me);
+    var D = DIFFS[clamp(opt.diff == null ? 1 : opt.diff, 0, 3)], nAI = race ? clamp(opt.rivals == null ? 5 : opt.rivals, 0, 7) : 0, used = [me.paint], rivals = [];
+    for (var i = 0; i < nAI; i++) {
+      var rid = race.rivals[i % race.rivals.length], lv = clamp(race.rupg + D.upg, 0, 3), paint;
+      if (D.upg >= 3) rid = i % 3 === 2 ? 'wedge' : 'exotic';
+      do { paint = Math.floor(Math.random() * PAINTS.length); } while (used.indexOf(paint) >= 0 && used.length < PAINTS.length);
+      used.push(paint);
+      var rc = newCar(CAR[rid], { eng: lv, tire: lv, nitro: lv }, paint, RIVALS[i % RIVALS.length], null);
+      rc.ai = { skill: clamp(race.skill + D.skill + (i === 0 ? 0.03 : i === 1 ? 0.015 : -0.01 * i), 0.7, 1.08) };
+      rivals.push(rc);
+    }
+    var all = rivals.concat(humans);
+    // the grid behind the start corner (race), or a quiet spot on Sunset (free roam)
+    var S0 = race ? CG.nodes[nodeId(race.start)] : (opt.at ? CG.nodes[opt.at] : CG.nodes[nodeId([3, 7])]), dx = race ? race.dir[0] : 1, dz = race ? race.dir[1] : 0;
+    if (opt.spawn) { me.x = opt.spawn.x; me.z = opt.spawn.z; me.th = opt.spawn.th; }
+    all.forEach(function (c, k) {
+      var row = Math.floor(k / 2), col = k % 2;
+      if (!(opt.spawn && c === me)) { c.x = S0.x - dx * (14 + row * 9) - dz * (col ? 3.6 : -3.6) * (race ? 1 : 0) + (race ? 0 : -dz * 2.25); c.z = S0.z - dz * (14 + row * 9) + dx * (col ? 3.6 : -3.6) * (race ? 1 : 0) + (race ? 0 : dx * 2.25); c.th = Math.atan2(dz, dx); }
+      c.kx = c.kz = 0; c.s = 0; c.total = 0; c.cp = 0;
+      c.mesh = makeCar(c.def, c.paint, { beam: c.human != null ? 0.5 : 0.32 }); W.S.scene.add(c.mesh);
+      racers.push(c);
+    });
+    var R = RACE = { city: true, type: 'city', mode: race ? 'race' : 'roam', race: race, def: def, TR: TR, W: W, cars: racers.slice(), racers: racers, humans: humans, laps: 1, t: race ? -3.6 : 0, state: race ? 'count' : 'run',
+      ev: [], wait: 0, ghost: null, rec: [], recT: 0, msgs: [], cd: 4, done: false, diff: D, traffic: [], tl: null, slow: 0, locks: {}, paid: 0 };
+    R.bonus = humans.map(function () { return { cash: 0, nm: 0, combo: 0, comboT: 0, td: 0, ctd: 0, wrecks: 0, esc: 0, pulled: 0 }; });
+    if (race) {
+      R.cps = race.cps.map(nodeId); R.routes = R.cps.map(routeTo);
+      R.beacons = [beaconMesh(0xffb050, 8, 70), beaconMesh(0x9fc8ff, 7, 45)]; R.beacons.forEach(function (b) { W.S.scene.add(b); });
+    } else {
+      // free roam: the race starts are lit (cyan); stop in one to race from there
+      R.markers = CITY_RACES.map(function (rc, k) { var N = CG.nodes[nodeId(rc.start)], b = beaconMesh(0x5ee0ff, 7, 40); b.position.set(N.x, 0, N.z); W.S.scene.add(b); return { race: k, node: N, mesh: b, inT: 0 }; });
+    }
+    R.arrow = routeArrow(); W.S.scene.add(R.arrow);
+    makeCityTraffic(R, opt.traffic == null ? 2 : opt.traffic); R.tl = trafficLights(R);
+    cityPoliceSetup(R, opt.police == null ? 1 : opt.police);
+    R.sparks = makeSparks(R); R.tfx = makeTyreFx(R, W.S.scene); if (W.S.refl) W.S.refl.hide.push(R.tfx.skid);
+    humans.forEach(function (h, i) { h.eng = Engine(0); h.cam = CAMS[i]; h.cam.userData = {}; h.yaw = 0; placeCity(h); updateCam(h.cam, h, TR, 0.016, SET.cam, true); });
+    R.cars.forEach(function (c) { placeCity(c); });
+    R.traffic.forEach(placeTraffic); updateTrafficLights(R);
+    buildHud();
+    STATE = 'race'; UI.hideAll();
+    $('touch').hidden = !TOUCH; $('split').hidden = true; $('bg').hidden = true; $('cash').hidden = true;
+    musicStop(); sfx('radio'); if (!race) musicStart('city');
+    resize();
+  }
+  function endCityExtras(R) {
+    var sc = R.W.S.scene;
+    (R.beacons || []).forEach(function (b) { sc.remove(b); }); (R.markers || []).forEach(function (m) { sc.remove(m.mesh); });
+    if (R.arrow) sc.remove(R.arrow);
+  }
+  // wrecks in the city: roll and slide (startWreck does the roll), then back on the nearest street, facing along it
+  function cityWreckStep(R, c, h) {
+    var W = c.wreck; W.t += h;
+    c.v = Math.max(0, c.v - (14 + c.v * 0.9) * h);
+    c.x += Math.cos(c.th) * c.v * h + c.kx * h; c.z += Math.sin(c.th) * c.v * h + c.kz * h; c.kx *= Math.max(0, 1 - 2 * h); c.kz *= Math.max(0, 1 - 2 * h);
+    var p = cityPush(c.x, c.z, 1.1); if (p.n) { c.x += p.x; c.z += p.z; c.v *= 0.5; }
+    if (W.t >= W.dur) cityRespawn(R, c);
+  }
+  function cityRespawn(R, c, route) {
+    // the street it's on: snap across to the right-hand lane, along the street, facing the way it was going
+    // (or, given a route, the way the route goes)
+    var so = streetOf(c.x, c.z), A = CG.nodes[so.ends[0]], B = CG.nodes[so.ends[1] != null ? so.ends[1] : so.ends[0]];
+    if (route && so.ends.length === 1) { var nn = route.next[so.ends[0]]; if (nn >= 0) { B = CG.nodes[nn]; c.x = A.x; c.z = A.z; } }
+    if (route && so.ends.length === 2 && route.D[so.ends[0]] < route.D[so.ends[1]]) { var tmp = A; A = B; B = tmp; }   // face the end that's closer to the target
+    var ux = B.x - A.x, uz = B.z - A.z, ul = Math.hypot(ux, uz);
+    if (ul < 1) { var hx = Math.cos(c.th), hz = Math.sin(c.th); if (Math.abs(hx) > Math.abs(hz)) { ux = Math.sign(hx); uz = 0; } else { ux = 0; uz = Math.sign(hz); } ul = 1; c.x = A.x; c.z = A.z; }
+    else {
+      ux /= ul; uz /= ul; if (!route && ux * Math.cos(c.th) + uz * Math.sin(c.th) < 0) { ux = -ux; uz = -uz; }
+      var along = (c.x - A.x) * ux + (c.z - A.z) * uz; c.x = A.x + ux * along; c.z = A.z + uz * along;
+    }
+    c.x += -uz * 2.25; c.z += ux * 2.25; c.th = Math.atan2(uz, ux);
+    c.wreck = null; c.kx = c.kz = 0; c.vis = 0; c.slip = 0; c.slipV = 0; c.v = Math.max(14, c.st.top * 0.3); c.inv = 1.8; c.steerSm = 0;
+    if (c.ai) { c.ai.n0 = null; }
+    if (c.mesh) c.mesh.visible = true;
+  }
+  function cityProgress(R, c) { if (c.finished) return 1e7 - c.finishT; var k = Math.min(c.cp, R.cps.length - 1), rt = R.routes[k], n0 = c.ai && c.ai.route === rt && c.ai.n0 != null ? c.ai.n0 : firstNode(c.x, c.z, c.th, rt); return c.cp * 1e5 - routeDist(c.x, c.z, n0, rt); }
+  function cityCheckpoints(R, c) {
+    if (c.finished || c.busted || !R.cps) return;
+    var N = CG.nodes[R.cps[c.cp]]; if (Math.hypot(N.x - c.x, N.z - c.z) > 15) return;
+    c.cp++;
+    if (c.cp >= R.cps.length) {
+      c.finished = true; c.finishT = R.t;
+      if (c.human != null) {
+        var place = R.racers.filter(function (o) { return o.finished; }).length;
+        hudMsg(c.human, (place === 1 ? 'YOU WIN' : 'FINISHED P' + place) + '<small>' + fmtT2(c.finishT * 1000) + '</small>', '', 4); sfx('finish');
+        c.ai = { skill: 0.85 }; if (c.eng) { c.eng.stop(); c.eng = null; }
+      }
+    } else if (c.human != null) {
+      var left = R.cps.length - c.cp;
+      hudMsg(c.human, (left === 1 ? 'LAST CHECKPOINT' : 'CHECKPOINT ' + c.cp + '/' + R.cps.length) + '<small>' + fmtT2(R.t * 1000) + '</small>', '', 1.6); sfx('lap');
+    }
+    if (c.ai) c.ai.n0 = null;
+  }
+  // stop in a lit start marker in free roam and that race begins from there
+  function cityMarkers(R, dt) {
+    var me = R.humans[0]; if (!R.markers || !me) return;
+    R.markers.forEach(function (m) {
+      var d = Math.hypot(m.node.x - me.x, m.node.z - me.z), rc = CITY_RACES[m.race];
+      m.mesh.userData.mat.uniforms.a.value = 0.6 + 0.4 * Math.sin(R.t * 3);
+      if (d < 60 && d > 12 && !m.told) { m.told = true; hudMsg(0, rc.name.toUpperCase() + '<small>stop in the light to race · ' + (CITY_SAVE.best[rc.id] ? 'best ' + fmtT2(CITY_SAVE.best[rc.id]) : rc.place) + '</small>', '', 2.6); }
+      if (d > 90) m.told = false;
+      if (d < 11 && Math.abs(me.v) < 4 && !me.wreck) { m.inT += dt; if (m.inT > 0.8) { m.inT = 0; R.goRace = m.race; } }
+      else m.inT = 0;
+    });
+  }
+  // free roam pays as you go
+  function cityPayout(R) {
+    if (R.mode !== 'roam') return;
+    var B = R.bonus[0], due = B.cash - R.paid; if (due >= 5) { addCash(due); R.paid = B.cash; $('cash').textContent = money(SAVE.cash); }
+  }
+
+  // how far along the race a car is, in metres (for the standings and keeping the pack together)
+  function cityLegs(R) {
+    if (R.legs) return R.legs;
+    var prev = nodeId(R.race.start), legs = [], acc = 0;
+    R.cps.forEach(function (id, k) { var L = R.routes[k].D[prev]; legs.push({ before: acc, len: L }); acc += L; prev = id; });
+    R.legs = legs; R.total = acc; return legs;
+  }
+  function cityMetres(R, c) {
+    if (!R.cps) return 0;
+    var legs = cityLegs(R); if (c.cp >= R.cps.length) return R.total + 1000 - (c.finishT || 0);
+    var rt = R.routes[c.cp], n0 = c.ai && c.ai.route === rt && c.ai.n0 != null ? c.ai.n0 : (c.navN != null && c.navR === rt ? c.navN : firstNode(c.x, c.z, c.th, rt));
+    return legs[c.cp].before + legs[c.cp].len - routeDist(c.x, c.z, n0, rt);
+  }
+  function draftCity(R, c, h) {
+    var dx = Math.cos(c.th), dz = Math.sin(c.th);
+    function rel(o) { if (o.gone || (o.traffic && o.loose)) return null; var ox = o.x - c.x, oz = o.z - c.z, v = o.traffic ? Math.cos(o.th - c.th) * o.v : (function () { var vv = velOf(o); return vv[0] * dx + vv[1] * dz; })(); return [ox * dx + oz * dz, -ox * dz + oz * dx, v]; }
+    var best = draftOf(c, R.cars, rel); if (R.traffic.length) best = Math.max(best, draftOf(c, R.traffic, rel));
+    slipstream(R, c, best, h);
+  }
+  function cityRouteFor(R, c) { return R.routes ? R.routes[Math.min(c.cp, R.cps.length - 1)] : null; }
+
+  /* ── one frame in the city ── */
+  function updateCity(dt) {
+    var R = RACE;
+    if (R.slow > 0) { R.slow -= dt; dt *= 0.3; }
+    R.humans.forEach(function (h, i) { if (!h.finished && !h.busted && !AUTO) h.inp = humanInput(i, 1); });
+    if (R.state === 'count') {
+      R.t += dt;
+      var n = Math.ceil(-R.t);
+      if (n !== R.cd && n <= 3 && n >= 1) { R.cd = n; showCount(String(n)); sfx('beep'); }
+      if (R.t >= 0) { R.state = 'run'; R.t = 0; showCount('GO'); sfx('go'); musicStart('city'); post('start'); }
+    }
+    if (R.state === 'run') {
+      var steps = Math.min(8, Math.ceil(dt * 120)), h = dt / steps, i, c;
+      for (var k = 0; k < steps; k++) {
+        R.t += h; R.TR.now = R.t; TR_NOW.t = R.t;
+        for (i = 0; i < R.cars.length; i++) {
+          c = R.cars[i];
+          if (c.gone || c.block) continue;
+          if (c.wreck) { cityWreckStep(R, c, h); continue; }
+          if (c.busted) { c.v *= Math.max(0, 1 - 4 * h); c.inp.thr = 0; c.inp.brk = 1; }
+          else if (c.wrecked) { c.inp.thr = 0; c.inp.brk = 0.5; c.inp.steer = 0; }
+          else if (c.cop) cityCopDrive(c, R, h);
+          else if (c.ai && (c.human == null || c.finished || AUTO)) {
+            var rt = cityRouteFor(R, c);
+            if (rt) cityDrive(c, R, h, rt, { then: R.routes[c.cp + 1] });
+            else { if (!c.ai.wander || Math.hypot(CG.nodes[c.ai.wander.target].x - c.x, CG.nodes[c.ai.wander.target].z - c.z) < 14) c.ai.wander = routeTo(Math.floor(Math.random() * CG.nodes.length)); cityDrive(c, R, h, c.ai.wander); }
+          }
+          if (c.ai && c.ai.reset && c.human == null) { var far = R.humans.every(function (hh) { return Math.hypot(hh.x - c.x, hh.z - c.z) > 45; }); if (far) { c.ai.reset = false; c.ai.revN = 0; c.ai.rev = 0; cityRespawn(R, c, c.ai.route); } }
+          stepCity(c, h, R, R.ev);
+          if (!c.cop) draftCity(R, c, h);
+          if (c.human != null) driftStep(R, c, c.human, h);
+        }
+        if (k % 2 === 0) stepCityTraffic(R, h * 2);
+        cityCollide(R, R.ev);
+        if (R.traffic.length) cityCollideTraffic(R, R.ev);
+        cityPoliceStep(R, h);
+        for (i = 0; i < R.racers.length; i++) cityCheckpoints(R, R.racers[i]);
+      }
+      if (R.cps) {
+        R.racers.forEach(function (o) { o.prog = cityMetres(R, o); });
+        var sorted = R.racers.slice().sort(function (a, b) { if (!!a.busted !== !!b.busted) return a.busted ? 1 : -1; if (a.finished && b.finished) return a.finishT - b.finishT; if (a.finished) return -1; if (b.finished) return 1; return b.prog - a.prog; });
+        sorted.forEach(function (o, q) { o.place = q + 1; });
+        var lead = Math.max.apply(null, R.humans.map(function (hh) { return hh.prog; }));
+        R.racers.forEach(function (o) { if (o.human != null) { o.rub = 1; return; } var gap = o.prog - lead; o.rub = gap > 60 ? 1 - Math.min(0.1, (gap - 60) / 1400) : gap < -60 ? 1 + Math.min(0.07, (-gap - 60) / 1400) : 1; });
+      }
+      R.cars.forEach(function (o) { if (!o.cop || o.block) return; if (o.cop.mode !== 'chase' || !o.cop.tgt) { o.rub = 1; return; } var g = Math.hypot(o.cop.tgt.x - o.x, o.cop.tgt.z - o.z); o.rub = g > 60 ? 1 + Math.min(0.12, (g - 60) / 600) : 1.02; });
+      R.ev.forEach(function (e) { raceEvent(R, e); });
+      R.ev.length = 0;
+      cityPoliceTick(R, dt);
+      if (R.traffic.length) { cityNearMisses(R, dt); cityTrafficBubble(R, dt); }
+      cityMarkers(R, dt); cityPayout(R);
+      if (R.cps && R.humans.every(function (hh) { return hh.finished; })) {
+        R.wait += dt;
+        if (!R.done && (R.racers.every(function (o) { return o.finished || o.busted; }) || R.wait > 7)) { R.done = true; cityShowResults(); }
+      }
+    }
+    // place everything, cameras, engines
+    var now = performance.now() / 1000;
+    for (var j = 0; j < R.cars.length; j++) {
+      var cc = R.cars[j]; if (cc.gone) continue; placeCity(cc); wreckPose(cc); setLights(cc, cc.inp.brk > 0.1 && cc.v > 1);
+      if (cc.cop && !cc.block && !cc.wrecked) copSmoke(cc);
+      if (cc.cop) { var bfx = cc.mesh.userData.fx; if (bfx.bar) { bfx.bar.on = (cc.cop.on || cc.block) && !cc.wrecked; bfx.bar.idle = !bfx.bar.on && !cc.wrecked && cc.cop.mode === 'patrol'; } flashBar(bfx, now + j * 0.13); }
+    }
+    for (j = 0; j < R.cars.length; j++) if (!R.cars[j].block) tyreFx(R, R.cars[j], dt);
+    stepTyreFx(R, dt); stepSparks(R, dt);
+    R.traffic.forEach(function (t) { if (!t.gone) placeTraffic(t); });
+    updateTrafficLights(R);
+    R.humans.forEach(function (hh) {
+      if (hh.wreck) crashCam(hh.cam, hh, dt); else updateCam(hh.cam, hh, R.TR, dt, SET.cam);
+      if (hh.eng) {
+        var v = Math.abs(hh.v), top = hh.st.top, G = [0, .2, .36, .52, .68, .84, 1.3], g = 1; while (g < G.length - 1 && v > G[g] * top) g++;
+        var rpm = R.state === 'count' ? 0.12 + hh.inp.thr * 0.7 : clamp((v - G[g - 1] * top) / ((G[g] - G[g - 1]) * top), 0, 1) * 0.8 + 0.18;
+        hh.eng.set(rpm, hh.inp.thr, hh.drift ? 0.9 : hh.touch ? 0.5 : (hh.inp.brk > 0.5 && v > 15 ? 0.4 : 0), hh.boost);
+      }
+    });
+    if (R.goRace != null) { sfx('ok'); startCity(CITY, Object.assign({}, CITY_OPT, { mode: 'race', race: R.goRace })); return; }   // stopped in a start light
+    cityGuides(R);
+    updateHud(dt);
+    var ex = R.W.S.extra;
+    if (ex.ocean) ex.ocean.material.uniforms.t.value += dt;
+    if (ex.chase) { var on = Math.floor(now / 0.14) % 2; ex.chase[0].material.opacity = on ? 1 : 0.18; ex.chase[1].material.opacity = on ? 0.18 : 1; }
+    if (ex.beams) ex.beams.forEach(function (b) { b.g.rotation.y = b.ph + now * b.sp; });
+    if (ex.signals) { var sb = Math.floor(now / 0.6) % 2; ex.signals[0].material.opacity = sb ? 1 : 0.15; ex.signals[1].material.opacity = sb ? 0.15 : 1; }
+    if (ex.rain) {
+      var me0 = R.humans[0], inZone = me0 && districtAt(me0.x, me0.z) === 'nyc' && me0.x > CG.X0 - 20 && me0.z < CG.zs[4] + 10 ? 1 : 0;
+      ex.rainA = (ex.rainA == null ? inZone : ex.rainA) + (inZone - (ex.rainA == null ? inZone : ex.rainA)) * Math.min(1, dt * 1.5);
+      ex.rain.material.opacity = 0.32 * ex.rainA; ex.rain.visible = ex.rainA > 0.02;
+      if (ex.rain.visible) { var P = ex.rainPos, fall = 34 * dt; for (var r = 0; r < ex.rainN; r++) { var o = r * 6; P[o + 1] -= fall; P[o + 4] -= fall; if (P[o + 4] < -6) { P[o + 1] += 40; P[o + 4] += 40; } } ex.rain.geometry.attributes.position.needsUpdate = true; }
+    }
+  }
+  // the route arrow over your bonnet and the checkpoint lights
+  function cityGuides(R) {
+    var me = R.humans[0]; if (!me) return;
+    var rt = cityRouteFor(R, me), show = rt && !me.finished && !me.wreck && R.state === 'run';
+    if (R.beacons) {
+      var a = R.cps[me.cp], b = R.cps[me.cp + 1];
+      [a, b].forEach(function (id, q) { var bc = R.beacons[q]; bc.visible = id != null && !me.finished; if (bc.visible) { var N = CG.nodes[id]; bc.position.set(N.x, 0, N.z); bc.userData.mat.uniforms.a.value = q ? 0.55 : 0.8 + 0.2 * Math.sin(R.t * 4); } });
+    }
+    R.arrow.visible = !!show;
+    if (!show) { me.navN = null; return; }
+    var n0 = firstNode(me.x, me.z, me.th, rt), N0 = CG.nodes[n0]; me.navN = n0; me.navR = rt;
+    var path = [[me.x, me.z], [N0.x, N0.z]], k = n0; for (var q = 0; q < 2 && k !== rt.target && rt.next[k] >= 0; q++) { k = rt.next[k]; path.push([CG.nodes[k].x, CG.nodes[k].z]); }
+    var rem = 26, tx = N0.x, tz = N0.z;
+    for (q = 1; q < path.length; q++) { var sx = path[q][0] - path[q - 1][0], sz = path[q][1] - path[q - 1][1], sl = Math.hypot(sx, sz) || 1; if (rem <= sl || q === path.length - 1) { var f = Math.min(1, rem / sl); tx = path[q - 1][0] + sx * f; tz = path[q - 1][1] + sz * f; break; } rem -= sl; }
+    var phi = Math.atan2(tz - me.z, tx - me.x);
+    R.arrow.position.set(me.x + Math.cos(me.th) * 1.2, 3.3 + Math.sin(R.t * 3) * 0.08, me.z + Math.sin(me.th) * 1.2);
+    R.arrow.rotation.set(0, -phi - Math.PI / 2, 0);
+    me.navPath = path;
+  }
+
+  /* ── the city on the HUD: a map that turns with you, the route in amber, checkpoint, cars ── */
+  var CMAP = null, CM_K = 0.5, CM_PAD = 90;
+  function cityMapCanvas() {
+    if (CMAP) return CMAP;
+    var x0 = CG.X0 - CM_PAD, z0 = CG.Z0 - CM_PAD, w = Math.ceil((CG.X1 - CG.X0 + 2 * CM_PAD) * CM_K), h = Math.ceil((CG.Z1 - CG.Z0 + 2 * CM_PAD) * CM_K), c = cvs(w, h), x = c.getContext('2d');
+    function X(v) { return (v - x0) * CM_K; } function Z(v) { return (v - z0) * CM_K; }
+    x.fillStyle = 'rgba(16,14,24,.92)'; x.fillRect(0, 0, w, h);
+    x.fillStyle = 'rgba(30,60,110,.75)'; x.fillRect(X(CG.X1 + 34), Z(CG.zs[4]), w, h);   // the sea
+    x.fillStyle = 'rgba(120,100,80,.45)'; x.fillRect(X(CG.X1 + 7), Z(CG.zs[4]), 27 * CM_K, h);   // the beach
+    var tint = { nyc: 'rgba(110,116,140,.55)', vegas: 'rgba(150,110,70,.55)', strip: 'rgba(140,90,100,.55)', miami: 'rgba(90,140,140,.55)' };
+    CG.blocks.forEach(function (b) { x.fillStyle = b.lot ? 'rgba(60,60,70,.6)' : tint[b.dist]; x.fillRect(X(b.x0), Z(b.z0), (b.x1 - b.x0) * CM_K, (b.z1 - b.z0) * CM_K); });
+    x.strokeStyle = 'rgba(235,228,215,.55)'; x.lineWidth = ROAD_W * CM_K * 0.55; x.lineCap = 'square';
+    CG.segs.forEach(function (s) { var A = CG.nodes[s.a], B = CG.nodes[s.b]; x.beginPath(); x.moveTo(X(A.x), Z(A.z)); x.lineTo(X(B.x), Z(B.z)); x.stroke(); });
+    CMAP = { c: c, x0: x0, z0: z0 }; return CMAP;
+  }
+  function cityMapDraw(H, me) {
+    var R = RACE, M = cityMapCanvas(), cv = H.map, x = cv.getContext('2d'), W = cv.width, S = W / 150;
+    var scale = 0.42 * S, cx = W / 2, cy = W * 0.6, rot = -Math.PI / 2 - me.th;
+    x.clearRect(0, 0, W, W); x.save();
+    x.beginPath(); x.arc(W / 2, W / 2, W / 2 - 2, 0, 7); x.clip();
+    x.translate(cx, cy); x.rotate(rot); x.scale(scale / CM_K, scale / CM_K);
+    x.translate(-(me.x - M.x0) * CM_K, -(me.z - M.z0) * CM_K);
+    x.drawImage(M.c, 0, 0);
+    function P(wx, wz) { return [(wx - M.x0) * CM_K, (wz - M.z0) * CM_K]; }
+    var lw = CM_K / scale;
+    // the route to the next checkpoint (and on to the one after, fainter)
+    var rt = cityRouteFor(R, me);
+    if (rt && !me.finished) {
+      [[rt, me.navN != null ? me.navN : firstNode(me.x, me.z, me.th, rt), 'rgba(255,176,80,.95)', [me.x, me.z]], R.routes[me.cp + 1] ? [R.routes[me.cp + 1], R.cps[me.cp], 'rgba(159,200,255,.6)', null] : null].forEach(function (L) {
+        if (!L) return; var r2 = L[0], k = L[1], first = L[3] || [CG.nodes[k].x, CG.nodes[k].z], p = P(first[0], first[1]);
+        x.strokeStyle = L[2]; x.lineWidth = 4.5 * lw * S; x.lineJoin = 'round'; x.beginPath(); x.moveTo(p[0], p[1]);
+        var guard = 0; while (k >= 0 && guard++ < 40) { var N = CG.nodes[k], q = P(N.x, N.z); x.lineTo(q[0], q[1]); if (k === r2.target) break; k = r2.next[k]; }
+        x.stroke();
+      });
+      var CN = CG.nodes[R.cps[me.cp]], cq = P(CN.x, CN.z);
+      x.fillStyle = '#ffb050'; x.strokeStyle = '#000'; x.lineWidth = 1.5 * lw * S; x.beginPath(); x.arc(cq[0], cq[1], 7 * lw * S, 0, 7); x.fill(); x.stroke();
+    }
+    if (R.markers) R.markers.forEach(function (m) { var q = P(m.node.x, m.node.z); x.fillStyle = '#5ee0ff'; x.beginPath(); x.arc(q[0], q[1], 6 * lw * S, 0, 7); x.fill(); });
+    var blink = Math.floor(performance.now() / 180) % 2;
+    R.cars.forEach(function (c) {
+      if (c.gone || c === me) return; var q = P(c.x, c.z);
+      x.fillStyle = c.cop ? (c.wrecked ? '#555' : !c.cop.on ? 'rgba(140,160,210,.85)' : blink ? '#ff3a4a' : '#4a7aff') : '#d8dce8';
+      x.beginPath(); x.arc(q[0], q[1], (c.cop ? 4 : 3.6) * lw * S, 0, 7); x.fill();
+    });
+    x.restore();
+    // you: an arrow at the middle, pointing up
+    x.fillStyle = '#ffc98c'; x.strokeStyle = '#000'; x.lineWidth = 1.5 * S;
+    x.beginPath(); x.moveTo(cx, cy - 7 * S); x.lineTo(cx + 5 * S, cy + 5 * S); x.lineTo(cx, cy + 2 * S); x.lineTo(cx - 5 * S, cy + 5 * S); x.closePath(); x.fill(); x.stroke();
+    x.strokeStyle = 'rgba(255,255,255,.35)'; x.lineWidth = 2 * S; x.beginPath(); x.arc(W / 2, W / 2, W / 2 - 2, 0, 7); x.stroke();
+  }
+  var DIST_NAME = { nyc: 'Manhattan', vegas: 'Las Vegas Strip', strip: 'Sunset Boulevard', miami: 'Ocean Drive' };
+  // the top-left of the HUD in the city: checkpoints and time in a race; the district and your street cash in free roam
+  function cityHudTick(H, h) {
+    var R = RACE;
+    if (R.cps) {
+      var cp = clamp(h.cp + 1, 1, R.cps.length); if (H.last.lap !== cp) { H.lap.textContent = cp; H.last.lap = cp; }
+      var t = R.state === 'count' ? 0 : (h.finished ? h.finishT : R.t); H.tm.textContent = fmtT2(t * 1000);
+      var N = CG.nodes[R.cps[Math.min(h.cp, R.cps.length - 1)]], d = h.finished ? 0 : Math.round(Math.hypot(N.x - h.x, N.z - h.z) * (SET.units === 'kmh' ? 1 : 3.281)) ;
+      var ds = h.finished ? '--' : (SET.units === 'kmh' ? d + ' M' : d + ' FT'); if (H.last.best !== ds) { H.best.textContent = ds; H.last.best = ds; }
+    } else {
+      var dn = DIST_NAME[districtAt(h.x, h.z)]; if (H.last.lap !== dn) { H.lap.textContent = dn; H.last.lap = dn; }
+      var cs = money(R.bonus[0].cash); if (H.last.best !== cs) { H.best.textContent = cs; H.last.best = cs; }
+      H.tm.textContent = money(SAVE.cash);
+    }
+    cityMapDraw(H, h);
+  }
+  function cityShowResults() {
+    var R = RACE, rc = R.race, you = R.humans[0], legs = cityLegs(R);
+    var rows = R.racers.map(function (c) {
+      var t = c.finished ? c.finishT : R.t + Math.max(0, R.total - cityMetres(R, c)) / Math.max(20, c.st.top * 0.75);
+      return { c: c, t: t, est: !c.finished, bust: !!c.busted };
+    }).sort(function (a, b) { if (a.bust !== b.bust) return a.bust ? 1 : -1; return a.t - b.t; });
+    var place = rows.findIndex(function (r) { return r.c === you; }) + 1, B = R.bonus[0], street = B.cash, n = R.racers.length;
+    var prize = (n >= 4 ? Math.round((PAYOUT[place - 1] || 600) * CITY.pay * rc.pay * R.diff.pay / 100) * 100 : 0) + street;
+    if (prize) addCash(prize);
+    var ms = Math.round(you.finishT * 1000), rec = you.finished && (!CITY_SAVE.best[rc.id] || ms < CITY_SAVE.best[rc.id]);
+    if (rec) CITY_SAVE.best[rc.id] = ms; if (place === 1 && you.finished) CITY_SAVE.wins++; saveCity();
+    SAVE.races++; if (place === 1) SAVE.wins++; persist();
+    $('rBig').textContent = n < 2 ? (you.finished ? 'Finished' : 'Run over') : place === 1 ? 'You win' : place === 2 ? '2nd place' : place === 3 ? '3rd place' : place + 'th place';
+    $('rTrack').textContent = 'YESTERDAYLAND City · ' + rc.name + ' · ' + rc.place;
+    $('rTable').innerHTML = rows.map(function (r, i) { return '<tr' + (r.c.human != null ? ' class="you"' : '') + '><td>' + (r.bust ? '–' : i + 1) + '</td><td>' + esc(r.c.name) + '<small>' + esc(r.c.def.name) + '</small></td><td class="r">' + (r.bust ? 'BUSTED' : (r.est ? '+' : '') + fmtT(r.t * 1000)) + '</td></tr>'; }).join('');
+    $('rPrize').textContent = prize ? '+ ' + money(prize) : '';
+    var notes = [rec ? 'New best time ' + fmtT(ms) : CITY_SAVE.best[rc.id] ? 'Your best ' + fmtT(CITY_SAVE.best[rc.id]) : ''];
+    if (B.drifts) notes.push('drift ' + (B.dpts || 0).toLocaleString('en-US') + ' pts');
+    if (B.nm) notes.push('near misses ' + B.nm); if (B.td + B.ctd) notes.push('takedowns ' + (B.td + B.ctd)); if (B.esc) notes.push('escapes ' + B.esc);
+    if (n < 4) notes.push('race 3 or more rivals for prize money');
+    $('rNote').textContent = notes.filter(Boolean).join(' · ') + (street ? ' (street cash + ' + money(street) + ')' : '');
+    $('rBtns').innerHTML = '<button class="mi" type="button" data-r="again">Race again</button><button class="mi" type="button" data-r="roam">Free roam</button><button class="mi ghost" type="button" data-r="garage">Garage</button><button class="mi ghost" type="button" data-r="menu">Menu</button>';
+    STATE = 'results'; $('touch').hidden = true;
+    UI.show('sResults', true); $('ui').classList.add('dim');
+    musicStart('results');
+    if (R.siren) R.siren.set(400, 0.016);
+    post('over', { score: SAVE.wins, place: place, mode: 'city', track: rc.id });
+  }
+  function renderCity() {
+    var cards = ['<button class="tk" type="button" data-city="roam" data-still="' + esc(CITY.still) + '"><div class="ph" style="background-image:url(\'' + artUrl(CITY.still, 640) + '\')"><span class="ep">DRIVE 07 · OPEN WORLD</span></div><div class="in"><b>Free roam</b><span>Drive anywhere · drift, near misses, cops</span><em>Stop in a cyan light to start a race</em></div></button>'];
+    CITY_RACES.forEach(function (rc, i) {
+      var best = CITY_SAVE.best[rc.id];
+      cards.push('<button class="tk" type="button" data-city="race:' + i + '" data-still="' + esc(rc.still) + '"><div class="ph" style="background-image:url(\'' + artUrl(rc.still, 640) + '\')"><span class="ep">CITY RACE ' + (i + 1) + ' · ' + rc.cps.length + ' CHECKPOINTS</span></div><div class="in"><b>' + esc(rc.name) + '</b><span>' + esc(rc.place) + '</span><em>' + (best ? 'Best ' + fmtT(best) : 'Not raced yet') + '</em></div></button>');
+    });
+    $('cityList').innerHTML = cards.join('');
+    $('ctTraffic').textContent = TRAFFIC_N[CITY_OPT.traffic]; $('ctPolice').textContent = POLICE_N[CITY_OPT.police]; $('ctRivals').textContent = CITY_OPT.rivals; $('ctDiff').textContent = DIFFS[CITY_OPT.diff].n;
+  }
+
   /* ════════════════ WORLD + RACE ════════════════ */
   var CAMS = [new THREE.PerspectiveCamera(60, 1, 0.3, 3000), new THREE.PerspectiveCamera(60, 1, 0.3, 3000)];
   var WORLD = null, RACE = null, STATE = 'menu', LAST = { type: null, def: null, opt: null }, TS = 1, AUTO = false;
@@ -2724,6 +4348,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   function loadWorld(def) {
     if (WORLD && WORLD.def === def) return WORLD;
     if (WORLD) { disposeScene(WORLD.S.scene); if (ENV) ENV.dispose(); }
+    if (def === CITY) { var SC = buildCity(); ENV = envCube(SC.th); WORLD = { def: def, TR: null, S: SC }; return WORLD; }
     var TR = buildTrack(def), S = buildScene(TR); ENV = envCube(S.th);
     WORLD = { def: def, TR: TR, S: S };
     return WORLD;
@@ -2733,6 +4358,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 
   // type: gp (Grand Prix), free (Free Race), hp (Hot Pursuit), tt (Time Trial), 2p (split screen)
   function startRace(type, def, opt) {
+    if (type === 'city') return startCity(def, opt);
     opt = opt || {};
     LAST = { type: type, def: def, opt: opt };
     endRace(true);
@@ -2775,7 +4401,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     RACE.traffic = makeTraffic(RACE, traffic); RACE.tl = trafficLights(RACE);
     if (type === 'hp') RACE.hp = { heat: 1, next: 5, t: 0, takedowns: 0, block: null, over: null, started: false };
     setupPolice(RACE, police);
-    RACE.sparks = makeSparks(RACE);
+    RACE.sparks = makeSparks(RACE); RACE.tfx = makeTyreFx(RACE, W.S.scene); if (W.S.refl) W.S.refl.hide.push(RACE.tfx.skid);
     humans.forEach(function (h, i) { h.eng = Engine(humans.length > 1 ? (i ? 0.45 : -0.45) : 0); h.cam = CAMS[i]; h.cam.userData = {}; placeCar(h, TR); updateCam(h.cam, h, TR, 0.016, SET.cam, true); });
     RACE.cars.forEach(function (c) { placeCar(c, TR); });
     RACE.traffic.forEach(function (t) { placeCar(t, TR); }); updateTrafficLights(RACE);
@@ -2793,8 +4419,10 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     RACE.cars.concat(RACE.traffic || []).forEach(function (c) { if (c.mesh) { RACE.W.S.scene.remove(c.mesh); c.mesh.traverse(function (o) { if (o.geometry && !o.geometry.keep) o.geometry.dispose(); }); } });
     if (RACE.tl) [RACE.tl.head, RACE.tl.tail].forEach(function (p) { RACE.W.S.scene.remove(p); p.geometry.dispose(); });
     if (RACE.sparks) { RACE.W.S.scene.remove(RACE.sparks.p); RACE.sparks.p.geometry.dispose(); }
+    disposeTyreFx(RACE, RACE.W.S.scene);
     if (RACE.siren) RACE.siren.stop();
     if (RACE.ghost) RACE.W.S.scene.remove(RACE.ghost.mesh);
+    if (RACE.city) endCityExtras(RACE);
     RACE = null; $('hudWrap').innerHTML = ''; $('count').hidden = true; $('touch').hidden = true; $('split').hidden = true;
   }
 
@@ -2805,18 +4433,23 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var split = RACE.humans.length > 1, tt = RACE.type === 'tt', hp = RACE.type === 'hp';
     RACE.humans.forEach(function (h, i) {
       var d = document.createElement('div'); d.className = 'hud p' + i + (split ? ' split' : '') + (hp ? ' hpm' : '');
-      d.innerHTML = '<div class="tl">' + (tt ? '' : '<div class="pos"><b>-</b><small>/' + RACE.racers.length + '</small></div>') +
-        '<div><div class="lap">LAP <b>1</b>/' + RACE.laps + '</div><div class="tm">TIME<b>0:00.00</b>BEST LAP <i>--</i></div></div></div>' +
+      var cr = RACE.city && RACE.cps, roam = RACE.city && !RACE.cps;
+      d.innerHTML = '<div class="tl">' + (tt || roam ? '' : '<div class="pos"><b>-</b><small>/' + RACE.racers.length + '</small></div>') +
+        (cr ? '<div><div class="lap">CHECKPOINT <b>1</b>/' + RACE.cps.length + '</div><div class="tm">TIME<b>0:00.00</b>NEXT <i>--</i></div></div></div>'
+          : roam ? '<div><div class="lap"><b class="dname">Sunset Boulevard</b></div><div class="tm">CASH<b>$0</b>STREET CASH <i>$0</i></div></div></div>'
+          : '<div><div class="lap">LAP <b>1</b>/' + RACE.laps + '</div><div class="tm">TIME<b>0:00.00</b>BEST LAP <i>--</i></div></div></div>') +
         '<canvas class="map" width="150" height="150"></canvas>' +
-        '<div class="spd"><b>0</b><small>' + (SET.units === 'kmh' ? 'KM/H' : 'MPH') + '</small><div class="nitro"><i></i></div><div class="nlbl">NITRO</div></div>' +
+        '<div class="spd"><b>0</b><small>' + (SET.units === 'kmh' ? 'KM/H' : 'MPH') + '</small><div class="nitro"><i></i></div><div class="nlbl">NITRO</div><div class="slip"><i></i></div><div class="nlbl slbl">SLIPSTREAM</div></div>' +
+        '<div class="drf"><div class="dtop"><b>0</b><i>×1</i></div><div class="dang"><u></u></div><small>DRIFT</small></div>' +
         '<canvas class="streak"></canvas><div class="pol"><i></i><span></span></div><div class="pop"><b></b><small></small></div>' +
         '<div class="msg"></div>' + (split ? '<div class="tag" style="color:' + (i ? '#7fb2ff' : '#ffc98c') + '">P' + (i + 1) + '</div>' : '') +
         (hp || (RACE.pol && RACE.pol.level) ? '<div class="hpb' + (hp ? '' : ' race') + '"><div class="heat">HEAT <b>1</b> · COPS <b>0</b> · TAKEDOWNS <b>0</b></div><div class="bm"><i></i></div><div class="bl">' + (hp ? 'BUST' : 'PULL OVER') + '</div></div>' : '') +
-        (i === 0 ? '<div class="card"><b>' + esc(RACE.def.place.toUpperCase()) + '</b><span>' + esc(RACE.def.name) + '</span></div>' : '');
+        (i === 0 ? '<div class="card"><b>' + esc((RACE.race ? RACE.race.place : RACE.def.place).toUpperCase()) + '</b><span>' + esc(RACE.race ? RACE.race.name : RACE.def.name) + '</span></div>' : '');
       wrap.appendChild(d);
-      HUDS.push({ el: d, pos: d.querySelector('.pos b'), lap: d.querySelector('.lap b'), tm: d.querySelector('.tm b'), best: d.querySelector('.tm i'), spd: d.querySelector('.spd b'), nit: d.querySelector('.nitro'), nitI: d.querySelector('.nitro i'), msg: d.querySelector('.msg'), map: d.querySelector('.map'), card: d.querySelector('.card'), pol: d.querySelector('.pol'), polT: d.querySelector('.pol span'), pop: d.querySelector('.pop'), popB: d.querySelector('.pop b'), popS: d.querySelector('.pop small'), popT: 0, streak: d.querySelector('.streak'), hpb: d.querySelector('.hpb'), heat: d.querySelectorAll('.heat b'), bm: d.querySelector('.bm i'), msgT: 0, last: {} });
+      HUDS.push({ el: d, pos: d.querySelector('.pos b'), lap: d.querySelector('.lap b'), tm: d.querySelector('.tm b'), best: d.querySelector('.tm i'), spd: d.querySelector('.spd b'), nit: d.querySelector('.nitro'), nitI: d.querySelector('.nitro i'), msg: d.querySelector('.msg'), map: d.querySelector('.map'), card: d.querySelector('.card'), pol: d.querySelector('.pol'), polT: d.querySelector('.pol span'), pop: d.querySelector('.pop'), popB: d.querySelector('.pop b'), popS: d.querySelector('.pop small'), popT: 0, streak: d.querySelector('.streak'), hpb: d.querySelector('.hpb'), drf: d.querySelector('.drf'), dpts: d.querySelector('.drf b'), dmul: d.querySelector('.drf .dtop i'), dang: d.querySelector('.drf .dang u'), dlbl: d.querySelector('.drf small'), slip: d.querySelector('.slip'), slipI: d.querySelector('.slip i'), slbl: d.querySelector('.slbl'), heat: d.querySelectorAll('.heat b'), bm: d.querySelector('.bm i'), msgT: 0, last: {} });
     });
     // minimap path
+    if (RACE.city) { if (HUDS[0].card) setTimeout(function () { if (HUDS[0] && HUDS[0].card) HUDS[0].card.classList.add('on'); }, 300); return; }
     var TR = RACE.TR, bx = TR.box, sc = 130 / Math.max(bx[1] - bx[0], bx[3] - bx[2]);
     RACE.mapF = function (x, z) { return [75 + (x - TR.cx) * sc, 75 + (z - TR.cz) * sc]; };
     var path = new Path2D(); TR.P.forEach(function (p, i) { if (i % 3) return; var q = RACE.mapF(p.x, p.z); if (!i) path.moveTo(q[0], q[1]); else path.lineTo(q[0], q[1]); }); path.closePath();
@@ -2831,13 +4464,13 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var cv = H.streak; if (!cv) return;
     var w = cv.clientWidth, hh = cv.clientHeight; if (!w || !hh) return;
     if (cv.width !== w || cv.height !== hh) { cv.width = w; cv.height = hh; }
-    var x = cv.getContext('2d'), k = clamp((Math.abs(c.v) / c.st.top - 0.8) / 0.2, 0, 1) * 0.55 + (c.boost ? 0.55 : 0) + (c.turbo > 0 ? 0.25 : 0);
+    var x = cv.getContext('2d'), k = clamp((Math.abs(c.v) / c.st.top - 0.8) / 0.2, 0, 1) * 0.55 + (c.boost ? 0.55 : 0) + (c.turbo > 0 ? 0.25 : 0) + (c.sling > 0 ? 0.6 : 0) + (c.draft || 0) * 0.45;
     x.clearRect(0, 0, w, hh); if (k < 0.04 || c.wreck) return;
     var cx = w / 2, cy = hh * 0.52, R0 = Math.hypot(w, hh) / 2;
     x.lineCap = 'round';
     for (var i = 0; i < 26; i++) {
       var a = Math.random() * Math.PI * 2, r0 = R0 * (0.45 + Math.random() * 0.5), len = (40 + Math.random() * 110) * k;
-      x.strokeStyle = 'rgba(' + (c.boost ? '190,215,255' : '255,240,225') + ',' + (0.1 + Math.random() * 0.25) * Math.min(1, k) + ')'; x.lineWidth = 1 + Math.random() * 1.6;
+      x.strokeStyle = 'rgba(' + (c.boost ? '190,215,255' : c.sling > 0 || c.draft > 0.1 ? '170,240,255' : '255,240,225') + ',' + (0.1 + Math.random() * 0.25) * Math.min(1, k) + ')'; x.lineWidth = 1 + Math.random() * 1.6;
       x.beginPath(); x.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0 * 0.75); x.lineTo(cx + Math.cos(a) * (r0 + len), cy + Math.sin(a) * (r0 + len) * 0.75); x.stroke();
     }
   }
@@ -2849,10 +4482,11 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       if (H.msgT > 0) { H.msgT -= dt; if (H.msgT <= 0) H.msg.className = 'msg'; }
       if (H.popT > 0) { H.popT -= dt; if (H.popT <= 0) H.pop.classList.remove('on'); }
       drawStreaks(H, h);
+      driftHud(H, h, dt);
       if (!full) return;
       // police radar: units on you (and how close), or a patrol coming up
       if (RACE.pol && RACE.pol.level || RACE.hp) {
-        var rd = policeRadar(RACE, h), txt = '', cls = 'pol';
+        var rd = RACE.city ? cityPoliceRadar(RACE, h) : policeRadar(RACE, h), txt = '', cls = 'pol';
         if (rd.on && !h.finished) { txt = (rd.on === 1 ? '1 UNIT ON YOU' : rd.on + ' UNITS ON YOU') + ' · ' + Math.round(rd.near) + ' M'; cls += ' on' + (rd.near < 30 ? ' close' : ''); }
         else if (rd.ahead < 320 && !h.finished) { txt = 'POLICE AHEAD · ' + Math.round(rd.ahead) + ' M'; cls += ' ahead'; }
         if (H.last.pol !== txt) { H.polT.textContent = txt; H.last.pol = txt; }
@@ -2862,11 +4496,25 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       var spd = Math.round(Math.abs(h.v) * (SET.units === 'kmh' ? 3.6 : 2.237));
       if (H.last.spd !== spd) { H.spd.textContent = spd; H.last.spd = spd; }
       if (H.pos && H.last.pos !== h.place) { H.pos.textContent = h.place || '-'; H.last.pos = h.place; }
+      if (RACE.city) {
+        H.nitI.style.width = (h.tank / h.st.cap * 100).toFixed(1) + '%'; H.nit.classList.toggle('on', h.boost);
+        var S0 = h.ss || { m: 0, full: false }, slw0 = (S0.m * 100).toFixed(1) + '%';
+        if (H.last.slw !== slw0) { H.slipI.style.width = slw0; H.last.slw = slw0; }
+        var scl0 = 'slip' + (S0.full ? ' full' : '') + (h.draft > 0.05 ? ' in' : '') + (h.sling > 0 ? ' go' : '');
+        if (H.slip.className !== scl0) { H.slip.className = scl0; H.slbl.textContent = h.sling > 0 ? 'SLINGSHOT' : S0.full ? 'PULL OUT!' : 'SLIPSTREAM'; H.slbl.classList.toggle('hot', S0.full || h.sling > 0); }
+        if (H.hpb) { H.hpb.classList.toggle('show', (h.bust || 0) > 0.01 || H.last.pol && /ON YOU/.test(H.last.pol)); H.bm.style.width = ((h.bust || 0) * 100).toFixed(1) + '%'; H.hpb.classList.toggle('hot', (h.bust || 0) > 0.02); }
+        cityHudTick(H, h);
+        return;
+      }
       var lap = clamp(h.laps + 1, 1, RACE.laps); if (H.last.lap !== lap) { H.lap.textContent = lap; H.last.lap = lap; }
       var t = RACE.state === 'count' ? 0 : (h.finished ? h.finishT : RACE.t); H.tm.textContent = fmtT2(t * 1000);
       var best = RACE.type === '2p' ? h.best : Math.min(h.best || 1e9, (SAVE.laps[RACE.def.id] || 1e12) / 1000);
       var bs = best && best < 1e8 ? fmtT(best * 1000) : '--'; if (H.last.best !== bs) { H.best.textContent = bs; H.last.best = bs; }
       H.nitI.style.width = (h.tank / h.st.cap * 100).toFixed(1) + '%'; H.nit.classList.toggle('on', h.boost);
+      var S = h.ss || { m: 0, full: false }, slw = (S.m * 100).toFixed(1) + '%';
+      if (H.last.slw !== slw) { H.slipI.style.width = slw; H.last.slw = slw; }
+      var scl = 'slip' + (S.full ? ' full' : '') + (h.draft > 0.05 ? ' in' : '') + (h.sling > 0 ? ' go' : '');
+      if (H.slip.className !== scl) { H.slip.className = scl; H.slbl.textContent = h.sling > 0 ? 'SLINGSHOT' : S.full ? 'PULL OUT!' : 'SLIPSTREAM'; H.slbl.classList.toggle('hot', S.full || h.sling > 0); }
       // minimap
       var x = H.map.getContext('2d'); x.clearRect(0, 0, 150, 150);
       x.lineJoin = 'round'; x.strokeStyle = 'rgba(0,0,0,.55)'; x.lineWidth = 7; x.stroke(RACE.mapPath); x.strokeStyle = 'rgba(255,240,220,.85)'; x.lineWidth = 3; x.stroke(RACE.mapPath);
@@ -2885,6 +4533,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 
   /* ── one frame of racing ── */
   function updateRace(dt) {
+    if (RACE.city) return updateCity(dt);
     var R = RACE, TR = R.TR;
     if (R.slow > 0) { R.slow -= dt; dt *= 0.3; }   // slow motion for your own wreck
     // humans: read input (engines rev on the grid too)
@@ -2908,6 +4557,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
           else if (c.cop) copDrive(c, R, h);
           else if (c.ai && (c.human == null || c.finished || AUTO)) aiDrive(c, R.cars, TR, h, R.traffic);
           stepCar(c, h, TR, R.ev);
+          if (!c.block) draftTrack(R, c, h);
+          if (c.human != null) driftStep(R, c, c.human, h);
         }
         if (R.traffic.length) stepTraffic(R, h);
         collide(R.cars, TR, R.ev);
@@ -2918,7 +4569,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       // ghost recording and playback
       if (R.type === 'tt') {
         var me = R.humans[0]; R.recT += dt;
-        if (R.recT >= 0.05) { R.recT = 0; R.rec.push([Math.round(me.s * 10) / 10, Math.round(me.d * 100) / 100, Math.round(me.yaw * 1000) / 1000]); }
+        if (R.recT >= 0.05) { R.recT = 0; R.rec.push([Math.round(me.s * 10) / 10, Math.round(me.d * 100) / 100, Math.round((me.yaw + me.vis) * 1000) / 1000]); }
         if (R.ghost && me.laps >= 0) {
           var gp = R.ghost.data.pts, tau = (R.t - me.lapStart) * 20, gi = Math.floor(tau);
           if (gi < gp.length - 1 && !me.finished) {
@@ -2940,21 +4591,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
         R.cars.forEach(function (c) { if (!c.cop || c.block) return; if (c.cop.mode !== 'chase' || !c.cop.tgt) { c.rub = 1; return; } var g = wrapD(c.cop.tgt.s - c.s, TR.L); c.rub = g > 60 ? 1 + Math.min(0.12, (g - 60) / 600) : 1.02; });
       }
       // events
-      R.ev.forEach(function (e) {
-        var c = e[1], hi = c.human;
-        if (c.cop && e[0] === 'hit') copHit(c, e[2], null);
-        if (e[0] === 'copdmg') { if (hi != null && e[2] < 100) popMsg(hi, 'COP HIT', 'damage ' + e[2] + '%'); emitSparks(R, e[3], 8, 0.8); return; }
-        if (e[0] === 'wreck') { startWreck(R, c, e[2], e[3]); return; }
-        if (e[0] === 'spark') { emitSparks(R, c, Math.min(26, 4 + e[2]), Math.min(1.5, e[2] / 14)); if (e[3]) emitSparks(R, e[3], 3, 0.6); return; }
-        if (e[0] === 'scrape') { emitSparks(R, c, 3, 0.6); sfx('scrape', 0.6); return; }
-        if (e[0] === 'pit') { if (hi != null) { hudMsg(hi, 'SPUN OUT<small>PIT maneuver</small>', 'warn', 1.4); sfx('crash', 0.7); c.cam.userData.shake = 0.6; } emitSparks(R, c, 14, 1); return; }
-        if (hi == null) return;
-        if (e[0] === 'hit') { sfx('hit', clamp(e[2] / 12, 0.3, 1)); c.cam.userData.shake = Math.min(0.5, e[2] / 30); }
-        else if (e[0] === 'crash') { sfx('crash', clamp(e[2] / 25, 0.5, 1)); c.cam.userData.shake = Math.min(0.8, e[2] / 25); }
-        else if (e[0] === 'bump') sfx('bump', clamp(e[2] / 10, 0.3, 1));
-        else if (e[0] === 'nitro') sfx('nitro');
-        else if (e[0] === 'turbo') { sfx('turbo'); hudMsg(hi, 'TURBO', '', 0.8); }
-      });
+      R.ev.forEach(function (e) { raceEvent(R, e); });
       R.ev.length = 0;
       R.humans.forEach(function (h, i) { if (!h.finished && !h.busted && Math.abs(h.yaw) > 1.8 && h.v > 3) hudMsg(i, 'WRONG WAY', 'warn', 0.3); });
       policeTick(R, dt);
@@ -2972,6 +4609,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       if (cc.cop && !cc.block && !cc.wrecked) copSmoke(cc);
       if (cc.cop) { var bfx = cc.mesh.userData.fx; if (bfx.bar) { bfx.bar.on = (cc.cop.on || cc.block) && !cc.wrecked; bfx.bar.idle = !bfx.bar.on && !cc.wrecked && cc.cop.mode === 'patrol'; } flashBar(bfx, now + j * 0.13); }
     }
+    for (j = 0; j < R.cars.length; j++) if (!R.cars[j].block) tyreFx(R, R.cars[j], dt);
+    stepTyreFx(R, dt);
     stepSparks(R, dt);
     for (j = 0; j < R.traffic.length; j++) placeCar(R.traffic[j], TR);
     updateTrafficLights(R);
@@ -3038,7 +4677,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     }).sort(function (a, b) { if (a.bust !== b.bust) return a.bust ? 1 : -1; return a.t - b.t; });
     var place = rows.findIndex(function (r) { return r.c === you; }) + 1, prize = 0, note = '', big = '', B = R.bonus && R.bonus[0];
     // the street: near misses, takedowns and escapes pay on top of the finish (busted in Hot Pursuit keeps half)
-    var street = B ? B.cash : 0, streetNote = B && (B.nm || B.td || B.ctd || B.esc) ? ['near misses ' + B.nm, 'takedowns ' + (B.td + B.ctd), B.esc ? 'escapes ' + B.esc : ''].filter(Boolean).join(' · ') : '';
+    var street = B ? B.cash : 0, streetNote = B && (B.nm || B.td || B.ctd || B.esc || B.drifts) ? [B.drifts ? 'drift ' + (B.dpts || 0).toLocaleString('en-US') + ' pts (best ' + (B.dbest || 0).toLocaleString('en-US') + ')' : '', B.nm ? 'near misses ' + B.nm : '', B.td + B.ctd ? 'takedowns ' + (B.td + B.ctd) : '', B.esc ? 'escapes ' + B.esc : ''].filter(Boolean).join(' · ') : '';
     function pay(pl, mul) { return Math.round((PAYOUT[pl - 1] || 600) * def.pay * mul / 100) * 100; }
     if (R.type === 'gp') {
       prize = pay(place, 1) + street; addCash(prize);
@@ -3105,6 +4744,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     return r;
   }
   function humanInput(i, n) {
+    if (window.__ndInput) return Object.assign({ thr: 0, brk: 0, steer: 0, nitro: false, drift: false }, window.__ndInput(i, RACE));   // automated checks only
     var K = n > 1 ? (i ? P2 : P1) : SOLO, p = pad(n > 1 ? i : 0), o = { thr: 0, brk: 0, steer: 0, nitro: false, drift: false };
     o.thr = any(K.gas) ? 1 : 0; o.brk = any(K.brk) ? 1 : 0; o.steer = (any(K.r) ? 1 : 0) - (any(K.l) ? 1 : 0);
     o.nitro = any(K.nit); o.drift = any(K.dr);
@@ -3190,13 +4830,13 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     show: function (id, fresh) {
       if (fresh) this.stack = []; else if (this.cur && this.cur !== id) this.stack.push(this.cur);
       var ui = $('ui'); ui.hidden = false; ui.classList.remove('dim');
-      ['sTitle', 'sTracks', 's2P', 'sFree', 'sGarage', 'sSettings', 'sPause', 'sResults'].forEach(function (s) { $(s).hidden = s !== id; });
+      ['sTitle', 'sTracks', 'sCity', 's2P', 'sFree', 'sGarage', 'sSettings', 'sPause', 'sResults'].forEach(function (s) { $(s).hidden = s !== id; });
       this.cur = id; this.refresh();
       var inRace = !!RACE && (STATE === 'pause' || STATE === 'results');
       $('bg').hidden = inRace || id === 'sGarage'; ui.classList.toggle('dim', inRace);
       if (id === 'sGarage') STATE = 'garage'; else if (!inRace) STATE = 'menu';
       if (!inRace && id !== 'sGarage') { setBg(TITLE_ART); musicStart('title'); }
-      $('cash').hidden = !(id === 'sTitle' || id === 'sTracks' || id === 'sGarage' || id === 'sResults');
+      $('cash').hidden = !(id === 'sTitle' || id === 'sTracks' || id === 'sCity' || id === 'sGarage' || id === 'sResults');
       var f = this.items()[0]; this.focus(id === 'sTracks' ? (this.items().filter(function (x) { return x.classList.contains('tk') && !x.dataset.locked; }).pop() || f) : f);
     },
     back: function () {
@@ -3231,6 +4871,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     refresh: function () {
       $('cash').textContent = money(SAVE.cash);
       if (this.cur === 'sTracks') renderTracks();
+      if (this.cur === 'sCity') renderCity();
       if (this.cur === 's2P') render2P();
       if (this.cur === 'sFree') renderFree();
       if (this.cur === 'sGarage') renderGarage();
@@ -3286,6 +4927,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     s.querySelector('[data-set=units] span').textContent = SET.units === 'kmh' ? 'km/h' : 'mph';
     s.querySelector('[data-set=cam] span').textContent = CAMS[SET.cam];
     s.querySelector('[data-set=film] span').textContent = SET.film === false ? 'Off' : 'On';
+    s.querySelector('[data-set=refl] span').textContent = reflOn() ? 'On' : 'Off';
   }
   document.addEventListener('click', function (e) {
     var b = e.target.closest && e.target.closest('#ui button'); if (!b) return;
@@ -3295,6 +4937,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       sfx('ok');
       if (go === 'gp' || go === 'tt' || go === '2p' || go === 'free' || go === 'hp') { UI.mode = go; UI.show('sTracks'); }
       else if (go === 'film') filmShow(false);
+      else if (go === 'city') UI.show('sCity');
       else if (go === 'garage') { UI.gsel = Math.max(0, CARS.indexOf(CAR[SAVE.car])); UI.show('sGarage'); }
       else if (go === 'settings') UI.show('sSettings');
       else if (go === 'back') UI.back();
@@ -3312,6 +4955,12 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       else startRace(UI.mode, t, {});
       return;
     }
+    if ((d = b.dataset.city)) {
+      if (d === 'roam') { sfx('ok'); startCity(CITY, Object.assign({}, CITY_OPT, { mode: 'roam' })); return; }
+      if (/^race:/.test(d)) { sfx('ok'); startCity(CITY, Object.assign({}, CITY_OPT, { mode: 'race', race: +d.split(':')[1] })); return; }
+      var ok = d.split(':')[1], lim = { traffic: [0, 3], police: [0, 2], rivals: [0, 7], diff: [0, 3] }[ok];
+      CITY_OPT[ok] = CITY_OPT[ok] >= lim[1] ? lim[0] : CITY_OPT[ok] + 1; saveCityOpt(); sfx('move'); renderCity(); return;
+    }
     if ((d = b.dataset.p2)) {
       var P = UI.p2, l = ownedList();
       if (d === 'go') { sfx('ok'); startRace('2p', P.def, { c0: P.c0, c1: P.c1, ai: P.ai, laps: P.laps, traffic: P.traffic || 0, police: P.police || 0 }); return; }
@@ -3328,7 +4977,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     }
     if ((d = b.dataset.set)) {
       if (d === 'sound') setSound(!SET.sound); else if (d === 'music') setMusic(!SET.music);
-      else if (d === 'units') { SET.units = SET.units === 'kmh' ? 'mph' : 'kmh'; saveSet(); } else if (d === 'cam') { SET.cam = (SET.cam + 1) % 3; saveSet(); } else if (d === 'film') { SET.film = SET.film === false; saveSet(); }
+      else if (d === 'units') { SET.units = SET.units === 'kmh' ? 'mph' : 'kmh'; saveSet(); } else if (d === 'cam') { SET.cam = (SET.cam + 1) % 3; saveSet(); } else if (d === 'film') { SET.film = SET.film === false; saveSet(); } else if (d === 'refl') { SET.refl = !reflOn(); saveSet(); }
       sfx('move'); renderSettings(); return;
     }
     if ((d = b.dataset.r)) {
@@ -3336,6 +4985,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       var L = LAST;
       if (d === 'next') { var i = TRACKS.indexOf(L.def) + 1; startRace('gp', TRACKS[i], {}); }
       else if (d === 'again') startRace(L.type, L.def, L.opt);
+      else if (d === 'roam') { var me = RACE && RACE.humans[0], sp = me ? { x: me.x, z: me.z, th: me.th } : null; startCity(CITY, Object.assign({}, CITY_OPT, { mode: 'roam', spawn: sp })); }
       else if (d === 'garage') { endRace(); UI.show('sTitle', true); UI.gsel = Math.max(0, CARS.indexOf(CAR[SAVE.car])); UI.show('sGarage'); }
       else { endRace(); UI.show('sTitle', true); }
       return;
@@ -3468,6 +5118,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
           else { renderer.setViewport(0, y, W, H / 2); renderer.setScissor(0, y, W, H / 2); renderer.setScissorTest(true); }
         }
         S.sky.position.copy(cam.position);
+        if (RACE.tfx) RACE.tfx.smoke.material.uniforms.scale.value = (H * DPR / n) / (2 * Math.tan(cam.fov * Math.PI / 360));
+        reflRender(S, cam, h._f ? h._f.p.y : 0, F ? F.w : W * DPR, (F ? F.h : H * DPR) / n);
         if (S.extra.rain) S.extra.rain.position.set(cam.position.x, cam.position.y - 4, cam.position.z);
         renderer.render(S.scene, cam);
       });
@@ -3481,6 +5133,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   var last = performance.now();
   function frame(now) {
     requestAnimationFrame(frame);
+    perfWatch(Math.min(0.2, (now - last) / 1000));
     var dt = Math.min(0.05, (now - last) / 1000) * TS; last = now;
     pollPadMenus();
     if (STATE === 'race' && RACE) updateRace(dt);
@@ -3498,7 +5151,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   requestAnimationFrame(frame);
   ['pointerdown', 'touchstart'].forEach(function (ev) { window.addEventListener(ev, function () { audioInit(); }, { passive: true }); });
   // test hook (used by the Arcade's automated checks; harmless for players)
-  window.__nd = { get race() { return RACE; }, get state() { return STATE; }, start: function (type, i, opt) { startRace(type, TRACKS[i], opt || {}); }, photo: function () { var o = {}; Object.keys(PHOTO).forEach(function (k) { o[k] = (PHOTO[k].wheels || []).map(function (w) { return [w.x.toFixed(3), w.y.toFixed(3), w.r.toFixed(3)]; }); }); return o; }, film: function (src) { if (src) FILM_SRC = src; return filmShow(false); }, auto: function (on) { AUTO = !!on; if (RACE) RACE.humans.forEach(function (h) { if (on && !h.ai) h.ai = { skill: 1, lane: 0, laneNow: 0, laneT: 2, nitroOn: false }; }); }, speed: function (s) { TS = s; }, sim: function (sec) { for (var i = 0; i < sec * 60; i++) if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); render(); }, save: function () { return SAVE; }, tracks: TRACKS, build: BUILD, info: function () { return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geos: renderer.info.memory.geometries, tex: renderer.info.memory.textures }; } };
+  window.__nd = { get race() { return RACE; }, get state() { return STATE; }, start: function (type, i, opt) { startRace(type, TRACKS[i], opt || {}); }, photo: function () { var o = {}; Object.keys(PHOTO).forEach(function (k) { o[k] = (PHOTO[k].wheels || []).map(function (w) { return [w.x.toFixed(3), w.y.toFixed(3), w.r.toFixed(3)]; }); }); return o; }, film: function (src) { if (src) FILM_SRC = src; return filmShow(false); }, auto: function (on) { AUTO = !!on; if (RACE) RACE.humans.forEach(function (h) { if (on && !h.ai) h.ai = { skill: 1, lane: 0, laneNow: 0, laneT: 2, nitroOn: false }; }); }, speed: function (s) { TS = s; }, sim: function (sec) { for (var i = 0; i < sec * 60; i++) if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); render(); }, save: function () { return SAVE; }, tracks: TRACKS, build: BUILD, city: function (opt) { startCity(CITY, opt || {}); }, _CG: CG, _drive: drive, _newCar: newCar, _CAR: CAR, info: function () { return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geos: renderer.info.memory.geometries, tex: renderer.info.memory.textures }; } };
 })();
 </script>
 </body>
