@@ -3745,7 +3745,10 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     if (ai.n0 !== route.target && (d0 < 7 || (d0 < 16 && ((N0.x - c.x) * Math.cos(c.th) + (N0.z - c.z) * Math.sin(c.th)) < 0))) { ai.n0 = route.next[ai.n0]; N0 = CG.nodes[ai.n0]; d0 = Math.hypot(N0.x - c.x, N0.z - c.z); ai.dPrev = 1e9; }
     // getting further from it for a while (overshot a turn): pick again
     if (d0 > ai.dPrev + 0.05) ai.farT += h; else ai.farT = Math.max(0, ai.farT - h); ai.dPrev = d0;
-    if (ai.farT > 1.2) { ai.n0 = firstNode(c.x, c.z, c.th, route); ai.farT = 0; ai.dPrev = 1e9; N0 = CG.nodes[ai.n0]; d0 = Math.hypot(N0.x - c.x, N0.z - c.z); }
+    // or it's well behind us (overshot the turn): maybe the corner ahead is the better way now
+    var be = Math.atan2(N0.z - c.z, N0.x - c.x) - c.th; while (be > Math.PI) be -= 2 * Math.PI; while (be < -Math.PI) be += 2 * Math.PI;
+    ai.behT = Math.abs(be) > 2.2 && d0 > 12 ? (ai.behT || 0) + h : 0;
+    if (ai.farT > 1.2 || ai.behT > 0.6) { var nn0 = firstNode(c.x, c.z, c.th, route); ai.farT = 0; ai.behT = 0; ai.dPrev = 1e9; if (nn0 !== ai.n0) { ai.n0 = nn0; ai.rev = 0; } N0 = CG.nodes[ai.n0]; d0 = Math.hypot(N0.x - c.x, N0.z - c.z); }
     // the path ahead: here → n0 → n1 → n2
     var path = [[c.x, c.z], [N0.x, N0.z]], k = ai.n0, rr = route;
     for (var q = 0; q < 3; q++) {
@@ -3977,7 +3980,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var s = new THREE.Shape(); s.moveTo(0, 0.9); s.lineTo(0.75, -0.2); s.lineTo(0.28, -0.2); s.lineTo(0.28, -0.85); s.lineTo(-0.28, -0.85); s.lineTo(-0.28, -0.2); s.lineTo(-0.75, -0.2); s.lineTo(0, 0.9);
     var g = new THREE.ShapeGeometry(s); g.rotateX(-Math.PI / 2);
     var m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: 0xffc070, transparent: true, opacity: 0.78, depthWrite: false, side: THREE.DoubleSide, fog: false }));
-    m.renderOrder = 5; m.rotation.x = 0.95; m.scale.set(1.25, 1.25, 1.25);   // leaning back toward the chase camera, like a sat-nav chevron
+    m.renderOrder = 5; m.rotation.x = 0.3; m.scale.set(1.5, 1.5, 1.5);   // a glowing chevron floating over the road ahead, tipped up a little toward the camera
     var g = new THREE.Group(); g.add(m); return g;
   }
 
@@ -4226,7 +4229,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var rem = 26, tx = N0.x, tz = N0.z;
     for (q = 1; q < path.length; q++) { var sx = path[q][0] - path[q - 1][0], sz = path[q][1] - path[q - 1][1], sl = Math.hypot(sx, sz) || 1; if (rem <= sl || q === path.length - 1) { var f = Math.min(1, rem / sl); tx = path[q - 1][0] + sx * f; tz = path[q - 1][1] + sz * f; break; } rem -= sl; }
     var phi = Math.atan2(tz - me.z, tx - me.x);
-    R.arrow.position.set(me.x + Math.cos(me.th) * 0.6, 2.55 + Math.sin(R.t * 3) * 0.06, me.z + Math.sin(me.th) * 0.6);
+    R.arrow.position.set(me.x + Math.cos(me.th) * 12, 0.45 + Math.sin(R.t * 3) * 0.05, me.z + Math.sin(me.th) * 12);
     R.arrow.rotation.set(0, -phi - Math.PI / 2, 0);
     me.navPath = path;
   }
