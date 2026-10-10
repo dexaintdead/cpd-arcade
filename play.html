@@ -43,9 +43,9 @@
 </div></footer>
 
 <script src="gamepad.js?v=1"></script>
-<script src="games.js?v=23"></script>
+<script src="games.js?v=24"></script>
 <script src="arcade.js?v=3"></script>
-<script src="account.js?v=7"></script>
+<script src="account.js?v=8"></script>
 <script>
 (function () {
   'use strict';
@@ -130,7 +130,19 @@
       if (AC && AC.signedIn()) AC.sync(g.slug, 'over').then(function (j) { where(); if (j && lb) { lb.refresh(); if (!g.quietSync) AC.toast('Saved to your account'); } });
     }
     if (d.arcade === 'exit' && d.game === g.slug) { exitFs(); location.href = './'; }
+    // A game can ask to print one picture (Oak Hill Farm coloring pages). The game frame is sandboxed
+    // without modals, so the page prints it from a hidden frame of its own. Only image data URLs are accepted.
+    if (d.arcade === 'print' && d.game === g.slug && typeof d.img === 'string' && d.img.length < 16e6 && /^data:image\/(png|jpeg);base64,[A-Za-z0-9+\/=]+$/.test(d.img)) printPicture(d.img, d.title);
   });
+  function printPicture(src, title) {
+    var old = document.getElementById('printFrame'); if (old) old.remove();
+    var f = document.createElement('iframe'); f.id = 'printFrame'; f.setAttribute('aria-hidden', 'true');
+    f.style.cssText = 'position:fixed;right:0;bottom:0;width:1px;height:1px;border:0;opacity:0;pointer-events:none';
+    document.body.appendChild(f);
+    var doc = f.contentDocument; doc.open(); doc.write('<!doctype html><meta charset="utf-8"><title></title><style>@page{margin:10mm}html,body{margin:0;background:#fff}img{display:block;width:100%;height:auto;max-height:100vh;object-fit:contain}</style><img alt="">'); doc.close();
+    doc.title = String(title || g.title).slice(0, 120);
+    var im = doc.querySelector('img'); im.onload = function () { try { f.contentWindow.focus(); f.contentWindow.print(); } catch (x) {} }; im.src = src;
+  }
 })();
 </script>
 <script src="/app.js?v=1" defer></script>

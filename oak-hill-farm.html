@@ -4,11 +4,13 @@
 <meta charset="utf-8">
 <script src="/gate.js?v=1" data-game="oak-hill-farm"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<!-- Oak Hill Farm: Farm Friends — ContentPad Arcade (build 2026100801-ohf v1)
+<!-- Oak Hill Farm: Farm Friends — ContentPad Arcade (build 2026101001-ohf2, v2)
      A kid-friendly farm-care game set at Oak Hill Farm, 177 Stillwell Road, Holmdel NJ.
-     Every animal is one of the farm's real residents, drawn from the Oak Hill Farm coloring book in ContentPad Studio.
-     Posts {arcade:'start'|'over'|'exit'} to the Arcade; accepts {arcade:'key'} from the parent only.
-     Save: localStorage 'ohf_save'; best = total stars in 'arcade_best_oak-hill-farm'. -->
+     v2: Farm Map with four seasons (8 days each + bonus games + story levels), friendship levels and accessories,
+     coloring mode, a narrator that reads chores aloud, 2-player co-op, a garden that grows, stickers and secret codes.
+     Code lives in ohf/ohf-core.js, ohf-farm.js, ohf-minis.js, ohf-color.js, ohf-ui.js.
+     Posts {arcade:'start'|'over'|'exit'|'print'} to the Arcade; accepts {arcade:'key'} from the parent only.
+     Save: localStorage 'ohf_save' (v:2); best = total stars in 'arcade_best_oak-hill-farm'. -->
 <title>Oak Hill Farm: Farm Friends</title>
 <meta name="theme-color" content="#3f7d3a">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,38 +20,52 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;overflow:hidden;background:#3f7d3a;color:var(--ink);font-family:Fredoka,system-ui,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none}
 canvas#g{position:fixed;inset:0;width:100%;height:100%;display:block}
-.hud{position:fixed;z-index:5;pointer-events:none}
-#clip{left:max(10px,env(safe-area-inset-left));top:max(10px,env(safe-area-inset-top));width:min(300px,46vw);background:var(--card);border:3px solid var(--ink);border-radius:16px;box-shadow:0 5px 0 rgba(74,46,26,.35);padding:8px 10px 6px;pointer-events:auto;transition:transform .25s}
+.hud{position:fixed;z-index:5;pointer-events:none;display:none}
+body[data-mode=farm] #clip{display:block}
+body[data-mode=farm] #stats,body[data-mode=mini] #stats{display:flex}
+body[data-mode=mini] #bAlbum,body[data-mode=mini] .carry,body[data-mode=mini] #coinPill{display:none!important}
+#clip{left:max(10px,env(safe-area-inset-left));top:max(10px,env(safe-area-inset-top));width:min(300px,46vw);background:var(--card);border:3px solid var(--ink);border-radius:16px;box-shadow:0 5px 0 rgba(74,46,26,.35);padding:8px 10px 6px;pointer-events:auto}
 #clip h3{margin:0 0 4px;font:700 15px Fredoka;display:flex;align-items:center;gap:6px;cursor:pointer}
 #clip h3 small{margin-left:auto;font-weight:500;font-size:12px;opacity:.7}
 #clip.min ul{display:none}
 #clip.compact li{display:none}#clip.compact li.next{display:flex}#clip.compact h3 small::after{content:' ▾'}
-@media (orientation:portrait){.touch #toast{bottom:calc(max(18px,env(safe-area-inset-bottom)) + 108px);max-width:calc(100vw - 24px)}}
-@media (orientation:landscape){.touch #toast{left:40%;bottom:10px;max-width:52vw}}
-.touch #toast div{font-size:14px}
 #clip ul{list-style:none;margin:0;padding:0}
-#clip li{display:flex;align-items:center;gap:6px;font:500 13.5px/1.15 Fredoka;padding:4px 0;border-top:1px dashed rgba(74,46,26,.25)}
+#clip li{display:flex;align-items:center;gap:6px;font:500 13.5px/1.15 Fredoka;padding:4px 0;border-top:1px dashed rgba(74,46,26,.25);cursor:pointer}
 #clip li img{width:28px;height:28px;object-fit:contain;flex:none}
 #clip li .t{flex:1}
 #clip li .n{font-weight:700;font-size:12px;opacity:.75}
 #clip li.done{opacity:.5}
 #clip li.done .t{text-decoration:line-through}
+#clip li.next .t::after{content:' 🔊';font-size:11px;opacity:.55}
 #clip li .ck{width:20px;height:20px;border:2px solid var(--ink);border-radius:6px;flex:none;display:grid;place-items:center;font-size:14px;line-height:1}
 #clip li.done .ck{background:var(--leaf);color:#fff;border-color:var(--leaf)}
-#stats{right:max(10px,env(safe-area-inset-right));top:max(10px,env(safe-area-inset-top));display:flex;gap:6px;pointer-events:auto}
-.pill{background:var(--card);border:3px solid var(--ink);border-radius:999px;padding:4px 10px;font:700 15px Fredoka;display:flex;align-items:center;gap:5px;box-shadow:0 4px 0 rgba(74,46,26,.3)}
-.pill img{width:22px;height:22px;object-fit:contain}
-.ib{width:44px;height:44px;border-radius:14px;border:3px solid var(--ink);background:var(--card);font-size:22px;display:grid;place-items:center;cursor:pointer;box-shadow:0 4px 0 rgba(74,46,26,.3);padding:0}
+#stats{right:max(10px,env(safe-area-inset-right));top:max(10px,env(safe-area-inset-top));gap:6px;pointer-events:auto;align-items:flex-start}
+.pill{background:var(--card);border:3px solid var(--ink);border-radius:999px;padding:4px 10px;font:700 15px Fredoka;display:flex;align-items:center;gap:5px;box-shadow:0 4px 0 rgba(74,46,26,.3);height:44px}
+.pill img{width:26px;height:26px;object-fit:contain}
+.carry.p2{background:#e3f4ff}
+.ib{width:44px;height:44px;border-radius:14px;border:3px solid var(--ink);background:var(--card);font-size:22px;display:grid;place-items:center;cursor:pointer;box-shadow:0 4px 0 rgba(74,46,26,.3);padding:0;color:var(--ink)}
 .ib:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(74,46,26,.3)}
-#sun{position:fixed;z-index:4;left:50%;top:max(10px,env(safe-area-inset-top));transform:translateX(-50%);width:min(240px,30vw);height:12px;border-radius:99px;background:rgba(255,255,255,.55);border:2px solid var(--ink);pointer-events:none}
+.ib.home{background:#ffd65a}
+#sun{position:fixed;z-index:4;left:50%;top:max(10px,env(safe-area-inset-top));transform:translateX(-50%);width:min(240px,30vw);height:12px;border-radius:99px;background:rgba(255,255,255,.55);border:2px solid var(--ink);pointer-events:none;display:none}
 #sun i{position:absolute;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff6b0,#ffc531 60%,#f39a1b);border:2px solid var(--ink);left:0}
-#toast{position:fixed;z-index:9;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none}
+body[data-mode=farm]:not(.seek) #sun{display:block}
+#heatbox{position:fixed;z-index:4;left:50%;top:max(10px,env(safe-area-inset-top));transform:translateX(-50%);display:none;align-items:center;gap:8px;background:var(--card);border:3px solid var(--ink);border-radius:999px;padding:5px 12px;font:700 15px Fredoka;box-shadow:0 4px 0 rgba(74,46,26,.3);pointer-events:none}
+body.seek[data-mode=farm] #heatbox{display:flex}
+#heatbox .bar{width:150px;height:14px;border:2px solid var(--ink);border-radius:99px;background:#eef6ff;overflow:hidden}
+#heat{display:block;height:100%;width:0;background:linear-gradient(90deg,#9fd6ff,#ffe066,#ff6b3d);background-size:150px 100%;transition:width .3s}
+#mhud{position:fixed;z-index:5;left:50%;top:max(10px,env(safe-area-inset-top));transform:translateX(-50%);display:none;align-items:center;gap:10px;background:var(--card);border:3px solid var(--ink);border-radius:999px;padding:6px 14px;font:700 16px Fredoka;box-shadow:0 4px 0 rgba(74,46,26,.3);pointer-events:none;white-space:nowrap;max-width:calc(100vw - 150px);overflow:hidden}
+#mhud #mscore{font-weight:600;opacity:.85}
+body[data-mode=mini] #mhud{display:flex}
+#toast{position:fixed;z-index:25;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;pointer-events:none;width:max-content;max-width:92vw}
 #toast div{background:var(--card);border:3px solid var(--ink);border-radius:14px;padding:7px 14px;font:600 16px Fredoka;box-shadow:0 4px 0 rgba(74,46,26,.3);display:flex;align-items:center;gap:8px;animation:tin .3s ease-out}
 #toast div img{width:34px;height:34px;object-fit:contain}
 @keyframes tin{from{transform:translateY(16px);opacity:0}}
+@media (orientation:portrait){.touch[data-mode=farm] #toast{bottom:calc(max(18px,env(safe-area-inset-bottom)) + 108px)}}
+@media (orientation:landscape){.touch[data-mode=farm] #toast{left:40%;bottom:10px;max-width:52vw}}
+.touch #toast div{font-size:14px}
 /* touch controls */
 #touch{position:fixed;inset:0;z-index:6;pointer-events:none;display:none}
-.touch #touch{display:block}
+.touch[data-mode=farm] #touch{display:block}
 #stick{position:absolute;width:120px;height:120px;margin:-60px 0 0 -60px;border-radius:50%;border:3px solid rgba(255,255,255,.75);background:rgba(255,255,255,.18);display:none}
 #stick i{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;background:rgba(255,255,255,.85);border:3px solid var(--ink)}
 #act{position:absolute;right:max(18px,env(safe-area-inset-right));bottom:max(22px,env(safe-area-inset-bottom));width:96px;height:96px;border-radius:50%;border:4px solid var(--ink);background:#ffd65a;pointer-events:auto;display:grid;place-items:center;box-shadow:0 5px 0 rgba(74,46,26,.4);touch-action:none}
@@ -61,902 +77,233 @@ canvas#g{position:fixed;inset:0;width:100%;height:100%;display:block}
 /* screens */
 .scr{position:fixed;inset:0;z-index:20;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(40,28,16,.55)}
 .scr.show{display:flex}
+#friendS,#helpS,#setS,#homeS{z-index:22}
 .panel{background:var(--card);border:4px solid var(--ink);border-radius:24px;box-shadow:0 8px 0 rgba(74,46,26,.4);padding:18px 20px;max-width:560px;width:100%;max-height:100%;overflow:auto;text-align:center}
 .panel h2{margin:0 0 6px;font:700 26px Fredoka}
 .panel p{margin:6px 0;font:500 16px/1.35 Fredoka}
+.panel .small{font-size:14px;opacity:.8}
+.kicker{font:700 14px Fredoka;letter-spacing:.06em;color:var(--barn);text-transform:uppercase;margin-bottom:2px}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-width:150px;padding:12px 20px;margin:6px;border-radius:16px;border:3px solid var(--ink);background:#ffd65a;font:700 18px Fredoka;color:var(--ink);cursor:pointer;box-shadow:0 5px 0 rgba(74,46,26,.4)}
 .btn.alt{background:#fff}
 .btn.green{background:#8fd16a}
-.btn:active,.btn.sel{transform:translateY(4px);box-shadow:0 1px 0 rgba(74,46,26,.4)}
-.btn.focus{outline:4px solid #2a8fd6;outline-offset:2px}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 rgba(74,46,26,.4)}
+.focus{outline:4px solid #2a8fd6!important;outline-offset:3px}
 #title{background:url(ohf/cover.jpg?v=1) center/cover no-repeat;flex-direction:column;justify-content:flex-start;padding-top:max(14px,4vh)}
 #title .logo{background:rgba(255,248,232,.92);border:4px solid var(--ink);border-radius:26px;padding:8px 26px 12px;text-align:center;box-shadow:0 8px 0 rgba(74,46,26,.35)}
 #title .logo b{display:block;font:700 clamp(38px,8vw,72px)/1 'Dancing Script',cursive;color:#5b3a1f}
 #title .logo span{display:block;font:700 clamp(16px,3vw,24px) Fredoka;letter-spacing:.18em;color:var(--barn);margin-top:2px}
-#title .menu{margin-top:auto;margin-bottom:max(14px,4vh);display:flex;flex-wrap:wrap;justify-content:center;gap:4px;background:rgba(255,248,232,.85);border:3px solid var(--ink);border-radius:22px;padding:8px}
+#title .menu{margin-top:auto;margin-bottom:max(14px,4vh);display:flex;flex-wrap:wrap;justify-content:center;gap:4px;background:rgba(255,248,232,.85);border:3px solid var(--ink);border-radius:22px;padding:8px;max-width:640px}
 #back{position:fixed;z-index:21;left:max(10px,env(safe-area-inset-left));bottom:max(10px,env(safe-area-inset-bottom));font:600 14px Fredoka;color:var(--ink);background:var(--card);border:3px solid var(--ink);border-radius:12px;padding:6px 10px;text-decoration:none;display:none}
 .kids{display:flex;gap:14px;justify-content:center;margin:10px 0}
 .kid{width:150px;border:4px solid var(--ink);border-radius:20px;background:#e9f6ff;padding:8px;cursor:pointer;font:700 18px Fredoka}
 .kid img{height:150px;display:block;margin:0 auto 4px}
 .kid.sel{background:#ffe9a8;outline:4px solid #2a8fd6}
+/* Farm Map */
+#mapS{padding:0;flex-direction:column;align-items:stretch;justify-content:flex-start;background:#6fb24e center/cover no-repeat}
+.mapbar{display:flex;align-items:center;gap:6px;padding:8px max(10px,env(safe-area-inset-right)) 8px max(10px,env(safe-area-inset-left));background:rgba(255,248,232,.94);border-bottom:4px solid var(--ink);flex-wrap:wrap}
+#mapTabs{display:flex;gap:6px;flex:1;justify-content:center;flex-wrap:wrap}
+.tab{border:3px solid var(--ink);border-radius:14px;background:#fff;font:700 16px Fredoka;color:var(--ink);padding:6px 12px;cursor:pointer;box-shadow:0 3px 0 rgba(74,46,26,.3)}
+.tab small{font-weight:500;font-size:12px;opacity:.7}
+.tab.sel{background:#ffd65a}
+.tab.lock{background:#e6e1d8;color:#8a7a6a}
+.mapright{display:flex;gap:6px;align-items:center}
+#mapW{position:relative;flex:1;min-height:0}
+#mapPath{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#mapStops{position:absolute;inset:0}
+.stop{position:absolute;transform:translate(-50%,-50%);width:66px;height:66px;border-radius:50%;border:4px solid var(--ink);background:#ffd65a;font:700 30px Fredoka;color:var(--ink);display:grid;place-items:center;cursor:pointer;box-shadow:0 5px 0 rgba(74,46,26,.45);padding:0}
+.stop b{font-weight:700}
+.stop img{width:46px;height:46px;object-fit:contain;pointer-events:none}
+.stop.mini{background:#bfe6ff}
+.stop.story{background:#ffc9e4;width:74px;height:74px}
+.stop.lock{background:#ddd6cb;font-size:26px;box-shadow:0 3px 0 rgba(74,46,26,.3)}
+.stop.done{background:#8fd16a}.stop.mini.done{background:#9fd9ff}.stop.story.done{background:#ffb3d9}
+.stop .st{position:absolute;top:calc(100% - 4px);left:50%;transform:translateX(-50%);font:700 17px/1 system-ui,sans-serif;letter-spacing:1px;white-space:nowrap;color:#ffd65a;background:rgba(74,46,26,.82);border-radius:10px;padding:2px 5px 3px}
+.stop .st:empty{display:none}
+.stop .st .off{color:rgba(255,248,232,.35)}
+.stop .nm{position:absolute;top:calc(100% + 18px);left:50%;transform:translateX(-50%);background:var(--card);border:3px solid var(--ink);border-radius:12px;padding:3px 10px;font:600 14px Fredoka;white-space:nowrap;display:none;pointer-events:none;z-index:2}
+.stop.cur .nm,.stop.focus .nm,.stop:hover .nm{display:block}
+.stop.cur{animation:bob 1.1s ease-in-out infinite;z-index:1}
+@keyframes bob{50%{transform:translate(-50%,-58%)}}
+.mapkid{position:absolute;height:92px;transform:translate(-50%,-128%);pointer-events:none;filter:drop-shadow(0 4px 0 rgba(74,46,26,.35))}
+.mapfoot{display:flex;align-items:center;justify-content:center;gap:10px;padding:6px 10px max(8px,env(safe-area-inset-bottom));flex-wrap:wrap}
+#mapInfo{background:rgba(255,248,232,.92);border:3px solid var(--ink);border-radius:14px;padding:5px 12px;font:600 14px Fredoka}
+@media (max-width:640px){.stop{width:54px;height:54px;font-size:24px}.stop img{width:38px;height:38px}.stop.story{width:60px;height:60px}.mapkid{height:70px}.tab{font-size:14px;padding:5px 8px}.tab small{display:none}.stop .st{font-size:14px}}
+@media (max-height:500px){.stop{width:50px;height:50px;font-size:22px}.stop img{width:34px;height:34px}.stop.story{width:56px;height:56px}.mapkid{height:62px}.mapbar{padding-top:4px;padding-bottom:4px}.mapfoot{padding-top:2px}#mapInfo{font-size:12px}}
+/* cards */
+.daycard .tasks{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:10px 0}
+.daycard .tasks div{border:3px solid var(--ink);border-radius:14px;background:#eaf6ff;padding:6px;width:120px;font:600 13px/1.15 Fredoka}
+.daycard .tasks img{height:48px;display:block;margin:0 auto 4px;object-fit:contain;max-width:100%}
+.panel .cover{width:min(220px,50vw);border:4px solid var(--ink);border-radius:14px;display:block;margin:4px auto 8px;box-shadow:0 5px 0 rgba(74,46,26,.3)}
+.panel .icon{height:84px;display:block;margin:0 auto 4px;object-fit:contain}
+.panel .how{font-size:15px;background:#eaf6ff;border:2px dashed rgba(74,46,26,.35);border-radius:12px;padding:6px 10px}
+.panel .best{font-size:14px}.stars.sm{font-size:18px;letter-spacing:1px}
+.panel .unlock{background:#ffe9a8;border:3px solid var(--ink);border-radius:14px;padding:6px 10px;font-weight:600}
+.panel p.story{font:600 18px/1.4 Fredoka;color:#5b3a1f}
 .album{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;margin-top:10px;text-align:center}
-.card{border:3px solid var(--ink);border-radius:14px;background:#eaf6ff;padding:6px 4px;font:600 13px/1.1 Fredoka;cursor:pointer}
-.card img{height:76px;max-width:100%;object-fit:contain;display:block;margin:0 auto 4px}
+.card{border:3px solid var(--ink);border-radius:14px;background:#eaf6ff;padding:6px 4px;font:600 13px/1.1 Fredoka;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px}
+.card img{height:76px;max-width:100%;object-fit:contain;display:block;margin:0 auto 2px}
 .card.lock img{filter:brightness(0) opacity(.3)}
 .card.lock{background:#eee}
-.big img{height:min(34vh,260px);max-width:100%;object-fit:contain}
+.card.gold{background:#fff3c4;border-color:#c08a12;box-shadow:0 0 0 3px #ffd65a}
+.card .hearts{color:#e8473a;font-size:13px;letter-spacing:1px}
+.card.sticker .emo{font-size:52px;line-height:76px}
+.card.sticker .how{font:500 11px/1.15 Fredoka;opacity:.75}
+.card.sticker.lock .emo{filter:grayscale(1) opacity(.35)}
+.card.own{background:#e3f6d6}
+.card .cost{font-weight:700}
+.tabs2{display:flex;gap:6px;justify-content:center;margin:4px 0}
+.tabs2 button{border:3px solid var(--ink);border-radius:12px;background:#fff;font:700 15px Fredoka;padding:5px 14px;cursor:pointer;color:var(--ink)}
+.tabs2 button.sel{background:#ffd65a}
+#friendBody .pframe{display:inline-block;border-radius:22px;padding:6px 10px 0;background:#eaf6ff;border:4px solid var(--ink)}
+#friendBody .pframe.gold{background:radial-gradient(circle,#fff8d0,#ffd65a);border-color:#c08a12;box-shadow:0 0 0 5px #ffe48a,0 0 24px #ffd65a}
+#friendBody .role{font-weight:700;color:#c8432d}
+.hearts.big{font-size:30px;color:#e8473a;letter-spacing:3px;line-height:1}
+.fav img{width:28px;height:28px;object-fit:contain;vertical-align:middle}
+.secret{background:#fff0f8;border:2px dashed #e07bb0;border-radius:12px;padding:6px 10px}
+.bff{font-weight:700;font-size:18px!important;color:#b07800}
+.lockline{opacity:.6!important}
+.accs{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:4px 0}
+.acc{width:56px;height:56px;border:3px solid var(--ink);border-radius:14px;background:#fff;display:grid;place-items:center;cursor:pointer;padding:2px;font-size:20px;color:var(--ink)}
+.acc img{width:44px;height:44px;object-fit:contain}
+.acc.sel{background:#ffd65a}
+.acc.lock img{filter:grayscale(1) opacity(.4)}
 .shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin:10px 0}
 .shop .card img{height:70px}
 .stars{font-size:44px;letter-spacing:6px;margin:4px 0}
 .stars .off{opacity:.25;filter:grayscale(1)}
-.daycard .tasks{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:10px 0}
-.daycard .tasks div{border:3px solid var(--ink);border-radius:14px;background:#eaf6ff;padding:6px;width:120px;font:600 13px/1.15 Fredoka}
-.daycard .tasks img{height:48px;display:block;margin:0 auto 4px;object-fit:contain;max-width:100%}
+.setrow{display:flex;flex-wrap:wrap;justify-content:center}
+.code{display:flex;gap:6px;justify-content:center;align-items:center;margin:6px 0;flex-wrap:wrap}
+.code input{font:700 20px Fredoka;letter-spacing:.12em;text-transform:uppercase;border:3px solid var(--ink);border-radius:14px;padding:10px 12px;width:min(240px,60vw);color:var(--ink);background:#fff;text-align:center;user-select:text;-webkit-user-select:text}
+#codeMsg{min-height:22px;font-weight:600}
 #load{position:fixed;inset:0;z-index:30;background:#3f7d3a;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff8e8;font:600 18px Fredoka;gap:12px}
 #load .bar{width:min(320px,70vw);height:16px;border:3px solid #fff8e8;border-radius:99px;overflow:hidden}
 #load .bar i{display:block;height:100%;width:0;background:#ffd65a}
-@media (max-width:600px){#clip{width:min(250px,58vw)}#clip li{font-size:12.5px}#clip li img{width:24px;height:24px}.ib{width:40px;height:40px;font-size:19px}.pill{font-size:13px;padding:3px 8px}#sun{display:none}}
-@media (max-height:430px){#clip li{padding:2px 0}#clip li img{width:22px;height:22px}#act{width:84px;height:84px}}
+/* coloring */
+#colorS .panel{max-width:860px}
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;margin:8px 0 12px}
+.cgrid .card img{height:120px;width:100%;object-fit:contain;background:#fff;border-radius:8px}
+.cgrid .card.did{background:#ffe9a8}
+.chead{font:700 18px Fredoka;text-align:left;margin:10px 4px 0}
+#colorEd{position:fixed;inset:0;z-index:23;background:#f3ead8;display:none;flex-direction:column}
+#colorEd.show{display:flex}
+.cbar{display:flex;align-items:center;gap:6px;padding:6px max(8px,env(safe-area-inset-right)) 6px max(8px,env(safe-area-inset-left));background:var(--card);border-bottom:4px solid var(--ink);flex-wrap:wrap}
+.cbar .ttl{font:700 17px Fredoka;flex:1;min-width:120px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cbar .ib.sel{background:#ffd65a}
+.cmain{flex:1;display:flex;min-height:0}
+#cwrap{flex:1;position:relative;min-width:0;display:grid;place-items:center;padding:8px}
+#ccv{background:#fff;border:4px solid var(--ink);border-radius:10px;box-shadow:0 6px 0 rgba(74,46,26,.3);touch-action:none;max-width:100%;max-height:100%;cursor:crosshair}
+#cpal{display:grid;grid-template-columns:repeat(2,44px);gap:6px;padding:8px;align-content:center;background:var(--card);border-left:4px solid var(--ink);overflow:auto}
+.sw{width:44px;height:44px;border-radius:50%;border:3px solid var(--ink);cursor:pointer;padding:0}
+.sw.sel{outline:4px solid #2a8fd6;outline-offset:2px}
+.csize{grid-column:span 2;display:flex;gap:4px;justify-content:center}
+.csize button{width:28px;height:28px;border-radius:50%;border:3px solid var(--ink);background:#fff;padding:0;cursor:pointer;display:grid;place-items:center}
+.csize button i{display:block;border-radius:50%;background:var(--ink)}
+.csize button.sel{background:#ffd65a}
+@media (orientation:portrait){.cmain{flex-direction:column}#cpal{grid-template-columns:repeat(9,1fr);grid-auto-flow:row;border-left:0;border-top:4px solid var(--ink);padding:6px max(8px,env(safe-area-inset-left)) max(6px,env(safe-area-inset-bottom))}.sw{width:100%;height:auto;aspect-ratio:1}.csize{grid-column:span 9}}
+#printArea{display:none}
+@media print{body>*{display:none!important}#printArea{display:block!important;position:static}#printArea img{width:100%;height:auto}html,body{overflow:visible;height:auto;background:#fff}}
+@media (max-width:600px){#clip{width:min(250px,58vw)}#clip li{font-size:12.5px}#clip li img{width:24px;height:24px}.ib{width:40px;height:40px;font-size:19px}.pill{font-size:13px;padding:3px 8px;height:40px}#sun{display:none!important}.btn{min-width:120px;font-size:16px;padding:10px 14px}}
+@media (max-width:600px){#mhud{left:max(10px,env(safe-area-inset-left));transform:none;max-width:calc(100vw - 120px);font-size:14px;padding:5px 10px;flex-wrap:wrap;gap:2px 8px;border-radius:16px}}
+@media (max-height:520px){.daycard .tasks{gap:5px;margin:6px 0}.daycard .tasks div{width:98px;padding:4px;font-size:12px}.daycard .tasks img{height:30px}.panel .cover{width:min(130px,30vw)}.panel .icon{height:54px}.panel p{font-size:14px;margin:4px 0}.stars{font-size:32px}}
+@media (max-height:430px){#clip li{padding:2px 0}#clip li img{width:22px;height:22px}#act{width:84px;height:84px}.panel{padding:10px 14px}.panel h2{font-size:22px}.btn{padding:8px 14px;margin:4px}}
 </style>
 </head>
-<body>
+<body data-mode="load">
 <canvas id="g"></canvas>
 <div id="load"><div style="font:700 34px 'Dancing Script',cursive">Oak Hill Farm</div><div class="bar"><i id="lbar"></i></div><div id="ltxt">Opening the barn doors…</div></div>
 
 <div class="hud" id="clip"><h3 id="cliph"><span id="dayname">Day 1</span><small id="clipn">0/0</small></h3><ul id="tasks"></ul></div>
 <div class="hud" id="stats">
-  <div class="pill" title="Coins"><span>🪙</span><b id="coins">0</b></div>
-  <div class="pill" id="carry" title="In your hands" style="display:none"><img id="carryimg" alt=""><b id="carryn"></b></div>
+  <div class="pill" id="coinPill" title="Coins"><span>🪙</span><b id="coins">0</b></div>
+  <div class="pill carry" id="carry0" title="Player 1" style="display:none"><img alt=""><b></b></div>
+  <div class="pill carry p2" id="carry1" title="Player 2" style="display:none"><img alt=""><b></b></div>
+  <button class="ib home" id="bHome" title="Farm Map (H)">🏠</button>
   <button class="ib" id="bAlbum" title="Farm Friends album (L)">📖</button>
   <button class="ib" id="bPause" title="Pause (Esc / P)">⏸</button>
 </div>
 <div id="sun"><i id="suni"></i></div>
+<div id="heatbox"><span>🙈</span><div class="bar"><i id="heat"></i></div><span id="heatT">Cold ❄️</span></div>
+<div id="mhud"><span id="mname"></span><span id="mscore"></span></div>
 <div id="toast"></div>
-<div id="touch"><div id="stick"><i></i></div><div id="truckb"><img src="ohf/truck.webp?v=1" alt="Truck"></div><div id="act"><img id="actimg" alt="Action"></div></div>
+<div id="touch"><div id="stick"><i></i></div><div id="truckb"><img src="ohf/truck.webp?v=2" alt="Truck"></div><div id="act"><img id="actimg" alt="Action"></div></div>
 
 <div class="scr" id="title">
   <div class="logo"><b>Oak Hill Farm</b><span>FARM FRIENDS</span></div>
   <div class="menu">
     <button class="btn" id="tPlay">▶ Play</button>
-    <button class="btn alt" id="tKid">🧑‍🌾 Farmhand</button>
+    <button class="btn alt" id="tColor">🖍️ Coloring</button>
     <button class="btn alt" id="tAlbum">📖 Farm Friends</button>
-    <button class="btn alt" id="tSound">🔊 Sound on</button>
+    <button class="btn alt" id="tSet">⚙️ Settings</button>
   </div>
 </div>
 <a id="back" href="/">← Arcade</a>
+
+<div class="scr" id="mapS">
+  <div class="mapbar">
+    <button class="ib home" id="mapHome" title="Title screen" data-back="1">🏠</button>
+    <div id="mapTabs"></div>
+    <div class="mapright">
+      <div class="pill" title="Stars">⭐ <b id="mapStars">0</b></div>
+      <div class="pill" title="Coins">🪙 <b id="mapCoins">0</b></div>
+      <button class="ib" id="mapAlbum" title="Farm Friends album">📖</button>
+      <button class="ib" id="mapColor" title="Coloring">🖍️</button>
+      <button class="ib" id="mapSet" title="Settings">⚙️</button>
+    </div>
+  </div>
+  <div id="mapW"><svg id="mapPath" viewBox="0 0 100 100" preserveAspectRatio="none"></svg><div id="mapStops"></div></div>
+  <div class="mapfoot"><span id="mapInfo"></span><button class="btn alt" id="mapFree" style="display:none">🎲 Free Play</button></div>
+</div>
+
 <div class="scr" id="kidS"><div class="panel"><h2>Who's helping on the farm today?</h2>
-  <div class="kids"><div class="kid" data-k="girl"><img src="ohf/kid_girl.webp?v=1" alt="">Farmhand Fern</div><div class="kid" data-k="boy"><img src="ohf/kid_boy.webp?v=1" alt="">Farmhand Finn</div></div>
-  <button class="btn" id="kidOk">That's me!</button></div></div>
-<div class="scr" id="dayS"><div class="panel daycard"><div id="dayBody"></div><button class="btn green" id="dayGo">Let's go! ▶</button></div></div>
-<div class="scr" id="endS"><div class="panel"><div id="endBody"></div><div><button class="btn green" id="endNext">Next day ▶</button><button class="btn alt" id="endAlbum">📖 Album</button></div></div></div>
+  <div class="kids"><div class="kid" data-k="girl"><img src="ohf/kid_girl.webp?v=2" alt="">Farmhand Fern</div><div class="kid" data-k="boy"><img src="ohf/kid_boy.webp?v=2" alt="">Farmhand Finn</div></div>
+  <button class="btn" id="kidOk" data-go="1">That's me!</button></div></div>
+<div class="scr" id="dayS"><div class="panel daycard"><div id="dayBody"></div><div><button class="btn green" id="dayGo" data-go="1">Let's go! ▶</button><button class="btn alt" id="dayMap" data-back="1">🗺️ Farm Map</button></div></div></div>
+<div class="scr" id="endS"><div class="panel"><div id="endBody"></div><div id="endBtns"></div></div></div>
+<div class="scr" id="homeS"><div class="panel"><h2>🏠 Back to the Farm Map?</h2><p>You can come back and play this one again any time.</p>
+  <div><button class="btn green" id="hMap" data-go="1">🗺️ Farm Map</button><button class="btn alt" id="hStay" data-back="1">▶ Keep playing</button></div></div></div>
 <div class="scr" id="pauseS"><div class="panel"><h2>Taking a break</h2><p id="pauseInfo"></p>
-  <div><button class="btn green" id="pResume">▶ Keep playing</button></div>
-  <div><button class="btn alt" id="pAlbum">📖 Farm Friends</button><button class="btn alt" id="pHelp">❓ How to play</button></div>
-  <div><button class="btn alt" id="pRestart">↺ Start the day over</button><button class="btn alt" id="pTitle">🏠 Title screen</button></div>
-  <div><button class="btn alt" id="pQuit">← Back to the Arcade</button></div></div></div>
-<div class="scr" id="albumS"><div class="panel" style="max-width:760px"><h2>📖 Farm Friends <small id="albumN" style="font-size:16px;opacity:.7"></small></h2><p style="font-size:14px">Pet, feed or brush an animal to add them to your album.</p><div class="album" id="albumG"></div><button class="btn" id="albumX">Close</button></div></div>
-<div class="scr" id="friendS"><div class="panel big" id="friendBody"></div></div>
-<div class="scr" id="shopS"><div class="panel" style="max-width:640px"><h2>🌻 Farm Stand</h2><p>Decorate Oak Hill Farm! You have <b id="shopCoins">0</b> 🪙</p><div class="shop" id="shopG"></div><button class="btn" id="shopX">Done</button></div></div>
+  <div><button class="btn green" id="pResume" data-back="1" data-go="1">▶ Keep playing</button></div>
+  <div><button class="btn alt" id="pMap">🗺️ Farm Map</button><button class="btn alt" id="pRestart">↺ Start over</button></div>
+  <div><button class="btn alt" id="pAlbum">📖 Farm Friends</button><button class="btn alt" id="pSet">⚙️ Settings</button><button class="btn alt" id="pHelp">❓ How to play</button></div>
+  <div><button class="btn alt" id="pTitle">🏡 Title screen</button><button class="btn alt" id="pQuit">← Back to the Arcade</button></div></div></div>
+<div class="scr" id="albumS"><div class="panel" style="max-width:780px"><h2>📖 Farm Friends <small id="albumN" style="font-size:16px;opacity:.7"></small></h2>
+  <div class="tabs2" id="albumTabs"><button type="button" data-t="friends" class="sel">🐴 Friends</button><button type="button" data-t="stickers">🏅 Stickers</button></div>
+  <p class="small" id="albumTip"></p><div class="album" id="albumG"></div><button class="btn" id="albumX" data-back="1">Close</button></div></div>
+<div class="scr" id="friendS"><div class="panel" id="friendBody"></div></div>
+<div class="scr" id="shopS"><div class="panel" style="max-width:640px"><h2 id="shopH">🌻 Farm Market</h2><p>Decorate Oak Hill Farm! You have <b id="shopCoins">0</b> 🪙</p><div class="shop" id="shopG"></div><button class="btn" id="shopX" data-back="1">Done</button></div></div>
+<div class="scr" id="setS"><div class="panel"><h2>⚙️ Settings</h2>
+  <div class="setrow"><button class="btn alt" id="sSound"></button><button class="btn alt" id="sTalk"></button></div>
+  <div class="setrow"><button class="btn alt" id="sPlayers"></button><button class="btn alt" id="sKid">🧑‍🌾 Farmhand</button></div>
+  <p class="small" id="sPlayersTip"></p>
+  <h2 style="font-size:20px;margin-top:10px">🔑 Secret code</h2>
+  <p class="small">Find secret codes in the Oak Hill Farm coloring books, and on a sign when you visit the farm!</p>
+  <div class="code"><input id="codeIn" maxlength="16" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="TYPE CODE" aria-label="Secret code"><button class="btn" id="codeGo" style="min-width:90px">Try it</button></div>
+  <p id="codeMsg"></p>
+  <div><button class="btn alt" id="sHelp">❓ How to play</button><button class="btn green" id="setX" data-back="1">Done</button></div></div></div>
 <div class="scr" id="helpS"><div class="panel"><h2>How to play</h2>
   <p><b>Move:</b> arrow keys / WASD, a controller stick, or drag anywhere on the left of the screen.</p>
-  <p><b>Do things:</b> Space or Enter, controller (A), or the big yellow button. Hold it to brush an animal or rake up a mess.</p>
-  <p><b>Truck:</b> Y or T, controller (X), or the truck button. The truck bed holds 4 things!</p>
-  <p><b>Album:</b> L, controller (Y). <b>Pause:</b> Esc, P or Start. <b>Sound:</b> M.</p>
-  <p>Pick things up at the hay stack, feed shed, water pump, garden and farm stand, then bring them to the animals on your clipboard. Follow the bouncing arrow if you get lost!</p>
-  <button class="btn" id="helpX">Got it!</button></div></div>
+  <p><b>Do things:</b> Space or Enter, controller (A), or the big yellow button. Hold it to brush, spray the hose, rake, or break ice.</p>
+  <p><b>Truck:</b> T or F, controller (X), or the truck button. The truck bed holds 4 things!</p>
+  <p><b>Two players:</b> turn it on in Settings. Player 1 uses WASD + Space (F = truck). Player 2 uses the arrow keys + Enter (/ = truck). Two controllers work too.</p>
+  <p><b>Farm Map:</b> 🏠 or H. <b>Album:</b> L or controller (Y). <b>Pause:</b> Esc, P or Start. <b>Sound:</b> M.</p>
+  <p>Tap a chore on your clipboard to hear it read out loud. Follow the bouncing arrow if you get lost!</p>
+  <button class="btn" id="helpX" data-back="1">Got it!</button></div></div>
+
+<div class="scr" id="colorS"><div class="panel"><h2>🖍️ Coloring</h2><p class="small">Pick a page to color. Tap a space to fill it with color, or draw with the crayon.</p><div id="cgal"></div><button class="btn" id="colorX" data-back="1">Done</button></div></div>
+<div id="colorEd">
+  <div class="cbar"><button class="ib home" id="cBack" title="Back to the pages">←</button><span class="ttl" id="cTitle"></span>
+    <button class="ib sel" id="cFill" title="Fill">🪣</button><button class="ib" id="cDraw" title="Crayon">🖍️</button><button class="ib" id="cErase" title="Eraser">🧽</button>
+    <button class="ib" id="cUndo" title="Undo">↶</button><button class="ib" id="cClear" title="Start over">🗑️</button><button class="ib" id="cSave" title="Save picture">💾</button><button class="ib" id="cPrint" title="Print">🖨️</button></div>
+  <div class="cmain"><div id="cwrap"><canvas id="ccv"></canvas></div><div id="cpal"></div></div>
+</div>
+<div id="printArea"></div>
 
 <script src="gamepad.js?v=1"></script>
-<script>
-(function(){
-'use strict';
-var GAME_ID='oak-hill-farm', V='?v=1', BUILD='2026100801-ohf';
-var EMBED=false;try{EMBED=window.top!==window}catch(e){EMBED=true}
-function post(type,extra){try{if(window.parent!==window)window.parent.postMessage(Object.assign({arcade:type,game:GAME_ID},extra||{}),'*')}catch(e){}}
-function $(id){return document.getElementById(id)}
-function ls(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
-function clamp(v,a,b){return v<a?a:v>b?b:v}
-function rnd(a,b){return a+Math.random()*(b-a)}
-function pick(a){return a[(Math.random()*a.length)|0]}
-function dist(ax,ay,bx,by){var dx=ax-bx,dy=ay-by;return Math.sqrt(dx*dx+dy*dy)}
-var IS_TOUCH=('ontouchstart' in window)||navigator.maxTouchPoints>0;
-if(IS_TOUCH&&matchMedia('(pointer:coarse)').matches)document.body.classList.add('touch');
-
-/* ---------------- assets ---------------- */
-var ANIMAL_KEYS=['boots','nugget','brunello','molly','rosie','cookie','paris','charlotte','penelope','prosciutto','pearl','george','hazel','lola','mo','larry','curley','armani','speckles','kiwi','gaby','bianca','amina','tracey','boca','aretha','betty','funny','rodney','peter','bunnies'];
-var PROP_KEYS=['kid_girl','kid_boy','truck','barn','dome','oak','stand','haystack','garden','shed','coffee','trough','spool','pump','hutch','pumpkins','sunflower','mums','wheelbarrow','bench','i_mess','i_hay','i_carrot','i_apple','i_water','i_brush','i_grain','i_egg','i_basket','i_rake','i_heart'];
-var IMG={};
-function src(k){return 'ohf/'+k+'.webp'+V}
-function loadAll(done){
-  var keys=ANIMAL_KEYS.concat(PROP_KEYS),n=0,tot=keys.length;
-  keys.forEach(function(k){var im=new Image();im.decoding='async';im.onload=im.onerror=function(){n++;$('lbar').style.width=(100*n/tot)+'%';if(n===tot)done()};im.src=src(k);IMG[k]=im});
-}
-
-/* ---------------- the cast ---------------- */
-// kind drives food, voice and size. h = drawn height in world px.
-var KINDS={
-  horse:{eats:['hay','apple','carrot'],voice:'horse',label:'Horse'},
-  pony:{eats:['carrot','apple','hay'],voice:'pony',label:'Mini pony'},
-  mule:{eats:['hay','apple','carrot'],voice:'mule',label:'Mule'},
-  donkey:{eats:['hay','carrot','apple'],voice:'donkey',label:'Donkey'},
-  cow:{eats:['hay','apple'],voice:'cow',label:'Cow'},
-  calf:{eats:['hay','apple'],voice:'calf',label:'Highland cow'},
-  sheep:{eats:['grain','hay'],voice:'sheep',label:'Sheep'},
-  goat:{eats:['grain','hay','apple'],voice:'goat',label:'Goat'},
-  alpaca:{eats:['hay','carrot'],voice:'alpaca',label:'Alpaca'},
-  hen:{eats:['grain'],voice:'hen',label:'Chicken'},
-  rooster:{eats:['grain'],voice:'rooster',label:'Rooster'},
-  peacock:{eats:['grain'],voice:'peacock',label:'Peacock'},
-  bunny:{eats:['carrot'],voice:'bunny',label:'Bunnies'}
-};
-var CAST=[
-  ['boots','Boots','horse','horses',150,'The Clydesdale',"A gentle giant! Boots is a flaxen chestnut with a blonde mane and big fluffy feet. His best friends are Nugget and Gaby."],
-  ['nugget','Nugget','horse','horses',138,'The draft horse',"A golden palomino draft horse with a blonde mane. Boots and Nugget do everything together."],
-  ['brunello','Brunello','pony','ponies',92,'Mini pony stallion',"Brunello is a mini pony stallion. Small pony, BIG personality!"],
-  ['molly','Molly','pony','ponies',86,'Mini pony',"Molly is a mini pony who loves to prance around the corral."],
-  ['rosie','Rosie','pony','ponies',86,'Mini pony',"Rosie is a mini pony. She looks extra pretty with flowers in her mane."],
-  ['cookie','Cookie','mule','donkeys',120,'Mule',"Cookie is a mule. A mule's mom is a horse and its dad is a donkey!"],
-  ['paris','Paris','mule','donkeys',120,'Mule',"Paris is a mule with lots of style. Cookie and Paris are a team."],
-  ['charlotte','Charlotte','donkey','donkeys',104,'Donkey',"Charlotte is a sweet donkey with the softest, fuzziest ears."],
-  ['penelope','Penelope','donkey','donkeys',104,'Donkey',"Penelope is a cheerful donkey. Listen for her hee-haw!"],
-  ['prosciutto','Prosciutto','calf','cows',96,'Mini Highland cow',"Prosciutto is a mini Highland cow with a long, shaggy coat and a fluffy fringe."],
-  ['pearl','Pearl','calf','cows',94,'Mini Highland cow',"Pearl is a mini Highland cow, fluffy from her horns to her hooves."],
-  ['george','George','calf','cows',78,'Micro Highland cow',"George is a micro Highland cow and the fluffiest friend on the farm. Peekaboo, George!"],
-  ['hazel','Hazel','calf','cows',78,'Micro Highland cow',"Hazel is a micro Highland cow, tiny and shaggy and sweet."],
-  ['lola','Lola','cow','cows',122,'Jersey cow',"Lola is a Jersey cow with big brown eyes and long eyelashes."],
-  ['mo','Mo','sheep','sheep',84,'Curly black-faced sheep',"Mo is one of three curly black-faced sheep. He's the boss of the bunch."],
-  ['larry','Larry','sheep','sheep',84,'Curly black-faced sheep',"Larry is a curly black-faced sheep with wild, frizzy wool."],
-  ['curley','Curley','sheep','sheep',84,'Curly black-faced sheep',"Curley is the roundest, happiest, curliest sheep around."],
-  ['armani','Armani','goat','goats',78,'Nigerian Dwarf goat',"Armani is a Nigerian Dwarf goat with bright blue eyes. Very fashionable!"],
-  ['speckles','Speckles','goat','goats',76,'Nigerian Dwarf goat',"Speckles is a blue-eyed Nigerian Dwarf goat covered in spots and speckles."],
-  ['kiwi','Kiwi','goat','goats',74,'Nigerian Dwarf goat',"Kiwi is a bouncy blue-eyed Nigerian Dwarf goat. Queen of the spools!"],
-  ['gaby','Gaby','alpaca','alpacas',128,'Alpaca',"Gaby is a fluffy alpaca. Her best friend is Boots the Clydesdale!"],
-  ['bianca','Bianca','alpaca','alpacas',126,'Alpaca',"Bianca is a snow-white alpaca with a puffy top-knot."],
-  ['amina','Amina','alpaca','alpacas',126,'Black alpaca',"Amina is the farm's beautiful black alpaca."],
-  ['tracey','Tracey','alpaca','alpacas',124,'Alpaca',"Tracey is a fawn alpaca with a fluffy top-knot and a cheeky smile."],
-  ['boca','Boca','hen','chickens',50,'Special chicken',"Boca is one of the special chickens who live in the Chicken Dome."],
-  ['aretha','Aretha','hen','chickens',52,'Special chicken',"Aretha is a special chicken. She's got a voice!"],
-  ['betty','Betty White','hen','chickens',50,'Special chicken',"Betty White is a special chicken, as fluffy as a cotton ball."],
-  ['funny','Funny Lookin Chicken','hen','chickens',54,'Special chicken',"Her feathers go every which way, and that's what makes her perfect."],
-  ['rodney','Rodney','rooster','chickens',68,'Show rooster',"Rodney is a show rooster who lives in the Chicken Dome. He wakes up the whole farm!"],
-  ['peter','Peter','peacock','yard',104,'The Peacock',"Peter the Peacock loves to show off his beautiful tail."],
-  ['bunnies','The Bunnies','bunny','bunnies',54,'Bunnies',"The farm bunnies love carrots more than anything."]
-];
-var BY={};CAST.forEach(function(c){BY[c[0]]={id:c[0],name:c[1],kind:c[2],pen:c[3],h:c[4],role:c[5],fact:c[6]}});
-var ITEMS={hay:{img:'i_hay',name:'hay'},carrot:{img:'i_carrot',name:'carrots'},apple:{img:'i_apple',name:'apples'},water:{img:'i_water',name:'water'},grain:{img:'i_grain',name:'feed'},brush:{img:'i_brush',name:'the brush',tool:1},rake:{img:'i_rake',name:'the rake',tool:1},eggs:{img:'i_basket',name:'eggs'}};
-
-/* ---------------- the farm ---------------- */
-var WW=3200,WH=2300;
-// pens: x,y,w,h; gate side + centre along that side
-var PENS={
-  horses:{x:150,y:170,w:780,h:540,gate:'r',g:560,name:'Horse paddock',ground:'#8cc66a'},
-  ponies:{x:150,y:830,w:780,h:470,gate:'r',g:1180,name:'Pony corral',ground:'#93c96d'},
-  donkeys:{x:150,y:1420,w:780,h:520,gate:'r',g:1560,name:'Donkey & mule paddock',ground:'#8cc66a'},
-  cows:{x:2270,y:170,w:780,h:600,gate:'l',g:600,name:'Highland pasture',ground:'#86c065'},
-  alpacas:{x:2270,y:890,w:780,h:470,gate:'l',g:1240,name:'Alpaca pen',ground:'#93c96d'},
-  chickens:{x:2270,y:1480,w:780,h:470,gate:'l',g:1600,name:'Chicken Dome',ground:'#b9d27a'},
-  goats:{x:1710,y:1400,w:470,h:430,gate:'t',g:1830,name:'Goat yard',ground:'#a9cf72'},
-  sheep:{x:1020,y:1400,w:470,h:430,gate:'t',g:1370,name:'Sheep meadow',ground:'#8cc66a'},
-  bunnies:{x:1930,y:1010,w:250,h:220,gate:'t',g:2120,name:'Bunny hutch',ground:'#a9cf72'}
-};
-var GATE=150;
-var YARD={x:1080,y:760,w:1100,h:560};
-// stations: things you pick up or use
-var STATIONS=[
-  {id:'hayloft',x:1330,y:560,item:'hay',label:'Hay stack',spr:'haystack',sh:150},
-  {id:'shed',x:1120,y:790,item:'grain',label:'Feed shed',spr:'shed',sh:190},
-  {id:'pump',x:2080,y:760,item:'water',label:'Water pump',spr:'pump',sh:96},
-  {id:'garden',x:1180,y:1170,item:'carrot',label:'Carrot garden',spr:'garden',sh:110},
-  {id:'brush',x:1870,y:620,item:'brush',label:'Grooming brush',spr:null},
-  {id:'rake',x:1990,y:640,item:'rake',label:'Rake',spr:'wheelbarrow',sh:66},
-  {id:'stand',x:1330,y:2040,item:'apple',label:'Farm Stand',spr:'stand',sh:200},
-  {id:'market',x:1895,y:2040,item:null,label:'Farm Market · decorations',spr:'coffee',sh:220}
-];
-var SB={};STATIONS.forEach(function(s){SB[s.id]=s});
-// troughs and hay feeders, one per pen that needs them
-var TROUGHS={horses:[880,420],ponies:[880,1000],donkeys:[880,1760],cows:[2330,420],alpacas:[2330,1060],goats:[2120,1480],sheep:[1090,1480]};
-var FEEDERS={horses:[880,300],cows:[2340,280],alpacas:[2340,960],donkeys:[880,1500]};
-var DOMEFEED=[2350,1720];
-// solid things the farmhand walks around (feet-level boxes)
-var SOLIDS=[
-  [1410,450,380,150],   // barn
-  [1250,500,160,70],    // hay stack
-  [1035,720,170,70],    // shed
-  [2055,725,50,35],     // pump
-  [1090,1120,180,60],   // garden
-  [1225,1985,215,60],   // stand
-  [1770,1985,250,60],   // coffee
-  [2565,1600,270,110],  // dome
-  [1985,1060,150,40],   // hutch
-  [1095,1440,60,30]     // oak trunk
-];
-var PROPS=[ // decorative sprites [key,x,y,h]
-  ['barn',1600,600,370],['dome',2700,1710,270],['oak',1130,1470,330],['hutch',2060,1090,110],
-  ['spool',1820,1560,64],['spool',2030,1640,70],['spool',1900,1740,58],['trough',0,0,0]
-];
-PROPS.pop();
-var DECOR=[ // things you can buy at the Farm Stand
-  {id:'pumpkins',name:'Pumpkin patch',cost:6,spots:[[1500,690,64],[1720,700,58],[1450,1990,60]]},
-  {id:'mums',name:'Fall mums',cost:5,spots:[[1480,620,72],[1735,630,72]]},
-  {id:'sunflower',name:'Sunflowers',cost:5,spots:[[1010,1210,120],[1370,1220,110]]},
-  {id:'bunting',name:'Barn bunting',cost:10,spots:[]},
-  {id:'haystack',name:'Hay bale stack',cost:8,spots:[[2190,1350,120]]},
-  {id:'wheelbarrow2',name:'Wheelbarrow',cost:4,img:'wheelbarrow',spots:[[1700,1300,56]]}
-];
-
-/* ---------------- save ---------------- */
-var SAVE={day:1,coins:0,stars:{},met:{},decor:{},kid:'',sound:1,best:0};
-try{var sv=JSON.parse(ls('ohf_save')||'null');if(sv)SAVE=Object.assign(SAVE,sv)}catch(e){}
-function save(){ls('ohf_save',JSON.stringify(SAVE));var tot=0;for(var k in SAVE.stars)tot+=SAVE.stars[k];if(tot>(+ls('arcade_best_'+GAME_ID)||0))ls('arcade_best_'+GAME_ID,String(tot))}
-function totalStars(){var t=0;for(var k in SAVE.stars)t+=SAVE.stars[k];return t}
-
-/* ---------------- audio ---------------- */
-var AC=null,MASTER=null,music=null,soundOn=SAVE.sound!==0;
-function audio(){
-  if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();MASTER=AC.createGain();MASTER.gain.value=soundOn?0.55:0;MASTER.connect(AC.destination)}catch(e){}}
-  if(AC&&AC.state==='suspended')AC.resume();
-  if(!music){music=new Audio('ohf/theme.mp3'+V);music.loop=true;music.volume=0.32}
-  if(soundOn&&music.paused){var p=music.play();if(p&&p.catch)p.catch(function(){})}
-}
-function setSound(on){soundOn=on;SAVE.sound=on?1:0;save();if(MASTER)MASTER.gain.value=on?0.55:0;if(music){if(on){var p=music.play();if(p&&p.catch)p.catch(function(){})}else music.pause()}$('tSound').textContent=on?'🔊 Sound on':'🔇 Sound off'}
-function tone(o){ // {f,f2,t,type,v,at,vib,vibf,q,lp}
-  if(!AC||!soundOn)return;var t0=AC.currentTime+(o.at||0),d=o.t||0.2;
-  var osc=AC.createOscillator(),g=AC.createGain();osc.type=o.type||'sine';osc.frequency.setValueAtTime(o.f,t0);if(o.f2)osc.frequency.exponentialRampToValueAtTime(o.f2,t0+d);
-  if(o.vib){var l=AC.createOscillator(),lg=AC.createGain();l.frequency.value=o.vibf||6;lg.gain.value=o.vib;l.connect(lg);lg.connect(osc.frequency);l.start(t0);l.stop(t0+d+.05)}
-  var v=o.v||0.2;g.gain.setValueAtTime(0.0001,t0);g.gain.exponentialRampToValueAtTime(v,t0+Math.min(0.03,d/4));g.gain.exponentialRampToValueAtTime(0.0001,t0+d);
-  var last=osc;if(o.lp){var f=AC.createBiquadFilter();f.type='lowpass';f.frequency.value=o.lp;f.Q.value=o.q||1;osc.connect(f);last=f}
-  last.connect(g);g.connect(MASTER);osc.start(t0);osc.stop(t0+d+0.05);
-}
-function noise(o){if(!AC||!soundOn)return;var t0=AC.currentTime+(o.at||0),d=o.t||0.15;var b=AC.createBuffer(1,Math.ceil(AC.sampleRate*d),AC.sampleRate),a=b.getChannelData(0);for(var i=0;i<a.length;i++)a[i]=Math.random()*2-1;var s=AC.createBufferSource();s.buffer=b;var f=AC.createBiquadFilter();f.type=o.ft||'bandpass';f.frequency.value=o.f||2000;f.Q.value=o.q||1;var g=AC.createGain();g.gain.setValueAtTime(o.v||0.15,t0);g.gain.exponentialRampToValueAtTime(0.0001,t0+d);s.connect(f);f.connect(g);g.connect(MASTER);s.start(t0)}
-var SFX={
-  pop:function(){tone({f:520,f2:880,t:0.09,type:'triangle',v:0.22})},
-  drop:function(){tone({f:660,f2:330,t:0.1,type:'triangle',v:0.18})},
-  chime:function(){[523,659,784,1047].forEach(function(f,i){tone({f:f,t:0.22,type:'triangle',v:0.16,at:i*0.07})})},
-  done:function(){[392,523,659,784,1047,1319].forEach(function(f,i){tone({f:f,t:0.3,type:'triangle',v:0.15,at:i*0.08})})},
-  coin:function(){tone({f:988,t:0.08,type:'square',v:0.07,lp:3000});tone({f:1319,t:0.25,type:'square',v:0.07,lp:3000,at:0.07})},
-  no:function(){tone({f:300,f2:220,t:0.18,type:'square',v:0.08,lp:900});tone({f:260,f2:200,t:0.2,type:'square',v:0.08,lp:900,at:0.17})},
-  brush:function(){noise({f:3500,t:0.09,v:0.08,q:0.7})},
-  rake:function(){noise({f:1400,t:0.16,v:0.12,q:0.6})},
-  splash:function(){noise({f:900,t:0.35,v:0.16,q:0.5});tone({f:700,f2:300,t:0.2,v:0.06})},
-  honk:function(){tone({f:392,t:0.16,type:'sawtooth',v:0.09,lp:1400});tone({f:330,t:0.22,type:'sawtooth',v:0.09,lp:1400,at:0.17})},
-  door:function(){noise({f:500,t:0.12,v:0.12,q:2});tone({f:180,t:0.12,type:'triangle',v:0.1,at:0.04})},
-  star:function(i){tone({f:784+i*196,t:0.35,type:'triangle',v:0.16});tone({f:1568+i*392,t:0.25,type:'sine',v:0.06})}
-};
-var VOICE={
-  horse:function(){tone({f:700,f2:1050,t:0.25,type:'sawtooth',v:0.07,lp:1800,vib:60,vibf:22});tone({f:1050,f2:420,t:0.6,type:'sawtooth',v:0.07,lp:1500,vib:70,vibf:24,at:0.22})},
-  pony:function(){tone({f:900,f2:1400,t:0.2,type:'sawtooth',v:0.06,lp:2200,vib:70,vibf:24});tone({f:1400,f2:600,t:0.45,type:'sawtooth',v:0.06,lp:2000,vib:80,vibf:26,at:0.18})},
-  donkey:function(){for(var i=0;i<3;i++){tone({f:820,f2:900,t:0.22,type:'square',v:0.06,lp:1600,at:i*0.5});tone({f:300,f2:240,t:0.26,type:'sawtooth',v:0.08,lp:900,at:i*0.5+0.23})}},
-  mule:function(){for(var i=0;i<2;i++){tone({f:700,f2:800,t:0.22,type:'square',v:0.06,lp:1500,at:i*0.5});tone({f:330,f2:260,t:0.26,type:'sawtooth',v:0.08,lp:900,at:i*0.5+0.23})}},
-  cow:function(){tone({f:150,f2:118,t:1.0,type:'sawtooth',v:0.14,lp:700,q:4,vib:3,vibf:5})},
-  calf:function(){tone({f:240,f2:190,t:0.7,type:'sawtooth',v:0.12,lp:900,q:4,vib:4,vibf:6})},
-  sheep:function(){tone({f:360,f2:330,t:0.7,type:'sawtooth',v:0.09,lp:1500,q:3,vib:22,vibf:26})},
-  goat:function(){tone({f:520,f2:470,t:0.55,type:'sawtooth',v:0.08,lp:2000,q:3,vib:40,vibf:30})},
-  alpaca:function(){tone({f:290,f2:340,t:0.5,type:'sine',v:0.16,vib:8,vibf:4});tone({f:340,f2:280,t:0.5,type:'sine',v:0.14,at:0.45,vib:8,vibf:4})},
-  hen:function(){for(var i=0;i<3;i++)tone({f:760+i*40,f2:980,t:0.08,type:'triangle',v:0.12,at:i*0.12});tone({f:900,f2:600,t:0.25,type:'triangle',v:0.12,at:0.4})},
-  rooster:function(){[[520,700,.18],[700,840,.22],[840,980,.5],[980,620,.45]].forEach(function(n,i,a){var at=0;for(var j=0;j<i;j++)at+=a[j][2]*0.85;tone({f:n[0],f2:n[1],t:n[2],type:'sawtooth',v:0.07,lp:2400,vib:15,vibf:12,at:at})})},
-  peacock:function(){tone({f:1300,f2:900,t:0.35,type:'square',v:0.05,lp:2600});tone({f:1300,f2:850,t:0.4,type:'square',v:0.05,lp:2600,at:0.4})},
-  bunny:function(){tone({f:1500,f2:1900,t:0.07,type:'sine',v:0.12});tone({f:1700,f2:2100,t:0.07,type:'sine',v:0.1,at:0.1})}
-};
-var lastVoice={};
-function voice(kind){var k=KINDS[kind].voice,n=performance.now();if(lastVoice[k]&&n-lastVoice[k]<500)return;lastVoice[k]=n;VOICE[k]()}
-var engine=null;
-function engineOn(on){if(!AC)return;if(on&&!engine&&soundOn){var o=AC.createOscillator(),o2=AC.createOscillator(),g=AC.createGain(),f=AC.createBiquadFilter();o.type='sawtooth';o.frequency.value=48;o2.type='square';o2.frequency.value=49.5;f.type='lowpass';f.frequency.value=360;g.gain.value=0.05;o.connect(f);o2.connect(f);f.connect(g);g.connect(MASTER);o.start();o2.start();engine={o:o,o2:o2,g:g}}else if(!on&&engine){var e=engine;engine=null;try{e.g.gain.setTargetAtTime(0.0001,AC.currentTime,0.08);setTimeout(function(){e.o.stop();e.o2.stop()},400)}catch(x){}}}
-
-/* ---------------- canvas ---------------- */
-var cv=$('g'),cx=cv.getContext('2d'),DPR=1,VW=0,VH=0,ZOOM=1,CAM={x:1600,y:900};
-function resize(){DPR=Math.min(2,window.devicePixelRatio||1);VW=innerWidth;VH=innerHeight;cv.width=Math.round(VW*DPR);cv.height=Math.round(VH*DPR);ZOOM=clamp(Math.min(VW/1450,VH/880),VW<VH?0.5:0.4,1.1);var cl=$('clip');if(cl&&!cl.dataset.user)cl.classList.toggle('compact',VW<640||VH<480)}
-addEventListener('resize',resize);resize();
-var grassPat=null,dirtPat=null;
-function makePatterns(){
-  var c=document.createElement('canvas');c.width=c.height=256;var g=c.getContext('2d');
-  g.fillStyle='#6fb24e';g.fillRect(0,0,256,256);
-  for(var i=0;i<26;i++){g.fillStyle=i%2?'rgba(120,190,80,.45)':'rgba(90,160,62,.45)';g.beginPath();g.ellipse(rnd(0,256),rnd(0,256),rnd(18,46),rnd(10,24),rnd(0,3),0,7);g.fill()}
-  g.strokeStyle='rgba(60,120,40,.55)';g.lineWidth=2;g.lineCap='round';
-  for(i=0;i<140;i++){var x=rnd(0,256),y=rnd(0,256);g.beginPath();g.moveTo(x,y);g.lineTo(x+rnd(-3,3),y-rnd(5,10));g.stroke()}
-  var cols=['#fff','#ffe066','#ff9ec4','#ffffff'];for(i=0;i<7;i++){var fx=rnd(8,248),fy=rnd(8,248);g.fillStyle=pick(cols);for(var p=0;p<5;p++){g.beginPath();g.arc(fx+Math.cos(p*1.256)*3,fy+Math.sin(p*1.256)*3,2.4,0,7);g.fill()}g.fillStyle='#f6b72b';g.beginPath();g.arc(fx,fy,1.8,0,7);g.fill()}
-  grassPat=cx.createPattern(c,'repeat');
-  var d=document.createElement('canvas');d.width=d.height=128;g=d.getContext('2d');g.fillStyle='#d9b37c';g.fillRect(0,0,128,128);
-  for(i=0;i<60;i++){g.fillStyle=i%3?'rgba(180,140,90,.45)':'rgba(240,210,160,.6)';g.beginPath();g.ellipse(rnd(0,128),rnd(0,128),rnd(2,6),rnd(1.5,4),0,0,7);g.fill()}
-  dirtPat=cx.createPattern(d,'repeat');
-}
-
-/* ---------------- input ---------------- */
-var K={},PRESS={},JOY={x:0,y:0,on:false},TOUCHACT=false;
-function kd(key,down,repeat){
-  var k=key.length===1?key.toLowerCase():key;
-  if(down&&!K[k]&&!repeat)PRESS[k]=1;K[k]=down;
-}
-addEventListener('keydown',function(e){if(/^(Arrow|Enter)/.test(e.key)||e.key===' ')e.preventDefault();audio();kd(e.key,true,e.repeat)});
-addEventListener('keyup',function(e){kd(e.key,false)});
-addEventListener('blur',function(){K={};if(G.state==='play')pause(true)});
-addEventListener('message',function(e){if(e.source!==window.parent)return;var d=e.data||{};if(d.arcade==='key'){audio();kd(d.key,d.type==='keydown',d.repeat)}});
-function pressed(list){for(var i=0;i<list.length;i++)if(PRESS[list[i]])return true;return false}
-function held(list){for(var i=0;i<list.length;i++)if(K[list[i]])return true;return false}
-var ACTION_KEYS=[' ','Enter','e','j'],TRUCK_KEYS=['y','t','f'],ALBUM_KEYS=['l','b'],PAUSE_KEYS=['Escape','p'];
-// gamepad
-var GP={prev:{},cur:{}};
-function pollPad(){
-  GP.prev=GP.cur;GP.cur={};if(!window.ArcadePad)return;var p=ArcadePad.first();if(!p)return;var r=ArcadePad.read(p);if(!r)return;GP.cur=r;
-  if(r.any)audio();
-}
-function gpPress(b){return GP.cur[b]&&!GP.prev[b]}
-// touch: left part of the screen is a floating stick
-var stickEl=$('stick'),stickId=null,sx=0,sy=0;
-addEventListener('pointerdown',function(e){
-  audio();
-  if(e.pointerType!=='touch'||G.state!=='play')return;
-  if(e.target.closest&&e.target.closest('button,#act,#truckb,#clip,.scr'))return;
-  if(e.clientX>VW*0.62)return;
-  stickId=e.pointerId;sx=e.clientX;sy=e.clientY;stickEl.style.left=sx+'px';stickEl.style.top=sy+'px';stickEl.style.display='block';JOY.on=true;JOY.x=JOY.y=0;
-},{passive:true});
-addEventListener('pointermove',function(e){if(e.pointerId!==stickId)return;var dx=e.clientX-sx,dy=e.clientY-sy,m=Math.sqrt(dx*dx+dy*dy),R=50;if(m>R){dx*=R/m;dy*=R/m}JOY.x=dx/R;JOY.y=dy/R;stickEl.firstChild.style.transform='translate('+dx+'px,'+dy+'px)'},{passive:true});
-function endStick(e){if(e.pointerId!==stickId)return;stickId=null;JOY.on=false;JOY.x=JOY.y=0;stickEl.style.display='none';stickEl.firstChild.style.transform=''}
-addEventListener('pointerup',endStick);addEventListener('pointercancel',endStick);
-var actEl=$('act');
-actEl.addEventListener('pointerdown',function(e){e.preventDefault();audio();TOUCHACT=true;PRESS['__act']=1;actEl.classList.add('on')});
-['pointerup','pointercancel','pointerleave'].forEach(function(ev){actEl.addEventListener(ev,function(){TOUCHACT=false;actEl.classList.remove('on')})});
-$('truckb').addEventListener('pointerdown',function(e){e.preventDefault();audio();PRESS['__truck']=1});
-// if someone taps the screen on a desktop with a mouse, nothing special happens; touch devices get the controls
-addEventListener('touchstart',function(){if(!document.body.classList.contains('touch'))document.body.classList.add('touch')},{passive:true});
-
-/* ---------------- world state ---------------- */
-var G={state:'load',t:0,dayT:0,day:1,tasks:[],waterOK:{},feederN:{},dayDef:null,eggs:[],messes:[],parts:[],floats:[],hold:null,holdN:0,bed:[],inTruck:false,target:null,holdProg:0,followers:[],ended:false,hint:null,paused:false};
-var P={x:1600,y:820,vx:0,vy:0,face:1,walk:0,kid:'girl'};
-var TR={x:1600,y:1060,vx:0,vy:0,face:1,bob:0};
-var ANIM=[];
-function inPen(x,y){for(var k in PENS){var p=PENS[k];if(x>p.x-30&&x<p.x+p.w+30&&y>p.y-30&&y<p.y+p.h+30)return true}return false}
-function penInner(p,m){m=m||46;return {x:p.x+m,y:p.y+m+20,w:p.w-2*m,h:p.h-2*m-20}}
-function spawnAnimals(){
-  ANIM=CAST.map(function(c){
-    var a=BY[c[0]],pen=a.pen==='yard'?YARD:PENS[a.pen],r=a.pen==='yard'?{x:YARD.x+60,y:YARD.y+80,w:YARD.w-120,h:YARD.h-140}:penInner(pen);
-    var x=rnd(r.x,r.x+r.w),y=rnd(r.y,r.y+r.h);
-    if(a.id==='bunnies'){x=2060;y=1190}
-    return {id:a.id,a:a,x:x,y:y,tx:x,ty:y,face:Math.random()<.5?-1:1,wait:rnd(0,3),walk:0,jump:0,happy:0,shake:0,brush:0,talk:0,talkT:'',out:false,follow:false,home:true};
-  });
-}
-function animal(id){for(var i=0;i<ANIM.length;i++)if(ANIM[i].id===id)return ANIM[i];return null}
-function areaOf(an){var a=an.a;if(an.out)return {x:200,y:200,w:WW-400,h:WH-500};if(a.pen==='yard')return {x:YARD.x+60,y:YARD.y+80,w:YARD.w-120,h:YARD.h-140};if(a.id==='bunnies')return {x:1990,y:1150,w:150,h:60};return penInner(PENS[a.pen])}
-
-/* fence pieces for depth sorting */
-var FENCE=[];
-function buildFences(){
-  FENCE=[];
-  Object.keys(PENS).forEach(function(k){
-    var p=PENS[k];
-    function seg(x1,y1,x2,y2,side){
-      var horiz=y1===y2,len=horiz?x2-x1:y2-y1,step=60;
-      for(var s=0;s<len;s+=step){var e=Math.min(len,s+step);
-        var ax=horiz?x1+s:x1,ay=horiz?y1:y1+s,bx=horiz?x1+e:x1,by=horiz?y1:y1+e;
-        var gc=p.g,inGate=false;
-        if(side===p.gate){var mid=horiz?(ax+bx)/2:(ay+by)/2;if(Math.abs(mid-gc)<GATE/2)inGate=true}
-        if(!inGate)FENCE.push({ax:ax,ay:ay,bx:bx,by:by,horiz:horiz,y:Math.max(ay,by)});
-      }
-    }
-    seg(p.x,p.y,p.x+p.w,p.y,'t');seg(p.x,p.y+p.h,p.x+p.w,p.y+p.h,'b');seg(p.x,p.y,p.x,p.y+p.h,'l');seg(p.x+p.w,p.y,p.x+p.w,p.y+p.h,'r');
-  });
-}
-function blockedAt(x,y,r,truck){
-  if(x<r+20||y<r+60||x>WW-r-20||y>WH-r-20)return true;
-  for(var i=0;i<SOLIDS.length;i++){var s=SOLIDS[i];if(x>s[0]-r&&x<s[0]+s[2]+r&&y>s[1]-r*0.5&&y<s[1]+s[3]+r*0.5)return true}
-  for(i=0;i<FENCE.length;i++){var f=FENCE[i];if(f.horiz){if(x>f.ax-r*0.6&&x<f.bx+r*0.6&&Math.abs(y-f.ay)<r*0.55)return true}else{if(y>f.ay-r*0.5&&y<f.by+r*0.5&&Math.abs(x-f.ax)<r*0.6)return true}}
-  if(!truck&&!G.inTruck&&Math.abs(x-TR.x)<120&&y>TR.y-34&&y<TR.y+14)return true;
-  if(truck){for(var k in PENS){var p=PENS[k];if(x>p.x-60&&x<p.x+p.w+60&&y>p.y-10&&y<p.y+p.h+40)return true}}
-  return false;
-}
-function moveBody(b,dx,dy,r,truck){
-  if(!blockedAt(b.x+dx,b.y,r,truck))b.x+=dx;else if(truck)b.vx*=-0.3;
-  if(!blockedAt(b.x,b.y+dy,r,truck))b.y+=dy;else if(truck)b.vy*=-0.3;
-}
-
-/* ---------------- days and chores ---------------- */
-// task: {type, ids?, item?, pen?, n, done(set/count), label}
-function T(type,o){return Object.assign({type:type,have:0,got:{}},o)}
-var DAYS=[
-  {name:'Good Morning, Oak Hill!',intro:"Rodney is up, so everybody's up! Boots and Nugget are waiting for breakfast.",tasks:function(){return[T('pet',{ids:['boots']}),T('feed',{ids:['boots'],item:'hay'}),T('feed',{ids:['nugget'],item:'hay'}),T('water',{pen:'horses'})]},tip:'Walk to the hay stack next to the barn and press the action button to grab some hay.'},
-  {name:'Little Hooves',intro:'The mini ponies want carrots from the garden, and Rosie wants her mane brushed.',tasks:function(){return[T('feed',{ids:['molly'],item:'carrot'}),T('feed',{ids:['rosie'],item:'carrot'}),T('feed',{ids:['brunello'],item:'apple'}),T('brush',{ids:['rosie']})]},tip:'Apples come from the Farm Stand down by the road. The grooming brush hangs by the barn.'},
-  {name:'Highland Hello',intro:'The Highland cows are hungry! Hay is heavy, so take the farm truck. Its bed holds four things.',tasks:function(){return[T('feeder',{pen:'cows',n:3}),T('feed',{ids:['lola'],item:'apple'}),T('brush',{ids:['pearl']}),T('pet',{ids:['george','hazel','prosciutto']}),T('water',{pen:'cows'})]},tip:'Load hay into the truck at the hay stack, drive to the pasture fence, hop out and fill the feeder.'},
-  {name:'Eggs at the Dome',intro:"Good morning, Chicken Dome! Feed the special chickens, then collect their eggs and sell them at the Farm Stand.",tasks:function(){return[T('domefeed',{n:1}),T('eggs',{n:6}),T('sell',{n:6}),T('feed',{ids:['peter'],item:'grain'}),T('pet',{ids:['rodney']})]},tip:'Feed comes from the feed shed. Walk over the eggs to put them in your basket.'},
-  {name:'Goat Escape!',intro:'Oh no! Armani, Speckles and Kiwi hopped the fence again! Find them and lead them home to the goat yard.',tasks:function(){return[T('roundup',{ids:['armani','speckles','kiwi']}),T('feed',{ids:['armani','speckles','kiwi'],item:'grain'}),T('water',{pen:'goats'})]},tip:'Walk up to a goat and press the action button. It will follow you!'},
-  {name:'Alpaca Spa Day',intro:'Gaby, Bianca, Amina and Tracey are getting fluffed up today.',tasks:function(){return[T('brush',{ids:['gaby','bianca','amina','tracey']}),T('feeder',{pen:'alpacas',n:2}),T('water',{pen:'alpacas'})]},tip:'Hold the action button to brush. Keep going until the circle fills up!'},
-  {name:'Barn Clean-Up',intro:"The barn yard is a mess! Grab the rake from the wheelbarrow, then feed the donkeys and mules.",tasks:function(){return[T('rake',{n:6}),T('feed',{ids:['charlotte','penelope','cookie','paris'],item:'hay'}),T('water',{pen:'donkeys'})]},tip:'Hold the action button on a straw mess to rake it up.'},
-  {name:'The Fall Festival',intro:"It's the Fall Festival at Oak Hill Farm! Feed Mo, Larry and Curley, treat the bunnies, and decorate the farm.",tasks:function(){return[T('feed',{ids:['mo','larry','curley'],item:'grain'}),T('feed',{ids:['bunnies'],item:'carrot'}),T('decor',{n:2}),T('pet',{ids:['peter','boots','gaby']})]},tip:'Buy decorations at the Farm Stand with the coins you have earned.'}
-];
-function randomDay(n){
-  var pool=[],pens=['horses','ponies','donkeys','cows','alpacas','goats','sheep'];
-  var feedable=CAST.filter(function(c){return c[0]!=='peter'}).map(function(c){return c[0]});
-  function some(arr,k){var a=arr.slice(),o=[];while(o.length<k&&a.length)o.push(a.splice((Math.random()*a.length)|0,1)[0]);return o}
-  var picks=some(feedable,3);pool.push(T('feed',{ids:picks,item:null}));
-  pool.push(T('water',{pen:pick(pens)}));
-  pool.push(T('brush',{ids:some(['boots','nugget','molly','rosie','brunello','gaby','bianca','amina','tracey','pearl','prosciutto','lola','charlotte','penelope'],2)}));
-  var extra=[function(){return T('eggs',{n:4})},function(){return T('rake',{n:4})},function(){return T('feeder',{pen:pick(Object.keys(FEEDERS)),n:2})},function(){return T('pet',{ids:some(ANIMAL_KEYS,3)})},function(){return T('domefeed',{n:1})}];
-  pool.push(pick(extra)());if(Math.random()<.6)pool.push(pick(extra)());
-  if(Math.random()<.25)pool.push(T('roundup',{ids:some(['armani','speckles','kiwi'],2)}));
-  // de-duplicate types
-  var seen={},out=[];pool.forEach(function(t){var key=t.type+(t.pen||'');if(!seen[key]){seen[key]=1;out.push(t)}});
-  return {name:'Farm Day '+n,intro:'Another sunny day at Oak Hill Farm. Check your clipboard!',tasks:function(){return out},tip:''};
-}
-function taskNeed(t){if(t.ids)return t.ids.length;return t.n||1}
-function taskLabel(t){
-  var nm=function(ids){var a=ids.map(function(i){return BY[i].name});return a.length<=2?a.join(' & '):a.slice(0,-1).join(', ')+' & '+a[a.length-1]};
-  switch(t.type){
-    case 'pet':return 'Pet '+nm(t.ids);
-    case 'feed':return t.item?('Give '+nm(t.ids)+' '+ITEMS[t.item].name):('Feed '+nm(t.ids));
-    case 'brush':return 'Brush '+nm(t.ids);
-    case 'water':return 'Water for the '+PENS[t.pen].name.toLowerCase();
-    case 'feeder':return 'Fill the '+PENS[t.pen].name.toLowerCase()+' feeder with hay';
-    case 'eggs':return 'Collect '+t.n+' eggs at the Chicken Dome';
-    case 'sell':return 'Sell '+t.n+' eggs at the Farm Stand';
-    case 'domefeed':return 'Feed the chickens at the Dome';
-    case 'roundup':return 'Bring '+nm(t.ids)+' home';
-    case 'rake':return 'Rake up '+t.n+' messes';
-    case 'decor':return 'Buy '+t.n+' decorations';
-  }return t.type;
-}
-function taskIcon(t){
-  switch(t.type){case 'pet':return src('i_heart');case 'feed':return t.ids.length===1?src(t.ids[0]):src(t.item?ITEMS[t.item].img:'i_hay');case 'brush':return src('i_brush');case 'water':return src('i_water');case 'feeder':return src('i_hay');case 'eggs':return src('i_egg');case 'sell':return src('i_basket');case 'domefeed':return src('i_grain');case 'roundup':return src(t.ids[0]);case 'rake':return src('i_rake');case 'decor':return src('pumpkins')}
-}
-function taskDone(t){return t.have>=taskNeed(t)}
-function startDay(n,def,tasks){
-  G.day=n;def=def||(n<=DAYS.length?DAYS[n-1]:randomDay(n));G.dayDef=def;G.tasks=tasks||def.tasks();G.dayT=0;G.ended=false;G.hold=null;G.holdN=0;G.bed=[];G.inTruck=false;G.followers=[];G.holdProg=0;engineOn(false);
-  P.x=1600;P.y=820;P.face=1;TR.x=1600;TR.y=1060;TR.vx=TR.vy=0;
-  spawnAnimals();
-  // set up the day's special things
-  G.eggs=[];G.messes=[];G.waterOK={};G.feederN={};
-  G.tasks.forEach(function(t){
-    if(t.type==='eggs'){var r=penInner(PENS.chickens,60);for(var i=0;i<t.n+2;i++){var ex,ey,tries=0;do{ex=rnd(r.x,r.x+r.w);ey=rnd(r.y,r.y+r.h)}while(blockedAt(ex,ey,30,false)&&++tries<40);G.eggs.push({x:ex,y:ey,bob:rnd(0,6)})}}
-    if(t.type==='rake'){for(var j=0;j<t.n;j++){var mx,my,tr2=0;do{var ang=rnd(0,6.28),rr=rnd(160,440);mx=clamp(1600+Math.cos(ang)*rr*1.3,1120,2160);my=clamp(700+Math.abs(Math.sin(ang))*rr,680,1320)}while((blockedAt(mx,my,34,false)||inPen(mx,my))&&++tr2<60);G.messes.push({x:mx,y:my,clean:0})}}
-    if(t.type==='roundup'){t.ids.forEach(function(id,i){var an=animal(id);an.out=true;an.home=false;var spots=[[1350,1000],[2150,880],[1900,1320],[1250,1330],[2050,560]];var s=spots[(i+Math.floor(Math.random()*5))%spots.length];an.x=s[0]+rnd(-40,40);an.y=s[1]+rnd(-30,30);an.tx=an.x;an.ty=an.y})}
-  });
-  renderTasks();
-  G.state='play';hideAll();
-  post('start');
-  setTimeout(function(){var r=animal('rodney');if(r){r.talk=2.2;r.talkT='Cock-a-doodle-doo!';r.jump=1}voice('rooster')},500);
-  toast(def.tip?('💡 '+def.tip):'Check your clipboard!',null,6000);
-}
-function renderTasks(){
-  var ul=$('tasks');ul.innerHTML='';var d=0;
-  var nextSet=false;G.tasks.forEach(function(t){var li=document.createElement('li');var need=taskNeed(t);if(taskDone(t)){li.className='done';d++}else if(!nextSet){li.className='next';nextSet=true}
-    li.innerHTML='<span class="ck">'+(taskDone(t)?'✓':'')+'</span><img src="'+taskIcon(t)+'" alt=""><span class="t"></span>'+(need>1?'<span class="n">'+Math.min(t.have,need)+'/'+need+'</span>':'');
-    li.querySelector('.t').textContent=taskLabel(t);ul.appendChild(li)});
-  $('dayname').textContent='Day '+G.day+' · '+G.dayDef.name;$('clipn').textContent=d+'/'+G.tasks.length;
-}
-$('cliph').addEventListener('click',function(){var c=$('clip');c.dataset.user=1;if(c.classList.contains('compact'))c.classList.remove('compact');else if(VW<640||VH<480)c.classList.add('compact');else c.classList.toggle('min')});
-function progress(type,match,amount){
-  // match(t) -> true if this event counts for task t; returns true if anything counted
-  var any=false;
-  G.tasks.forEach(function(t){if(t.type!==type||taskDone(t))return;var r=match(t);if(r){any=true;t.have=Math.min(taskNeed(t),t.have+(amount||1));if(taskDone(t)){SFX.done();toast('✅ '+taskLabel(t),taskIcon(t))}}});
-  if(any){renderTasks();checkEnd()}
-  return any;
-}
-function markId(t,id){if(!t.ids||t.ids.indexOf(id)<0||t.got[id])return false;t.got[id]=1;return true}
-function checkEnd(){if(G.ended)return;for(var i=0;i<G.tasks.length;i++)if(!taskDone(G.tasks[i]))return;G.ended=true;setTimeout(endDay,1200)}
-function parTime(){var u=0;G.tasks.forEach(function(t){u+=taskNeed(t)});return 50+u*22}
-function endDay(){
-  var t=G.dayT,par=parTime(),stars=t<=par?3:t<=par*1.6?2:1;
-  var prev=SAVE.stars[G.day]||0;if(stars>prev)SAVE.stars[G.day]=stars;
-  var coins=5+stars*2;SAVE.coins+=coins;SAVE.day=Math.max(SAVE.day,G.day+1);save();updateCoins();
-  post('over',{score:totalStars()});
-  engineOn(false);G.state='end';
-  var fest=G.day===8;
-  var happy=ANIM.filter(function(a){return a.happy>0||a.a.pen!=='yard'}).length;
-  $('endBody').innerHTML='<h2>'+(fest?'🎉 Happy Fall Festival!':'Day '+G.day+' done!')+'</h2><div class="stars">'+[0,1,2].map(function(i){return '<span class="'+(i<stars?'':'off')+'">⭐</span>'}).join('')+'</div>'+
-    '<p>All the chores finished in <b>'+fmt(t)+'</b>. You earned <b>'+coins+' 🪙</b>.</p>'+
-    (stars<3?'<p style="font-size:14px;opacity:.75">Finish in under '+fmt(par)+' for 3 stars.</p>':'')+
-    '<p style="font-size:14px">Farm Friends met: <b>'+Object.keys(SAVE.met).length+' / '+CAST.length+'</b> · Total stars: <b>'+totalStars()+'</b></p>';
-  for(var i=0;i<stars;i++)(function(i){setTimeout(function(){SFX.star(i)},300+i*260)})(i);
-  if(fest)confetti(160);
-  show('endS');focusFirst('endS');
-}
-function fmt(s){s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
-
-/* ---------------- interaction ---------------- */
-function holdingFood(){return G.hold&&!ITEMS[G.hold].tool&&G.hold!=='water'&&G.hold!=='eggs'}
-function animalWants(an){
-  // what is this animal waiting for today? returns item key / 'pet' / 'brush' / 'lead' / null
-  for(var i=0;i<G.tasks.length;i++){var t=G.tasks[i];if(taskDone(t))continue;
-    if(t.type==='roundup'&&t.ids.indexOf(an.id)>=0&&!an.home&&!an.follow)return 'lead';
-    if(t.ids&&t.ids.indexOf(an.id)>=0&&!t.got[an.id]){if(t.type==='feed')return t.item||KINDS[an.a.kind].eats[0];if(t.type==='pet')return 'pet';if(t.type==='brush')return 'brush'}
-  }return null;
-}
-function findTarget(){
-  var best=null,bd=1e9,px=G.inTruck?TR.x:P.x,py=G.inTruck?TR.y:P.y;
-  function consider(o,d,pri){var s=d-pri;if(s<bd){bd=s;best=o}}
-  var R=G.inTruck?170:105;
-  if(G.inTruck){
-    STATIONS.forEach(function(s){if(!s.item||s.item==='brush'||s.item==='rake')return;var d=dist(px,py,s.x,s.y);if(d<R+40)consider({k:'station',s:s},d,0)});
-    return best;
-  }
-  ANIM.forEach(function(an){var d=dist(px,py,an.x,an.y);if(d<R+an.a.h*0.25){var w=animalWants(an),pri=0;
-    if(w&&(w==='pet'||w==='lead'||(w==='brush'&&G.hold==='brush')||(G.hold&&w===G.hold)))pri=80;else if(holdingFood()&&KINDS[an.a.kind].eats.indexOf(G.hold)>=0)pri=50;else if(G.hold==='brush')pri=30;
-    consider({k:'animal',an:an},d,pri)}});
-  STATIONS.forEach(function(s){var d=dist(px,py,s.x,s.y+10);if(d<R+30)consider({k:'station',s:s},d,G.hold==='eggs'&&s.id==='stand'?90:10)});
-  Object.keys(TROUGHS).forEach(function(pn){var p=TROUGHS[pn],d=dist(px,py,p[0],p[1]);if(d<R+20&&G.hold==='water')consider({k:'trough',pen:pn},d,70)});
-  Object.keys(FEEDERS).forEach(function(pn){var p=FEEDERS[pn],d=dist(px,py,p[0],p[1]);if(d<R+20&&G.hold==='hay')consider({k:'feeder',pen:pn},d,75)});
-  var dd=dist(px,py,DOMEFEED[0],DOMEFEED[1]);if(dd<R+20&&G.hold==='grain')consider({k:'domefeed'},dd,75);
-  G.messes.forEach(function(m){if(m.clean>=1)return;var d=dist(px,py,m.x,m.y);if(d<R&&G.hold==='rake')consider({k:'mess',m:m},d,80)});
-  var dt=dist(px,py,TR.x,TR.y);if(dt<R+90)consider({k:'truck'},dt,(G.hold&&G.bed.length<4)||(!G.hold&&G.bed.length)?20:-30);
-  return best;
-}
-function actIcon(t){
-  if(!t)return G.hold?src(ITEMS[G.hold].img):src('i_heart');
-  if(t.k==='station')return t.s.item?(t.s.id==='stand'&&G.hold==='eggs'?src('i_basket'):src(ITEMS[t.s.item].img)):src('pumpkins');
-  if(t.k==='animal'){if(G.hold==='brush')return src('i_brush');if(holdingFood())return src(ITEMS[G.hold].img);return src('i_heart')}
-  if(t.k==='trough')return src('i_water');if(t.k==='feeder')return src('i_hay');if(t.k==='domefeed')return src('i_grain');if(t.k==='mess')return src('i_rake');if(t.k==='truck')return src('truck');
-}
-function setHold(item,n){G.hold=item;G.holdN=n||0;var c=$('carry');if(item){c.style.display='flex';$('carryimg').src=src(ITEMS[item].img);$('carryn').textContent=item==='eggs'?G.holdN:''}else c.style.display='none'}
-function meet(an){if(!SAVE.met[an.id]){SAVE.met[an.id]=Date.now();save();toast('📖 New Farm Friend: '+an.a.name+'!',src(an.id),3500);SFX.chime()}}
-function say(an,txt,t){an.talk=t||1.8;an.talkT=txt}
-function hearts(x,y,n){for(var i=0;i<(n||6);i++)G.parts.push({k:'heart',x:x+rnd(-30,30),y:y,vx:rnd(-40,40),vy:rnd(-140,-70),life:1.3,s:rnd(16,26)})}
-function sparkle(x,y,n){for(var i=0;i<(n||8);i++)G.parts.push({k:'spark',x:x+rnd(-40,40),y:y+rnd(-40,10),vx:rnd(-30,30),vy:rnd(-60,-10),life:0.8,s:rnd(5,10),c:pick(['#fff6a8','#ffffff','#ffd1f0','#b8f0ff'])})}
-function straw(x,y){for(var i=0;i<10;i++)G.parts.push({k:'straw',x:x,y:y,vx:rnd(-160,160),vy:rnd(-200,-60),life:0.7,s:rnd(6,12),r:rnd(0,3)})}
-function floatText(x,y,txt,col){G.floats.push({x:x,y:y,txt:txt,c:col||'#fff',life:1.4})}
-function confetti(n){for(var i=0;i<n;i++)G.parts.push({k:'conf',x:CAM.x+rnd(-VW/ZOOM/2,VW/ZOOM/2),y:CAM.y-VH/ZOOM/2-rnd(0,200),vx:rnd(-60,60),vy:rnd(80,220),life:4,s:rnd(6,11),r:rnd(0,6),c:pick(['#e8473a','#ffd65a','#4f9a3e','#2a8fd6','#ff8ec7','#fff'])})}
-var THANKS=['Yum!','Thank you!','Mmm!','So good!','Yay!','My favorite!'];
-function doAction(t){
-  if(!t)return;
-  if(t.k==='station'){
-    var s=t.s;
-    if(s.id==='stand'&&G.hold==='eggs'&&!G.inTruck){var n=G.holdN;SAVE.coins+=n*2;save();updateCoins();SFX.coin();floatText(s.x,s.y-200,'+'+(n*2)+' 🪙','#ffe066');progress('sell',function(){return true},n);setHold(null);toast('Sold '+n+' eggs! +'+(n*2)+' 🪙',src('i_basket'));return}
-    if(s.id==='market'){if(G.inTruck){toast('Hop out of the truck to shop!');return}openShop();return}
-    if(G.inTruck){if(G.bed.length>=4){toast('The truck bed is full!',src('truck'));SFX.no();return}G.bed.push(s.item);SFX.pop();floatText(TR.x,TR.y-130,'+'+ITEMS[s.item].name);return}
-    if(G.hold==='eggs'){toast('Sell your eggs at the Farm Stand first!',src('i_basket'));SFX.no();return}
-    setHold(s.item);SFX.pop();floatText(P.x,P.y-120,'Got '+ITEMS[s.item].name+'!');
-    return;
-  }
-  if(t.k==='truck'){
-    if(G.hold&&G.bed.length<4&&G.hold!=='brush'&&G.hold!=='rake'){if(G.hold==='eggs'){toast('Eggs ride in your basket, not the truck bed!');return}G.bed.push(G.hold);setHold(null);SFX.drop();return}
-    if(!G.hold&&G.bed.length){setHold(G.bed.pop());SFX.pop();return}
-    enterTruck();return;
-  }
-  if(t.k==='trough'){if(G.waterOK[t.pen]){toast('That trough is already full!');}G.waterOK[t.pen]=1;setHold(null);SFX.splash();sparkle(TROUGHS[t.pen][0],TROUGHS[t.pen][1]-20,10);progress('water',function(x){return x.pen===t.pen});
-    ANIM.forEach(function(an){if(an.a.pen===t.pen&&!an.out){an.happy=2;an.jump=0.6}});var any=ANIM.filter(function(an){return an.a.pen===t.pen})[0];if(any)voice(any.a.kind);return}
-  if(t.k==='feeder'){G.feederN[t.pen]=(G.feederN[t.pen]||0)+1;setHold(null);SFX.drop();straw(FEEDERS[t.pen][0],FEEDERS[t.pen][1]-20);progress('feeder',function(x){return x.pen===t.pen});
-    ANIM.forEach(function(an){if(an.a.pen===t.pen){an.tx=FEEDERS[t.pen][0]+(t.pen==='cows'||t.pen==='alpacas'?rnd(60,180):rnd(-180,-60));an.ty=FEEDERS[t.pen][1]+rnd(-30,120);an.wait=0;an.happy=2}});var f=ANIM.filter(function(an){return an.a.pen===t.pen})[0];if(f)voice(f.a.kind);return}
-  if(t.k==='domefeed'){setHold(null);SFX.drop();straw(DOMEFEED[0],DOMEFEED[1]-10);progress('domefeed',function(){return true});ANIM.forEach(function(an){if(an.a.pen==='chickens'){an.tx=DOMEFEED[0]+rnd(40,200);an.ty=DOMEFEED[1]+rnd(-60,80);an.wait=0;an.happy=3;meet(an)}});voice('hen');return}
-  if(t.k==='animal'){
-    var an=t.an,kind=KINDS[an.a.kind];
-    var w=animalWants(an);
-    if(w==='lead'){an.follow=true;G.followers.push(an);say(an,'Okay, okay!');voice(an.a.kind);meet(an);toast(an.a.name+' is following you! Lead '+(an.a.name==='Kiwi'?'her':'them')+' to the goat yard.',src(an.id));return}
-    if(G.hold==='brush')return; // brushing is a hold action, handled in update
-    if(holdingFood()){
-      if(kind.eats.indexOf(G.hold)<0){an.shake=0.6;SFX.no();say(an,'No thanks!');toast(an.a.name+' would rather have '+kind.eats.map(function(e){return ITEMS[e].name}).join(' or ')+'.',src(ITEMS[kind.eats[0]].img));return}
-      var food=G.hold;setHold(null);an.happy=3;an.jump=1;hearts(an.x,an.y-an.a.h);voice(an.a.kind);say(an,pick(THANKS));meet(an);
-      progress('feed',function(x){return markId(x,an.id)});
-      return;
-    }
-    if(G.hold==='water'){toast('Pour the water in the trough!',src('trough'));return}
-    // pet
-    an.happy=2;an.jump=0.7;hearts(an.x,an.y-an.a.h,4);voice(an.a.kind);say(an,pick(['Hi friend!','♥','Hehe!','Hello!']));meet(an);
-    progress('pet',function(x){return markId(x,an.id)});
-    return;
-  }
-}
-function enterTruck(){
-  if(G.hold==='brush'||G.hold==='rake'){/* tools ride along in the cab */}
-  if(G.followers.length){toast('Lead the goats home first — they can\'t ride in the truck!');SFX.no();return}
-  G.inTruck=true;SFX.door();setTimeout(SFX.honk,180);engineOn(true);
-}
-function exitTruck(){
-  // find a free spot next to the truck
-  var spots=[[0,64],[0,-56],[0,110],[TR.face*-150,20],[TR.face*150,20]];
-  for(var i=0;i<spots.length;i++){var x=TR.x+spots[i][0],y=TR.y+spots[i][1];G.inTruck=false;if(!blockedAt(x,y,22)){P.x=x;P.y=y;SFX.door();engineOn(false);return}G.inTruck=true}
-  toast('No room to hop out here!');
-}
-
-/* ---------------- shop ---------------- */
-function openShop(){
-  G.state='shop';$('shopCoins').textContent=SAVE.coins;var g=$('shopG');g.innerHTML='';
-  DECOR.forEach(function(d){var own=SAVE.decor[d.id];var div=document.createElement('div');div.className='card';div.innerHTML=(d.id==='bunting'?'<div style="font-size:52px;height:70px;line-height:70px">🎏</div>':'<img src="'+src(d.img||d.id)+'" alt="">')+'<b>'+d.name+'</b><br>'+(own?'✓ On the farm':d.cost+' 🪙');if(!own&&SAVE.coins<d.cost)div.style.opacity=.5;
-    div.addEventListener('click',function(){if(own)return;if(SAVE.coins<d.cost){SFX.no();toast('You need '+d.cost+' 🪙. Sell eggs and finish chores to earn more!');return}SAVE.coins-=d.cost;SAVE.decor[d.id]=1;save();updateCoins();SFX.coin();sparkle(P.x,P.y-80,14);progress('decor',function(){return true});openShop()});g.appendChild(div)});
-  show('shopS');
-  // a little help: if a decor task needs coins, make sure nobody gets stuck
-  var dt=G.tasks.filter(function(t){return t.type==='decor'&&!taskDone(t)})[0];
-  if(dt){var cheapest=DECOR.filter(function(d){return !SAVE.decor[d.id]}).map(function(d){return d.cost}).sort(function(a,b){return a-b});var needC=0;for(var i=0;i<taskNeed(dt)-dt.have&&i<cheapest.length;i++)needC+=cheapest[i];if(SAVE.coins<needC){SAVE.coins=needC;save();updateCoins();$('shopCoins').textContent=SAVE.coins;toast('Festival bonus! The farm gave you '+needC+' 🪙 to decorate.')}}
-}
-$('shopX').addEventListener('click',function(){hide('shopS');G.state='play'});
-function updateCoins(){$('coins').textContent=SAVE.coins}
-
-/* ---------------- update ---------------- */
-var lastT=performance.now(),actHeld=false;
-function update(dt){
-  pollPad();
-  if(pressed(PAUSE_KEYS)||gpPress('start')){if(G.state==='play')pause(true);else if(G.state==='pause')pause(false)}
-  if(pressed(['m']))setSound(!soundOn);
-  if(G.state==='title'||G.state==='end'||G.state==='day'){menuNav();PRESS={};return}
-  if(G.state!=='play'){PRESS={};return}
-  if(pressed(ALBUM_KEYS)||gpPress('y')){openAlbum();PRESS={};return}
-  G.t+=dt;G.dayT+=dt;
-  // input vector
-  var ix=0,iy=0;
-  if(held(['ArrowLeft','a']))ix-=1;if(held(['ArrowRight','d']))ix+=1;if(held(['ArrowUp','w']))iy-=1;if(held(['ArrowDown','s']))iy+=1;
-  if(GP.cur.lx&&Math.abs(GP.cur.lx)>0.2)ix+=GP.cur.lx;else{if(GP.cur.left)ix-=1;if(GP.cur.right)ix+=1}
-  if(GP.cur.ly&&Math.abs(GP.cur.ly)>0.2)iy+=GP.cur.ly;else{if(GP.cur.up)iy-=1;if(GP.cur.down)iy+=1}
-  if(JOY.on){ix+=JOY.x;iy+=JOY.y}
-  var m=Math.sqrt(ix*ix+iy*iy);if(m>1){ix/=m;iy/=m;m=1}
-  var actPress=pressed(ACTION_KEYS)||gpPress('a')||PRESS['__act'];
-  actHeld=held(ACTION_KEYS)||GP.cur.a||TOUCHACT;
-  var truckPress=pressed(TRUCK_KEYS)||gpPress('x')||PRESS['__truck'];
-  if(G.inTruck){
-    var sp=520;TR.vx+=(ix*sp-TR.vx)*Math.min(1,dt*3.2);TR.vy+=(iy*sp*0.8-TR.vy)*Math.min(1,dt*3.2);
-    moveBody(TR,TR.vx*dt,TR.vy*dt,40,true);if(Math.abs(TR.vx)>20)TR.face=TR.vx>0?1:-1;TR.bob+=dt*Math.hypot(TR.vx,TR.vy)*0.05;
-    if(engine)engine.o.frequency.value=48+Math.hypot(TR.vx,TR.vy)*0.06;
-    if(truckPress)exitTruck();
-  }else{
-    var spd=255;P.vx=ix*spd;P.vy=iy*spd;moveBody(P,P.vx*dt,P.vy*dt,22,false);if(Math.abs(P.vx)>10)P.face=P.vx>0?1:-1;if(m>0.1)P.walk+=dt*10;else P.walk=0;
-    if(truckPress){if(dist(P.x,P.y,TR.x,TR.y)<220)enterTruck();else toast('Walk over to the blue truck to hop in!',src('truck'))}
-  }
-  // target + action
-  var tgt=findTarget();G.target=tgt;$('actimg').src=actIcon(tgt);$('truckb').classList.toggle('show',G.inTruck||dist(P.x,P.y,TR.x,TR.y)<240);
-  if(actPress){if(tgt&&tgt.k==='animal'&&G.hold==='brush'){}else if(tgt&&tgt.k==='mess'){}else doAction(tgt);if(!tgt&&G.hold&&!G.inTruck)toast('Bring '+ITEMS[G.hold].name+' to a friend who needs '+(ITEMS[G.hold].tool?'it':'them')+'!',src(ITEMS[G.hold].img),2200)}
-  // hold actions: brushing and raking
-  if(actHeld&&tgt&&!G.inTruck&&((tgt.k==='animal'&&G.hold==='brush')||tgt.k==='mess')){
-    G.holdProg+=dt/1.2;
-    if(tgt.k==='animal'){var an=tgt.an;an.brush=0.2;if(Math.random()<dt*14){sparkle(an.x,an.y-an.a.h*0.5,2);SFX.brush()}
-      if(G.holdProg>=1){G.holdProg=0;an.happy=3;an.jump=1;hearts(an.x,an.y-an.a.h,6);voice(an.a.kind);say(an,'So fluffy!');meet(an);progress('brush',function(x){return markId(x,an.id)})}}
-    else{var ms=tgt.m;ms.clean=G.holdProg;if(Math.random()<dt*8){SFX.rake();straw(ms.x,ms.y)}if(G.holdProg>=1){ms.clean=1;G.holdProg=0;sparkle(ms.x,ms.y-10,12);SFX.chime();progress('rake',function(){return true})}}
-  }else if(!actHeld)G.holdProg=Math.max(0,G.holdProg-dt*0.5);
-  // eggs: walk over them
-  if(!G.inTruck)G.eggs.forEach(function(e){if(e.got)return;if(dist(P.x,P.y,e.x,e.y)<46){if(G.hold&&G.hold!=='eggs'){if(!e.warn){e.warn=1;toast('Your hands are full! Put down the '+ITEMS[G.hold].name+' to carry the egg basket.',src('i_egg'))}return}e.got=1;setHold('eggs',(G.hold==='eggs'?G.holdN:0)+1);SFX.pop();floatText(e.x,e.y-40,'🥚 '+G.holdN);progress('eggs',function(){return true})}});
-  // animals
-  ANIM.forEach(function(an){updateAnimal(an,dt)});
-  // followers trail the farmhand
-  G.followers=G.followers.filter(function(an){
-    var gp=PENS.goats;if(an.x>gp.x+20&&an.x<gp.x+gp.w-20&&an.y>gp.y+30&&an.y<gp.y+gp.h-20){an.follow=false;an.out=false;an.home=true;an.happy=3;an.jump=1;hearts(an.x,an.y-80);voice('goat');say(an,'Home sweet home!');progress('roundup',function(x){return markId(x,an.id)});return false}
-    return true});
-  // camera
-  var fx=G.inTruck?TR.x:P.x,fy=(G.inTruck?TR.y:P.y)-40;
-  CAM.x+=(fx-CAM.x)*Math.min(1,dt*5);CAM.y+=(fy-CAM.y)*Math.min(1,dt*5);
-  var hw=VW/ZOOM/2,hh=VH/ZOOM/2;CAM.x=clamp(CAM.x,Math.min(hw,WW/2),Math.max(WW-hw,WW/2));CAM.y=clamp(CAM.y,Math.min(hh,WH/2),Math.max(WH-hh,WH/2));
-  // particles
-  G.parts=G.parts.filter(function(p){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;if(p.k==='straw'||p.k==='conf'){p.vy+=(p.k==='conf'?20:500)*dt;p.r+=dt*6}else p.vy+=40*dt;return p.life>0});
-  G.floats=G.floats.filter(function(f){f.life-=dt;f.y-=40*dt;return f.life>0});
-  // sun
-  var par=parTime();$('suni').style.left=Math.min(100,100*G.dayT/(par*1.6))+'%';
-  // random farm life: Peter shows off, someone says hello
-  if(Math.random()<dt*0.12){var a=pick(ANIM);if(dist(a.x,a.y,P.x,P.y)<500){a.jump=0.5;voice(a.a.kind)}}
-  computeHint();
-  PRESS={};
-}
-function updateAnimal(an,dt){
-  an.jump=Math.max(0,an.jump-dt*1.8);an.happy=Math.max(0,an.happy-dt);an.shake=Math.max(0,an.shake-dt);an.brush=Math.max(0,an.brush-dt);an.talk=Math.max(0,an.talk-dt);
-  if(an.follow){var tx=P.x-P.face*(50+G.followers.indexOf(an)*55),ty=P.y+12;var d=dist(an.x,an.y,tx,ty);if(d>20){var s=Math.min(d*3,300);an.x+=(tx-an.x)/d*s*dt;an.y+=(ty-an.y)/d*s*dt;an.walk+=dt*12;an.face=tx>an.x?1:-1}else an.walk=0;return}
-  var r=areaOf(an);
-  // animals with something to ask for drift toward a nearby farmhand
-  var w=animalWants(an);
-  if(w&&w!=='lead'&&!G.inTruck&&dist(an.x,an.y,P.x,P.y)<420&&an.wait<=0){an.tx=clamp(P.x,r.x,r.x+r.w);an.ty=clamp(P.y,r.y,r.y+r.h);an.wait=0.6}
-  if(an.out&&!an.follow){ // escaped goats bounce around mischievously
-    if(an.wait<=0&&dist(an.x,an.y,an.tx,an.ty)<10){an.tx=clamp(an.x+rnd(-200,200),1100,2150);an.ty=clamp(an.y+rnd(-150,150),620,1340);an.wait=rnd(0.5,2)}
-  }
-  an.wait-=dt;
-  var dx=an.tx-an.x,dy=an.ty-an.y,d2=Math.sqrt(dx*dx+dy*dy);
-  if(d2>6&&an.wait<=0.0001+ (w?0.6:0)){var sp=(an.a.kind==='hen'||an.a.kind==='bunny')?70:an.out?120:55;an.x+=dx/d2*sp*dt;an.y+=dy/d2*sp*dt;an.walk+=dt*8;if(Math.abs(dx)>3)an.face=dx>0?1:-1}
-  else{an.walk=0;if(an.wait<=0){an.tx=rnd(r.x,r.x+r.w);an.ty=rnd(r.y,r.y+r.h);an.wait=rnd(1.5,5)}}
-  if(!an.out){an.x=clamp(an.x,r.x,r.x+r.w);an.y=clamp(an.y,r.y,r.y+r.h)}
-}
-function computeHint(){
-  // where should the bouncing arrow point? the next unfinished chore
-  G.hint=null;var px=G.inTruck?TR.x:P.x,py=G.inTruck?TR.y:P.y;
-  var t=null;for(var i=0;i<G.tasks.length;i++)if(!taskDone(G.tasks[i])){t=G.tasks[i];break}if(!t)return;
-  function station(item){var s=STATIONS.filter(function(s){return s.item===item})[0];return s?[s.x,s.y-(s.sh||80)-20]:null}
-  function nearestAn(ids){var b=null,bd=1e9;ids.forEach(function(id){if(t.got[id])return;var a=animal(id);var d=dist(px,py,a.x,a.y);if(d<bd){bd=d;b=a}});return b}
-  var need=null,goal=null;
-  if(G.inTruck&&G.bed.length){ /* driving with cargo: point at where it goes */ }
-  switch(t.type){
-    case 'pet':var a=nearestAn(t.ids);if(a)goal=[a.x,a.y-a.a.h-30];break;
-    case 'feed':var a2=nearestAn(t.ids);if(!a2)break;var eats=KINDS[a2.a.kind].eats,want=t.item||eats[0];if(holdingFood()&&eats.indexOf(G.hold)>=0||G.bed.indexOf(want)>=0&&G.inTruck)goal=[a2.x,a2.y-a2.a.h-30];else need=want;if(!goal&&G.bed.indexOf(want)>=0){goal=[TR.x,TR.y-140];need=null}break;
-    case 'brush':var a3=nearestAn(t.ids);if(!a3)break;if(G.hold==='brush')goal=[a3.x,a3.y-a3.a.h-30];else need='brush';break;
-    case 'water':if(G.hold==='water')goal=[TROUGHS[t.pen][0],TROUGHS[t.pen][1]-70];else need='water';break;
-    case 'feeder':if(G.hold==='hay'||(G.inTruck&&G.bed.indexOf('hay')>=0))goal=[FEEDERS[t.pen][0],FEEDERS[t.pen][1]-80];else if(!G.inTruck&&G.bed.indexOf('hay')>=0)goal=[TR.x,TR.y-140];else need='hay';break;
-    case 'domefeed':if(G.hold==='grain')goal=[DOMEFEED[0],DOMEFEED[1]-60];else need='grain';break;
-    case 'eggs':var e=G.eggs.filter(function(e){return !e.got}).sort(function(a,b){return dist(px,py,a.x,a.y)-dist(px,py,b.x,b.y)})[0];if(e)goal=[e.x,e.y-50];break;
-    case 'sell':if(G.hold==='eggs')goal=[SB.stand.x,SB.stand.y-230];else{var e2=G.eggs.filter(function(e){return !e.got})[0];if(e2)goal=[e2.x,e2.y-50]}break;
-    case 'roundup':if(G.followers.length)goal=[PENS.goats.x+PENS.goats.w/2,PENS.goats.y+60];else{var a4=null,bd=1e9;t.ids.forEach(function(id){var x=animal(id);if(x.home)return;var d=dist(px,py,x.x,x.y);if(d<bd){bd=d;a4=x}});if(a4)goal=[a4.x,a4.y-a4.a.h-30]}break;
-    case 'rake':if(G.hold!=='rake')need='rake';else{var m=G.messes.filter(function(m){return m.clean<1}).sort(function(a,b){return dist(px,py,a.x,a.y)-dist(px,py,b.x,b.y)})[0];if(m)goal=[m.x,m.y-50]}break;
-    case 'decor':goal=[SB.market.x,SB.market.y-250];break;
-  }
-  if(need){if(G.hold===need)return;var st=station(need);if(st)goal=st}
-  G.hint=goal;
-}
-
-/* ---------------- render ---------------- */
-function drawImg(k,x,y,h,flip,sq,rot){
-  var im=IMG[k];if(!im||!im.complete||!im.naturalWidth)return;var w=h*im.naturalWidth/im.naturalHeight;sq=sq||0;
-  cx.save();cx.translate(x,y);if(rot)cx.rotate(rot);cx.scale((flip<0?-1:1)*(1+sq*0.5),1-sq);cx.drawImage(im,-w/2,-h,w,h);cx.restore();
-}
-function shadow(x,y,w){cx.fillStyle='rgba(40,60,20,.22)';cx.beginPath();cx.ellipse(x,y,w,w*0.28,0,0,7);cx.fill()}
-function roundRect(x,y,w,h,r){cx.beginPath();cx.moveTo(x+r,y);cx.arcTo(x+w,y,x+w,y+h,r);cx.arcTo(x+w,y+h,x,y+h,r);cx.arcTo(x,y+h,x,y,r);cx.arcTo(x,y,x+w,y,r);cx.closePath()}
-function bubble(x,y,icon,s){
-  s=s||1;var b=Math.sin(G.t*5)*4;cx.save();cx.translate(x,y+b);cx.scale(s,s);
-  cx.fillStyle='#fffdf6';cx.strokeStyle='#4a2e1a';cx.lineWidth=4;roundRect(-30,-62,60,54,16);cx.fill();cx.stroke();
-  cx.beginPath();cx.moveTo(-8,-10);cx.lineTo(0,2);cx.lineTo(8,-10);cx.closePath();cx.fill();cx.stroke();cx.fillRect(-10,-14,20,6);
-  if(icon==='pet')drawImg('i_heart',0,-14,40);else if(icon==='lead'){cx.font='700 30px Fredoka';cx.textAlign='center';cx.fillStyle='#4a2e1a';cx.fillText('🏠',0,-22)}else drawImg(ITEMS[icon]?ITEMS[icon].img:icon,0,-14,40);
-  cx.restore();
-}
-function label(x,y,txt,col){cx.font='600 20px Fredoka';cx.textAlign='center';cx.lineJoin='round';cx.lineWidth=5;cx.strokeStyle='rgba(74,46,26,.85)';cx.strokeText(txt,x,y);cx.fillStyle=col||'#fff';cx.fillText(txt,x,y)}
-function speech(x,y,txt){cx.font='600 19px Fredoka';var w=cx.measureText(txt).width+22;cx.fillStyle='#fff';cx.strokeStyle='#4a2e1a';cx.lineWidth=3;roundRect(x-w/2,y-38,w,32,14);cx.fill();cx.stroke();cx.fillStyle='#4a2e1a';cx.textAlign='center';cx.fillText(txt,x,y-15)}
-function drawGround(){
-  cx.fillStyle=grassPat||'#6fb24e';cx.fillRect(0,0,WW,WH);
-  // road along the bottom
-  cx.fillStyle='#8a8f96';cx.fillRect(0,WH-140,WW,140);cx.fillStyle='#6f747b';cx.fillRect(0,WH-140,WW,10);cx.fillStyle='#ffd65a';for(var x=20;x<WW;x+=120)cx.fillRect(x,WH-74,64,8);
-  // dirt paths
-  cx.fillStyle=dirtPat||'#d9b37c';cx.strokeStyle=dirtPat||'#d9b37c';cx.lineCap='round';cx.lineJoin='round';
-  cx.lineWidth=120;cx.beginPath();cx.moveTo(1600,640);cx.lineTo(1600,WH-140);cx.stroke();
-  cx.lineWidth=90;cx.beginPath();cx.moveTo(960,560);cx.lineTo(1250,640);cx.lineTo(1960,640);cx.lineTo(2240,600);cx.stroke();
-  cx.beginPath();cx.moveTo(960,1180);cx.lineTo(1600,1100);cx.lineTo(2240,1240);cx.stroke();
-  cx.beginPath();cx.moveTo(960,1560);cx.lineTo(1250,1360);cx.stroke();cx.beginPath();cx.moveTo(2240,1600);cx.lineTo(1950,1360);cx.stroke();
-  cx.beginPath();cx.ellipse(1600,700,330,120,0,0,7);cx.fill();
-  // pens
-  Object.keys(PENS).forEach(function(k){var p=PENS[k];cx.fillStyle=k==='chickens'?'rgba(230,200,120,.55)':'rgba(170,220,120,.32)';roundRect(p.x,p.y,p.w,p.h,8);cx.fill()});
-  // pond
-  cx.fillStyle='#5fb6e8';cx.strokeStyle='#3f8fbf';cx.lineWidth=6;cx.beginPath();cx.ellipse(2500,2010,170,62,0,0,7);cx.fill();cx.stroke();cx.fillStyle='rgba(255,255,255,.5)';cx.beginPath();cx.ellipse(2450,1995,60,10,0,0,7);cx.fill();
-  // straw ground in the barn yard when there are messes is drawn as sprites
-}
-function drawFence(f){
-  cx.strokeStyle='#7a4f2a';cx.lineCap='round';
-  if(f.horiz){cx.lineWidth=7;cx.beginPath();cx.moveTo(f.ax,f.ay-34);cx.lineTo(f.bx,f.by-34);cx.moveTo(f.ax,f.ay-14);cx.lineTo(f.bx,f.by-14);cx.stroke();cx.strokeStyle='#a8754a';cx.lineWidth=3;cx.beginPath();cx.moveTo(f.ax,f.ay-36);cx.lineTo(f.bx,f.by-36);cx.stroke();
-    post4(f.ax,f.ay)}
-  else{cx.lineWidth=7;cx.beginPath();cx.moveTo(f.ax,f.ay-34);cx.lineTo(f.bx,f.by-34);cx.moveTo(f.ax+0.01,f.ay-14);cx.lineTo(f.bx,f.by-14);cx.stroke();post4(f.ax,f.ay)}
-  function post4(x,y){cx.fillStyle='#8a5a30';cx.strokeStyle='#4a2e1a';cx.lineWidth=2.5;cx.fillRect(x-5,y-46,10,48);cx.strokeRect(x-5,y-46,10,48)}
-}
-function render(){
-  cx.setTransform(DPR,0,0,DPR,0,0);cx.fillStyle='#6fb24e';cx.fillRect(0,0,VW,VH);
-  cx.setTransform(DPR*ZOOM,0,0,DPR*ZOOM,DPR*(VW/2-CAM.x*ZOOM),DPR*(VH/2-CAM.y*ZOOM));
-  drawGround();
-  // flat things
-  G.messes.forEach(function(m){if(m.clean>=1)return;cx.globalAlpha=1-m.clean*0.8;drawImg('i_mess',m.x,m.y+14,40*(1-m.clean*0.4));cx.globalAlpha=1});
-  G.eggs.forEach(function(e){if(!e.got)drawImg('i_egg',e.x,e.y+6,36+Math.sin(G.t*3+e.bob)*2)});
-  // sortable things
-  var L=[];
-  FENCE.forEach(function(f){L.push({y:f.y,f:f})});
-  PROPS.forEach(function(p){L.push({y:p[2],p:p})});
-  STATIONS.forEach(function(s){L.push({y:s.y,s:s})});
-  Object.keys(TROUGHS).forEach(function(k){L.push({y:TROUGHS[k][1],tr:k})});
-  Object.keys(FEEDERS).forEach(function(k){L.push({y:FEEDERS[k][1],fd:k})});
-  L.push({y:DOMEFEED[1],dfe:1});
-  DECOR.forEach(function(d){if(!SAVE.decor[d.id])return;d.spots.forEach(function(s){L.push({y:s[1],dec:[d.img||d.id,s[0],s[1],s[2]]})})});
-  ANIM.forEach(function(a){L.push({y:a.y,an:a})});
-  L.push({y:TR.y,truck:1});
-  if(!G.inTruck)L.push({y:P.y,kid:1});
-  L.sort(function(a,b){return a.y-b.y});
-  L.forEach(function(o){
-    if(o.f)drawFence(o.f);
-    else if(o.p){shadow(o.p[1],o.p[2],o.p[3]*0.4);drawImg(o.p[0],o.p[1],o.p[2],o.p[3])}
-    else if(o.s){var s=o.s;if(s.spr){shadow(s.x,s.y,s.sh*0.35);drawImg(s.spr,s.x,s.y,s.sh)}
-      if(s.id==='brush'){cx.fillStyle='#8a5a30';cx.strokeStyle='#4a2e1a';cx.lineWidth=3;cx.fillRect(s.x-6,s.y-110,12,112);cx.strokeRect(s.x-6,s.y-110,12,112);cx.fillRect(s.x-26,s.y-110,52,10);cx.strokeRect(s.x-26,s.y-110,52,10);if(G.hold!=='brush')drawImg('i_brush',s.x,s.y-48,52)}
-      if(s.id==='rake'&&G.hold!=='rake')drawImg('i_rake',s.x-6,s.y-20,92,1,0,-0.35);
-      if(s.id==='stand'){drawImg('i_apple',s.x+70,s.y-6,40);}
-      if(dist(P.x,P.y,s.x,s.y)<260&&!G.inTruck||G.inTruck&&dist(TR.x,TR.y,s.x,s.y)<300)label(s.x,s.y-(s.sh||110)-14,s.item?s.label+' · '+ITEMS[s.item].name:s.label,'#ffe9a8')}
-    else if(o.tr){var t=TROUGHS[o.tr];drawImg('trough',t[0],t[1],50);if(G.waterOK[o.tr]){cx.fillStyle='rgba(120,200,255,.0)'}}
-    else if(o.fd){var f=FEEDERS[o.fd];drawImg('bench',f[0],f[1],66);var n=G.feederN[o.fd]||0;for(var i=0;i<Math.min(n,3);i++)drawImg('i_hay',f[0]-30+i*30,f[1]-38,30)}
-    else if(o.dfe){cx.fillStyle='#c98b4a';cx.strokeStyle='#4a2e1a';cx.lineWidth=3;roundRect(DOMEFEED[0]-40,DOMEFEED[1]-26,80,26,8);cx.fill();cx.stroke();drawImg('i_grain',DOMEFEED[0],DOMEFEED[1]-14,34)}
-    else if(o.dec){shadow(o.dec[1],o.dec[2],o.dec[3]*0.35);drawImg(o.dec[0],o.dec[1],o.dec[2],o.dec[3])}
-    else if(o.an)drawAnimal(o.an);
-    else if(o.truck)drawTruck();
-    else if(o.kid)drawKid();
-  });
-  if(SAVE.decor.bunting)drawBunting();
-  // particles
-  G.parts.forEach(function(p){cx.globalAlpha=Math.min(1,p.life*2);
-    if(p.k==='heart')drawImg('i_heart',p.x,p.y,p.s);
-    else if(p.k==='spark'){cx.fillStyle=p.c;cx.beginPath();for(var i=0;i<8;i++){var r=i%2?p.s*0.4:p.s,a=i*Math.PI/4;cx.lineTo(p.x+Math.cos(a)*r,p.y+Math.sin(a)*r)}cx.fill()}
-    else if(p.k==='straw'){cx.strokeStyle='#e6c25a';cx.lineWidth=3;cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(p.x+Math.cos(p.r)*p.s,p.y+Math.sin(p.r)*p.s);cx.stroke()}
-    else if(p.k==='conf'){cx.fillStyle=p.c;cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);cx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);cx.restore()}
-    cx.globalAlpha=1});
-  G.floats.forEach(function(f){cx.globalAlpha=Math.min(1,f.life*1.5);label(f.x,f.y,f.txt,f.c);cx.globalAlpha=1});
-  // target ring
-  var t=G.target;if(t&&G.state==='play'){var tx,ty;if(t.k==='animal'){tx=t.an.x;ty=t.an.y}else if(t.k==='station'){tx=t.s.x;ty=t.s.y}else if(t.k==='trough'){tx=TROUGHS[t.pen][0];ty=TROUGHS[t.pen][1]}else if(t.k==='feeder'){tx=FEEDERS[t.pen][0];ty=FEEDERS[t.pen][1]}else if(t.k==='domefeed'){tx=DOMEFEED[0];ty=DOMEFEED[1]}else if(t.k==='mess'){tx=t.m.x;ty=t.m.y}else if(t.k==='truck'){tx=TR.x;ty=TR.y}
-    cx.strokeStyle='rgba(255,255,255,.9)';cx.lineWidth=4;cx.setLineDash([10,8]);cx.lineDashOffset=-G.t*30;cx.beginPath();cx.ellipse(tx,ty+4,58,18,0,0,7);cx.stroke();cx.setLineDash([]);
-    if(G.holdProg>0&&(t.k==='animal'||t.k==='mess')){var hx=tx,hy=ty-(t.k==='animal'?t.an.a.h+40:70);cx.lineWidth=9;cx.strokeStyle='rgba(74,46,26,.5)';cx.beginPath();cx.arc(hx,hy,24,0,7);cx.stroke();cx.strokeStyle='#8fd16a';cx.beginPath();cx.arc(hx,hy,24,-Math.PI/2,-Math.PI/2+G.holdProg*Math.PI*2);cx.stroke()}}
-  // hint arrow
-  if(G.hint&&G.state==='play')drawHint(G.hint[0],G.hint[1]);
-}
-function drawHint(x,y){
-  var sx=(x-CAM.x)*ZOOM+VW/2,sy=(y-CAM.y)*ZOOM+VH/2,m=60;
-  var on=sx>24&&sx<VW-24&&sy>30&&sy<VH-24;
-  if(on){var b=Math.abs(Math.sin(G.t*4))*16;cx.save();cx.translate(x,y-b);cx.fillStyle='#ffd65a';cx.strokeStyle='#4a2e1a';cx.lineWidth=5;cx.beginPath();cx.moveTo(-20,-40);cx.lineTo(20,-40);cx.lineTo(20,-14);cx.lineTo(34,-14);cx.lineTo(0,18);cx.lineTo(-34,-14);cx.lineTo(-20,-14);cx.closePath();cx.fill();cx.stroke();cx.restore();return}
-  // edge arrow in screen space
-  cx.setTransform(DPR,0,0,DPR,0,0);var cxs=VW/2,cys=VH/2,dx=sx-cxs,dy=sy-cys,a=Math.atan2(dy,dx);
-  var ex=clamp(sx,m,VW-m),ey=clamp(sy,m+50,VH-m-(document.body.classList.contains('touch')?90:0));var cr=$('clip').getBoundingClientRect();if(ex<cr.right+30&&ey<cr.bottom+30){if(Math.abs(dx)>Math.abs(dy))ey=cr.bottom+40;else ex=cr.right+40}
-  cx.save();cx.translate(ex,ey);cx.rotate(a);var pulse=1+Math.sin(G.t*6)*0.08;cx.scale(pulse,pulse);cx.fillStyle='#ffd65a';cx.strokeStyle='#4a2e1a';cx.lineWidth=4;cx.beginPath();cx.moveTo(26,0);cx.lineTo(-14,-22);cx.lineTo(-6,0);cx.lineTo(-14,22);cx.closePath();cx.fill();cx.stroke();cx.restore();
-}
-function drawAnimal(an){
-  var a=an.a,h=a.h,bob=an.walk?Math.abs(Math.sin(an.walk))*-5:Math.sin(G.t*2+an.x)*1.2,jy=an.jump>0?-Math.sin(an.jump*Math.PI)*28:0,sq=an.walk?Math.sin(an.walk*2)*0.03:0;
-  var shk=an.shake>0?Math.sin(an.shake*40)*6:0;
-  shadow(an.x,an.y,h*0.32*(a.kind==='peacock'?1.1:1));
-  var flip=a.id==='peter'?1:an.face;
-  drawImg(a.id,an.x+shk,an.y+bob+jy,h,flip,sq+(an.brush>0?Math.sin(G.t*30)*0.03:0));
-  var w=G.state==='play'?animalWants(an):null;
-  var near=dist(an.x,an.y,G.inTruck?TR.x:P.x,G.inTruck?TR.y:P.y)<230;
-  if(an.talk>0)speech(an.x,an.y-h-12+jy,an.talkT);
-  else if(w)bubble(an.x,an.y-h-6+jy,w,0.95);
-  if((near||w)&&an.talk<=0)label(an.x,an.y+26,a.name,SAVE.met[a.id]?'#fff':'#e8f6ff');
-}
-function drawKid(){
-  var k=P.kid==='boy'?'kid_boy':'kid_girl',bob=P.walk?Math.abs(Math.sin(P.walk))*-6:0,tilt=P.walk?Math.sin(P.walk)*0.06:0;
-  shadow(P.x,P.y,26);drawImg(k,P.x,P.y+bob,104,P.face,0,tilt);
-  if(G.hold){var hx=P.x+P.face*30,hy=P.y-62+bob;drawImg(ITEMS[G.hold].img,hx,hy,G.hold==='rake'?78:44);if(G.hold==='eggs'){label(hx+22,hy-34,'×'+G.holdN,'#fff')}}
-}
-function drawTruck(){
-  var by=Math.sin(TR.bob)*2.5;shadow(TR.x,TR.y,120);drawImg('truck',TR.x,TR.y+by,118,TR.face);
-  // cargo in the bed (the bed is behind the cab)
-  var bedX=TR.x-TR.face*62;G.bed.forEach(function(it,i){drawImg(ITEMS[it].img,bedX+(i-1.5)*24*TR.face,TR.y-54+by-(i%2)*6,40)});
-  if(G.inTruck){var k=P.kid==='boy'?'kid_boy':'kid_girl';cx.save();cx.beginPath();cx.rect(TR.x+TR.face*8-40,TR.y-112+by,80,46);cx.clip();drawImg(k,TR.x+TR.face*28,TR.y-40+by,86,TR.face);cx.restore()}
-  if(!G.inTruck&&dist(P.x,P.y,TR.x,TR.y)<240)label(TR.x,TR.y-134,'Farm truck'+(G.bed.length?' · '+G.bed.length+'/4':''),'#bfe6ff');
-}
-function drawBunting(){
-  var x0=1440,x1=1760,y=380,cols=['#e8473a','#ffd65a','#4f9a3e','#2a8fd6','#ff8ec7'];cx.strokeStyle='#4a2e1a';cx.lineWidth=3;cx.beginPath();cx.moveTo(x0,y);cx.quadraticCurveTo(1600,y+60,x1,y);cx.stroke();
-  for(var i=0;i<9;i++){var t=(i+0.5)/9,x=x0+(x1-x0)*t,yy=y+Math.sin(t*Math.PI)*30;cx.fillStyle=cols[i%5];cx.beginPath();cx.moveTo(x-14,yy);cx.lineTo(x+14,yy);cx.lineTo(x,yy+28);cx.closePath();cx.fill();cx.stroke()}
-}
-
-/* ---------------- screens ---------------- */
-function show(id){$(id).classList.add('show')}
-function hide(id){$(id).classList.remove('show')}
-function hideAll(){['title','kidS','dayS','endS','pauseS','albumS','friendS','shopS','helpS'].forEach(hide);$('back').style.display='none'}
-function toast(msg,img,ms){var t=$('toast');while(t.children.length>1)t.removeChild(t.firstChild);var d=document.createElement('div');if(img){var i=document.createElement('img');i.src=img;d.appendChild(i)}var s=document.createElement('span');s.textContent=msg;d.appendChild(s);t.appendChild(d);setTimeout(function(){d.remove()},ms||3200)}
-function pause(on){if(on){if(G.state!=='play')return;G.state='pause';engineOn(false);$('pauseInfo').textContent='Day '+G.day+' · '+G.dayDef.name+' · '+G.tasks.filter(taskDone).length+'/'+G.tasks.length+' chores done';$('pQuit').textContent=EMBED?'← Quit to the Arcade':'← Back to the Arcade';show('pauseS');focusFirst('pauseS')}else{hide('pauseS');G.state='play';if(G.inTruck)engineOn(true)}}
-$('bPause').addEventListener('click',function(){audio();pause(true)});
-$('pResume').addEventListener('click',function(){pause(false)});
-$('pRestart').addEventListener('click',function(){hide('pauseS');startDay(G.day)});
-$('pTitle').addEventListener('click',function(){hide('pauseS');toTitle()});
-$('pQuit').addEventListener('click',function(){if(EMBED)post('exit');else location.href='/'});
-$('pHelp').addEventListener('click',function(){show('helpS');focusFirst('helpS')});
-$('helpX').addEventListener('click',function(){hide('helpS')});
-var albumFrom='';
-function openAlbum(){albumFrom=G.state;if(G.state==='play'){G.state='album';engineOn(false)}var g=$('albumG');g.innerHTML='';var n=0;
-  CAST.forEach(function(c){var met=!!SAVE.met[c[0]];if(met)n++;var d=document.createElement('div');d.className='card'+(met?'':' lock');d.innerHTML='<img src="'+src(c[0])+'" alt=""><span></span>';d.querySelector('span').textContent=met?c[1]:'???';d.addEventListener('click',function(){openFriend(c[0])});g.appendChild(d)});
-  $('albumN').textContent=n+' / '+CAST.length;show('albumS');focusFirst('albumS')}
-$('bAlbum').addEventListener('click',function(){audio();if(G.state==='play')openAlbum()});
-$('tAlbum').addEventListener('click',function(){audio();openAlbum()});
-$('pAlbum').addEventListener('click',function(){openAlbum()});
-$('endAlbum').addEventListener('click',function(){openAlbum()});
-$('albumX').addEventListener('click',function(){hide('albumS');if(albumFrom==='play'){G.state='play';if(G.inTruck)engineOn(true)}});
-function openFriend(id){var a=BY[id],met=!!SAVE.met[id];var b=$('friendBody');
-  b.innerHTML=met?('<img src="'+src(id)+'" alt=""><h2></h2><p class="role" style="font-weight:700;color:#c8432d"></p><p class="fact"></p><div><button class="btn alt" id="fSay">🔊 Say hi</button><button class="btn" id="fX">Back</button></div>'):('<img src="'+src(id)+'" alt="" style="filter:brightness(0) opacity(.3)"><h2>???</h2><p>You haven\'t met this friend yet. Pet, feed or brush them to find out who they are!</p><button class="btn" id="fX">Back</button>');
-  if(met){b.querySelector('h2').textContent=a.name;b.querySelector('.role').textContent=a.role;b.querySelector('.fact').textContent=a.fact;$('fSay').addEventListener('click',function(){audio();voice(a.kind)});voice(a.kind)}
-  $('fX').addEventListener('click',function(){hide('friendS')});show('friendS');focusFirst('friendS')}
-function dayCard(n){
-  var def=n<=DAYS.length?DAYS[n-1]:randomDay(n);G.preview=def;var tasks=def.tasks();G.previewTasks=tasks;
-  $('dayBody').innerHTML='<h2>Day '+n+': '+def.name+'</h2><p></p><div class="tasks"></div>';$('dayBody').querySelector('p').textContent=def.intro;
-  var tw=$('dayBody').querySelector('.tasks');tasks.forEach(function(t){var d=document.createElement('div');d.innerHTML='<img src="'+taskIcon(t)+'" alt=""><span></span>';d.querySelector('span').textContent=taskLabel(t);tw.appendChild(d)});
-  G.state='day';hideAll();show('dayS');focusFirst('dayS');
-}
-$('dayGo').addEventListener('click',function(){audio();startDay(G.pendingDay,G.preview,G.previewTasks)});
-function goDay(n){G.pendingDay=n;dayCard(n)}
-$('endNext').addEventListener('click',function(){audio();hide('endS');goDay(G.day+1)});
-function toTitle(){G.state='title';engineOn(false);hideAll();show('title');if(!EMBED)$('back').style.display='block';$('tPlay').textContent=SAVE.day>1?'▶ Play Day '+Math.min(SAVE.day,99):'▶ Play';focusFirst('title')}
-$('tPlay').addEventListener('click',function(){audio();if(!SAVE.kid){openKid(true);return}P.kid=SAVE.kid;goDay(Math.max(1,SAVE.day))});
-$('tKid').addEventListener('click',function(){audio();openKid(false)});
-$('tSound').addEventListener('click',function(){audio();setSound(!soundOn)});
-var kidThen=false;
-function openKid(then){kidThen=then;document.querySelectorAll('.kid').forEach(function(k){k.classList.toggle('sel',k.dataset.k===(SAVE.kid||'girl'))});show('kidS');focusFirst('kidS')}
-document.querySelectorAll('.kid').forEach(function(k){k.addEventListener('click',function(){document.querySelectorAll('.kid').forEach(function(o){o.classList.remove('sel')});k.classList.add('sel');SFX.pop()})});
-$('kidOk').addEventListener('click',function(){var s=document.querySelector('.kid.sel');SAVE.kid=s?s.dataset.k:'girl';P.kid=SAVE.kid;save();hide('kidS');if(kidThen)goDay(Math.max(1,SAVE.day))});
-// keyboard / controller navigation for menus
-function visibleScreen(){var ids=['friendS','helpS','shopS','albumS','kidS','pauseS','endS','dayS','title'];for(var i=0;i<ids.length;i++)if($(ids[i]).classList.contains('show'))return $(ids[i]);return null}
-var focusIdx=0;
-function focusables(sc){return [].slice.call(sc.querySelectorAll('button,.kid,.card')).filter(function(b){return b.offsetParent!==null})}
-function focusFirst(id){focusIdx=0;paintFocus()}
-function paintFocus(){document.querySelectorAll('.focus').forEach(function(e){e.classList.remove('focus')});var sc=visibleScreen();if(!sc||!usingPad)return;var f=focusables(sc);if(!f.length)return;focusIdx=(focusIdx+f.length)%f.length;f[focusIdx].classList.add('focus');f[focusIdx].scrollIntoView({block:'nearest'})}
-var usingPad=false;
-function menuNav(){
-  var sc=visibleScreen();if(!sc)return;var f=focusables(sc);
-  var dir=0;if(pressed(['ArrowRight','ArrowDown','d','s'])||gpPress('right')||gpPress('down'))dir=1;if(pressed(['ArrowLeft','ArrowUp','a','w'])||gpPress('left')||gpPress('up'))dir=-1;
-  if(dir){usingPad=true;focusIdx+=dir;paintFocus();SFX.pop()}
-  if(pressed([' ','Enter'])||gpPress('a')){var el=usingPad?f[(focusIdx+f.length)%f.length]:null;if(!el){var def=sc.querySelector('.btn.green')||sc.querySelector('#tPlay')||sc.querySelector('.btn');el=def}if(el)el.click();usingPad=usingPad;setTimeout(paintFocus,30)}
-  if((gpPress('b')||pressed(['Escape','Backspace']))&&sc.id!=='title'){var x=sc.querySelector('#albumX,#fX,#shopX,#helpX,#pResume,#kidOk');if(x)x.click()}
-}
-// screens other than play/title/day/end also need nav: run menuNav while paused or in album/shop
-var _upd=update;update=function(dt){if(G.state==='pause'||G.state==='album'||G.state==='shop'||$('friendS').classList.contains('show')||$('helpS').classList.contains('show')||$('kidS').classList.contains('show')){pollPad();if(pressed(['m']))setSound(!soundOn);if(G.state==='pause'&&(pressed(['p'])||gpPress('start'))){pause(false);PRESS={};return}menuNav();PRESS={};return}_upd(dt)};
-
-/* ---------------- loop ---------------- */
-function frame(now){var dt=Math.min(0.05,(now-lastT)/1000);lastT=now;try{update(dt);if(G.state!=='load'&&G.state!=='title')render();else if(G.state==='title'){}}catch(e){console.error(e)}requestAnimationFrame(frame)}
-function boot(){makePatterns();buildFences();spawnAnimals();updateCoins();P.kid=SAVE.kid||'girl';setSound(soundOn);$('load').style.display='none';toTitle();requestAnimationFrame(frame)}
-loadAll(boot);
-// pause the music when the tab is hidden
-document.addEventListener('visibilitychange',function(){if(document.hidden){if(music)music.pause();if(G.state==='play')pause(true)}else if(soundOn&&music&&G.state!=='load'){var p=music.play();if(p&&p.catch)p.catch(function(){})}});
-
-/* test hooks */
-window.__ohf={KINDS:KINDS,SB:SB,G:G,P:P,TR:TR,SAVE:SAVE,ANIM:ANIM,start:function(n){P.kid=SAVE.kid||'girl';startDay(n)},doAction:doAction,findTarget:findTarget,animal:animal,setHold:setHold,PENS:PENS,STATIONS:STATIONS,TROUGHS:TROUGHS,FEEDERS:FEEDERS,DOMEFEED:DOMEFEED,taskDone:taskDone,enterTruck:enterTruck,exitTruck:exitTruck,blockedAt:blockedAt,CAST:CAST,BUILD:BUILD,getAnim:function(){return ANIM}};
-})();
-</script>
+<script src="ohf/ohf-core.js?v=2"></script>
+<script src="ohf/ohf-farm.js?v=2"></script>
+<script src="ohf/ohf-minis.js?v=2"></script>
+<script src="ohf/ohf-color.js?v=2"></script>
+<script src="ohf/ohf-ui.js?v=2"></script>
+<script>OHF.UI.boot();</script>
 </body>
 </html>

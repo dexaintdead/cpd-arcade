@@ -1,4 +1,4 @@
-/* ContentPad Arcade — player accounts, cloud saves and leaderboards (build 2026100801-acct: + Night Drive, time boards).
+/* ContentPad Arcade — player accounts, cloud saves and leaderboards (build 2026101001-acct: + Oak Hill Farm v2, Night Drive, time boards).
 
    Sign in with an email + 6-digit code. Progress then follows the player to any device:
    the Arcade page pulls the cloud save into this device's storage BEFORE the game loads,
@@ -107,6 +107,34 @@
         var cur = lsj('nd_save') || {};
         ['cash', 'earned', 'spent', 'cash_at', 'car', 'cars', 'unlocked', 'laps', 'wins', 'races', 'podiums'].forEach(function (k) { if (d[k] != null) cur[k] = d[k]; });
         ls('nd_save', JSON.stringify(cur)); ls('arcade_best_night-drive', String(cur.wins || 0));
+        try { window.dispatchEvent(new Event('arcade:sync')); } catch (e) {}
+      }
+    },
+    // Oak Hill Farm (v2, 2026-10-10): stars per Farm Map stop, best times/scores, friends met, friendship hearts,
+    // stickers, secret codes and decorations only ever go up (merged here too, so nothing is lost even if the
+    // server keeps whole saves). Coins, outfits and the farmhand follow the newest save (at).
+    'oak-hill-farm': {
+      read: function () {
+        var s = lsj('ohf_save') || {};
+        return { stars: s.stars || {}, best: s.best || {}, met: s.met || {}, hearts: s.hearts || {}, stickers: s.stickers || {}, codes: s.codes || {}, decor: s.decor || {},
+          acc: s.acc || {}, coins: s.coins || 0, kid: s.kid || '', at: s.at || 0 };
+      },
+      empty: function (d) { return !Object.keys(d.stars || {}).length && !Object.keys(d.met || {}).length; },
+      write: function (d) {
+        if (!d) return;
+        var cur = lsj('ohf_save') || { v: 2 }, k;
+        if (!cur.v) cur.v = 2;   // the game moves a v1 save forward itself; keep its fields
+        function up(name, f) { cur[name] = cur[name] || {}; var src = d[name] || {}; for (var k in src) cur[name][k] = f(cur[name][k], src[k]); }
+        up('stars', function (a, b) { return Math.max(a || 0, b || 0); });
+        up('hearts', function (a, b) { return Math.max(a || 0, b || 0); });
+        up('met', function (a, b) { return a && b ? Math.min(a, b) : (a || b); });
+        up('stickers', function (a, b) { return a && b ? Math.min(a, b) : (a || b); });
+        up('codes', function (a, b) { return a && b ? Math.min(a, b) : (a || b); });
+        up('decor', function (a, b) { return a || b; });
+        up('best', function (a, b) { a = a || {}; b = b || {}; return { t: a.t && b.t ? Math.min(a.t, b.t) : (a.t || b.t || 0), score: Math.max(a.score || 0, b.score || 0) }; });
+        if ((d.at || 0) > (cur.at || 0)) { cur.coins = d.coins || 0; cur.acc = d.acc || {}; if (d.kid) cur.kid = d.kid; cur.at = d.at; }
+        ls('ohf_save', JSON.stringify(cur));
+        var t = 0; for (k in cur.stars) t += cur.stars[k] || 0; ls('arcade_best_oak-hill-farm', String(t));
         try { window.dispatchEvent(new Event('arcade:sync')); } catch (e) {}
       }
     }
