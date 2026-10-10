@@ -187,6 +187,9 @@ window.ARCADE_GAMES = [
     cover: 'https://media.cpdblackbook.com/a2a988e8-fbbd-4510-8238-b1c311f61608/6402676d-dc77-4014-9ccd-39cd14f81267.png',
     accent: '#ff4fb3',
     released: '2026-10-05',
+    // Feature switches: each shows in Arcade HQ → Games as its own Live / Off row under this game.
+    // The game reads ArcadeStatus.state(slug) === 'off' to turn the feature off.
+    features: [{ slug: 'skyline-dash-kf3d', title: '3D tricks', about: 'Kickflip, heelflip and the other board tricks drawn from the rigged 3D Maverick. Off = the original 2D flip art.' }],
     controller: true, mobile: true,
     status: 'live'
   },
