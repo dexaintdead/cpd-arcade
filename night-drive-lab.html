@@ -3976,8 +3976,9 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   function routeArrow() {
     var s = new THREE.Shape(); s.moveTo(0, 0.9); s.lineTo(0.75, -0.2); s.lineTo(0.28, -0.2); s.lineTo(0.28, -0.85); s.lineTo(-0.28, -0.85); s.lineTo(-0.28, -0.2); s.lineTo(-0.75, -0.2); s.lineTo(0, 0.9);
     var g = new THREE.ShapeGeometry(s); g.rotateX(-Math.PI / 2);
-    var m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: 0xffc070, transparent: true, opacity: 0.85, depthWrite: false, side: THREE.DoubleSide, fog: false }));
-    m.renderOrder = 5; return m;
+    var m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: 0xffc070, transparent: true, opacity: 0.78, depthWrite: false, side: THREE.DoubleSide, fog: false }));
+    m.renderOrder = 5; m.rotation.x = 0.95; m.scale.set(1.25, 1.25, 1.25);   // leaning back toward the chase camera, like a sat-nav chevron
+    var g = new THREE.Group(); g.add(m); return g;
   }
 
   // mode: 'roam' (free roam) or 'race' (opt.race: index into CITY_RACES)
@@ -4225,7 +4226,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var rem = 26, tx = N0.x, tz = N0.z;
     for (q = 1; q < path.length; q++) { var sx = path[q][0] - path[q - 1][0], sz = path[q][1] - path[q - 1][1], sl = Math.hypot(sx, sz) || 1; if (rem <= sl || q === path.length - 1) { var f = Math.min(1, rem / sl); tx = path[q - 1][0] + sx * f; tz = path[q - 1][1] + sz * f; break; } rem -= sl; }
     var phi = Math.atan2(tz - me.z, tx - me.x);
-    R.arrow.position.set(me.x + Math.cos(me.th) * 1.2, 3.3 + Math.sin(R.t * 3) * 0.08, me.z + Math.sin(me.th) * 1.2);
+    R.arrow.position.set(me.x + Math.cos(me.th) * 0.6, 2.55 + Math.sin(R.t * 3) * 0.06, me.z + Math.sin(me.th) * 0.6);
     R.arrow.rotation.set(0, -phi - Math.PI / 2, 0);
     me.navPath = path;
   }
