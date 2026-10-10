@@ -42,7 +42,7 @@
 </div>
 <script src="gamepad.js?v=1"></script>
 <script>
-/* Maverick: Skyline Dash — ContentPad Arcade house game #1 (build 2026100410-v5, v5).
+/* Maverick: Skyline Dash — ContentPad Arcade house game #1 (build 2026101002-kf3d, v5.1).
    Rooftop skateboarding. Original game and character (Maverick, owned by ContentPad).
    Art and music made in ContentPad Studio.
    v3: combo banking (land clean to bank, bail and lose it), shove-it + boardslide, ramps, moving
@@ -54,6 +54,8 @@
    v4: the crew (Kiko and Dre skate with you when you earn them), Rider Level + Locker
    (colorways, trails, starting crew), MANUAL and 360 SPIN, Moon Boots + Crew Call power-ups,
    new ride/kickflip art (two arms; flat board, wheels down).
+   v5.1: the kickflip and heelflip play 16 fps frames rendered from a rigged 3D Maverick (skyline-kf3d.webp);
+   off with ?kf3d=0 or the Arcade switch slug 'skyline-dash-kf3d'. Falls back to the v5 cut-out flip.
    v5: a REAL kickflip (the board leaves his feet and rolls over; heelflip, hardflip, varial and 360 flips,
    double and triple flips), grabs held with J / K / (Y) / RB / GRAB (frontside, melon, method, tweak it for more),
    ← → in the air pick the flip or grab, 360 shove-it and 720 spin, vert ramps with a following camera,
@@ -75,7 +77,7 @@
     grab_indy: CDN + '6564d156-d6c2-4ba6-aeba-7fd92350af9a.png', grab_melon: CDN + 'c76b4ea5-ac93-4fcd-b293-1c7baa2dc5f3.png', grab_method: CDN + 'd45061bb-1094-42be-bbc7-4c12fcaf53ae.png',
     bg9: CDN + 'edcb33c3-9a88-439a-947b-a6e878b026d2.png', bg10: CDN + '9b889669-6ba5-4d9e-87f3-ec7d6cb6b61d.png', bg11: CDN + '23ed64c9-9396-4c37-a823-f3c3f748607a.png',
     kiko_r: CDN + 'cf3f5ae1-4c5b-4a31-92ef-cadda5a7f7de.png', kiko_o: CDN + 'f3ab06d6-072f-4aab-aa49-2983373596fb.png',
-    dre_r: CDN + '8562e681-b158-49cd-a721-9e862aa5aa88.png', dre_o: CDN + '5964cc58-63d2-49ed-868b-13e2f7432ae0.png', music: CDN + '41c5a4c7-11a5-4a1c-8b25-1f50af42acb8.mp3'
+    dre_r: CDN + '8562e681-b158-49cd-a721-9e862aa5aa88.png', dre_o: CDN + '5964cc58-63d2-49ed-868b-13e2f7432ae0.png', kf3d: 'skyline-kf3d.webp?v=1', music: CDN + '41c5a4c7-11a5-4a1c-8b25-1f50af42acb8.mp3'
   };
   var KEYED = { ride: 1, push: 1, ollie: 1, flip: 1, grind: 1, bail: 1, drone: 1, vent: 1, cloud: 1, kiko_r: 1, kiko_o: 1, dre_r: 1, dre_o: 1, grab_indy: 1, grab_melon: 1, grab_method: 1 };
   var CROP = { grind: 0.83 };
@@ -113,6 +115,15 @@
     } catch (e) {}
     return trim(c);
   }
+  function toCanvas(img) { var c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight; c.getContext('2d').drawImage(img, 0, 0); return c; }
+  // v5.1 — kickflip frames rendered from the rigged 3D Maverick: 7 cells (pop, 5 roll steps, catch), 262×352 each.
+  // gy = where the wheels touch the ground in a cell, cx = his centre line, h = his riding height (head to wheels).
+  var KF3D = { n: 7, cw: 262, ch: 352, gy: 339, cx: 118.5, h: 311 };
+  function kf3dOn() {
+    if (/[?&]kf3d=0\b/.test(location.search)) return false;
+    try { if (window.ArcadeStatus && ArcadeStatus.state('skyline-dash-kf3d') === 'off') return false; } catch (e) {}
+    return true;
+  }
   function trim(c) {
     var g = c.getContext('2d'), w = c.width, h = c.height, d;
     try { d = g.getImageData(0, 0, w, h).data; } catch (e) { return c; }
@@ -143,7 +154,7 @@
     needed++;
     var im = new Image(); im.decoding = 'async';
     if (KEYED[k]) im.crossOrigin = 'anonymous';
-    im.onload = function () { var c = KEYED[k] ? keyGreen(im) : im; if (CROP[k] && c.getContext) { var o = document.createElement('canvas'); o.width = c.width; o.height = Math.round(c.height * CROP[k]); o.getContext('2d').drawImage(c, 0, 0); c = o; } IMG[k] = c; if (k === 'flip') { var t = cutBoard(c); if (t) IMG.tuck = t; } loaded++; };
+    im.onload = function () { var c = KEYED[k] ? keyGreen(im) : k === 'kf3d' ? toCanvas(im) : im; if (CROP[k] && c.getContext) { var o = document.createElement('canvas'); o.width = c.width; o.height = Math.round(c.height * CROP[k]); o.getContext('2d').drawImage(c, 0, 0); c = o; } IMG[k] = c; if (k === 'flip') { var t = cutBoard(c); if (t) IMG.tuck = t; } loaded++; };
     im.onerror = function () { loaded++; };
     im.src = (KEYED[k] && !window.SKYLINE_ASSETS && ASSETS[k].indexOf(CDN) === 0) ? VIA + encodeURIComponent(ASSETS[k]) : ASSETS[k];
   });
@@ -1256,7 +1267,16 @@
     if (power.k === 'boost') { cx.shadowColor = '#7fd3ff'; cx.shadowBlur = 24; }
     else if (power.shield) { cx.shadowColor = '#7fd3ff'; cx.shadowBlur = 12; }
     var im = tinted(IMG[k] ? k : 'ride');
-    if (tuck && im && im.width) {
+    var k3 = IMG.kf3d, use3d = k3 && k3.width && P.bt && !P.grab && !P.bt.yaw && !P.bt.pitch && P.bt.roll && kf3dOn();
+    if (use3d) {
+      // v5.1: the 3D-rendered kickflip. Heelflip plays the roll frames backwards. Doubles and triples repeat them.
+      var turns = Math.max(1, Math.round(Math.abs(P.bt.roll) / (Math.PI * 2))), rolls = P.bt.roll > 0 ? [1, 2, 3, 4] : [4, 3, 2, 1], seq = [0];
+      for (var ti = 0; ti < turns; ti++) seq = seq.concat(rolls);
+      seq.push(5, 6);
+      var fi = seq[Math.min(seq.length - 1, Math.floor(Math.min(0.999, P.bt.t / P.bt.dur) * seq.length))];
+      var kt = tinted('kf3d') || k3, s3 = (P.h * 1.42) / KF3D.h;
+      cx.drawImage(kt, fi * KF3D.cw, 0, KF3D.cw, KF3D.ch, -KF3D.cx * s3, -KF3D.gy * s3, KF3D.cw * s3, KF3D.ch * s3);
+    } else if (tuck && im && im.width) {
       // the real kickflip: Maverick tucks, the board flips under him on its own
       var tk = tinted('tuck') || IMG.tuck, s0 = (P.h * 1.42) / tk.full; if (tk.width * s0 > P.h * 1.9) s0 = (P.h * 1.9) / tk.width;
       var tw0 = tk.width * s0, th0 = tk.full * s0, bd = tk.board, prog = Math.min(1, P.bt.t / P.bt.dur), ease = prog < 0.5 ? 2 * prog * prog : 1 - Math.pow(-2 * prog + 2, 2) / 2;
