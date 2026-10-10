@@ -23,7 +23,7 @@ Controls:
 - Esc / (B): Back
 - M: Sound
 
-Credits: The cover and the cast avatars made in ContentPad Studio · the chats are from the Pregame Papers printable · code by Claude.
+Credits: The cover and the cast avatars made in ContentPad Studio · the chats are from the Pregame Papers printable.
 
 ## Pregame Papers: The Unhinged Yearbook
 
@@ -47,7 +47,7 @@ Controls:
 - Esc / (B): Back
 - M: Sound
 
-Credits: The class mascot and cover made in ContentPad Studio · superlatives from the Pregame Papers printable · code by Claude.
+Credits: The class mascot and cover made in ContentPad Studio · superlatives from the Pregame Papers printable.
 
 ## Oak Hill Farm: Farm Friends
 
@@ -72,7 +72,7 @@ Controls:
 - Esc / P / Start: Pause
 - M: Sound
 
-Credits: The animals, seasons and Farm Maps are drawn from the Oak Hill Farm coloring book and brought to life in color in ContentPad Studio, with the barn, the Chicken Dome and the blue farm truck · theme "Chore Day at Oak Hill" made in ContentPad · code by Claude.
+Credits: The animals, seasons and Farm Maps are drawn from the Oak Hill Farm coloring book and brought to life in color in ContentPad Studio, with the barn, the Chicken Dome and the blue farm truck · theme "Chore Day at Oak Hill" made in ContentPad.
 
 ## YESTERDAYLAND: Night Drive
 
@@ -99,7 +99,7 @@ Controls:
 - M: Sound
 - Touch: Gas is automatic: slide to steer, Brake / Nitro / E-brake on the right
 
-Credits: Made in ContentPad Studio with the YESTERDAYLAND show bible: the intro film (Seedance 2.5), photo-skinned cars, police cruiser and traffic, building facades, track stills and horizons · music, sound and code by Claude.
+Credits: Made in ContentPad Studio with the YESTERDAYLAND show bible: the intro film (Seedance 2.5), photo-skinned cars, police cruiser and traffic, building facades, track stills and horizons.
 
 ## Gacha Rush: Toy Tokyo UFO Catcher
 
@@ -121,7 +121,7 @@ Controls:
 - M: Mute
 - Esc: Close a card
 
-Credits: Characters, art and the theme "Second Avenue Gacha" made in ContentPad Studio · products and photos courtesy of Toy Tokyo · code by Claude.
+Credits: Characters, art and the theme "Second Avenue Gacha" made in ContentPad Studio · products and photos courtesy of Toy Tokyo.
 
 ## Slappy Tha Bear: High Flying
 
@@ -147,7 +147,7 @@ Controls:
 - P / Esc / Start: Pause
 - M: Mute
 
-Credits: Art made in ContentPad Studio · Slappy and the Slapwoods logo courtesy of Slapwoods · music, sound and code by Claude.
+Credits: Art made in ContentPad Studio · Slappy and the Slapwoods logo courtesy of Slapwoods.
 
 ## Dex Ain't Dead Casino
 
@@ -171,7 +171,7 @@ Controls:
 - Esc / B: Back to the lobby
 - M: Mute
 
-Credits: Art and Dex's dealer voice made in ContentPad Studio · music by Dex Ain't Dead · code by Claude.
+Credits: Art and Dex's dealer voice made in ContentPad Studio · music by Dex Ain't Dead.
 
 ## Nightmare on 46th Street
 
@@ -199,7 +199,7 @@ Controls:
 - P / Esc / Start: Pause
 - Versus: P1 WASD + F G H T · P2 arrows + , . / ;
 
-Credits: Art, music and announcer made in ContentPad Studio · written and coded by Claude.
+Credits: Art, music and announcer made in ContentPad Studio.
 
 ## Maverick: Skyline Dash
 
@@ -226,7 +226,7 @@ Controls:
 - P / Esc / Start: Pause menu
 - M: Mute
 
-Credits: Art and music made in ContentPad Studio · code by Claude.
+Credits: Art and music made in ContentPad Studio.
 
 ## Tre & Jada
 
@@ -248,4 +248,4 @@ Controls:
 - Y: Auto-play
 - L / X: Dialogue log
 
-Credits: Art, voices and music made in ContentPad Studio (ElevenLabs) · written and coded by Claude.
+Credits: Art, voices and music made in ContentPad Studio (ElevenLabs).

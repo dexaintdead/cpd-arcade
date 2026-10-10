@@ -4,7 +4,7 @@
 
 Key facts:
 - 10 live games as of 2026-10-10. All free. Adult games (18+ / 21+) ask the player's age first.
-- Art, characters, voices and music are made in ContentPad Studio; the code is written by Claude (Anthropic's AI).
+- Art, characters, voices and music are made in ContentPad Studio.
 - Partners so far: Toy Tokyo (East Village collectibles shop), Oak Hill Farm (Holmdel, NJ), Dream Hospitality / Harbor NYC, Slapwoods, Pregame Papers.
 - Brands, shops, venues and creators can commission a game: support@contentpad.io.
 
