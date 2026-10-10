@@ -3233,14 +3233,14 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var y0 = footY == null ? base.y - 2 : footY, top = base.y + bottom + h * 0.6, len = Math.max(1, top - y0), self = this;
     [-1, 1].forEach(function (q) { var p = base.clone().addScaledVector(right, q * w * 0.28).addScaledVector(face, -0.6); self.f.add(new THREE.BoxGeometry(0.6, len, 0.6), mtx(p.x, y0 + len / 2, p.z), 0x2a2830); });
     this.f.add(new THREE.BoxGeometry(w, 0.12, 1.1), rot.clone().setPosition(base.clone().add(V3(0, bottom - 0.35, 0)).addScaledVector(face, 0.45)), 0x34323a);
-    for (var i = 0; i < 3; i++) { var lp = base.clone().addScaledVector(right, (i - 1) * w * 0.33).add(V3(0, bottom - 0.2, 0)).addScaledVector(face, 1.3); this.g.push(lp.x, lp.y, lp.z); }
+    for (var i = 0; i < 3; i++) { var lp = base.clone().addScaledVector(right, (i - 1) * w * 0.33).add(V3(0, bottom - 0.75, 0)).addScaledVector(face, 1.5); this.g.push(lp.x, lp.y, lp.z); }
   };
   DadBuilder.prototype.flush = function (scene) {
     if (this.m.empty()) return;
     scene.add(new THREE.Mesh(this.m.geo(), new THREE.MeshBasicMaterial({ map: dadBoards(), side: THREE.DoubleSide, color: 0xe8e2dc })));
     scene.add(new THREE.Mesh(this.f.geo(), new THREE.MeshLambertMaterial({ vertexColors: true })));
     var lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(this.g, 3));
-    scene.add(new THREE.Points(lg, new THREE.PointsMaterial({ color: 0xfff0d0, size: 2.4, map: GLOW, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })));
+    scene.add(new THREE.Points(lg, new THREE.PointsMaterial({ color: 0xfff0d0, size: 1.7, map: GLOW, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })));
   };
   // the drives: boards up over the buildings (a little turned toward the traffic coming), lower out on the open road
   function dadTrack(scene, TR, th, theme, rng, WALK, gy) {

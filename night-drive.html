@@ -394,6 +394,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
         <kbd>C · Select</kbd><span>Camera</span>
         <kbd>Esc / P · Start</kbd><span>Pause</span>
         <kbd>M</kbd><span>Sound on / off</span>
+        <kbd>R · D-pad ▲ ▼ · 📻</kbd><span>Radio: 88.5 Night FM (the score), DAD Radio 104.7 (Dex Ain't Dead), DAD Radio After Dark (his DJ mixes), or off.</span>
+        <kbd>Sidewalks</kbd><span>Bump up the curb and drive the sidewalk. People and lamp posts keep to the back of it.</span>
         <kbd>Touch</kbd><span>Gas is automatic. Slide your left thumb to steer; Brake, Nitro and E-brake are on the right.</span>
         <kbd>Hot Pursuit</kbd><span>Keep moving. A cruiser on your bumper while you're slow fills the bust meter. Ram them hard for a takedown.</span>
       </div>
@@ -441,7 +443,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 <script>
 (function () {
   'use strict';
-  var GAME_ID = 'night-drive', BUILD = '2026101001-nd';
+  var GAME_ID = 'night-drive', BUILD = '2026101002-nd';
   var $ = function (id) { return document.getElementById(id); };
   var EMBED = false; try { EMBED = window.top !== window; } catch (e) { EMBED = true; }
   function post(type, extra) { try { if (EMBED) window.parent.postMessage(Object.assign({ arcade: type, game: GAME_ID }, extra || {}), '*'); } catch (e) {} }
@@ -557,6 +559,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   function artUrl(path, w) { return ART_HOST + path + '?w=' + (w || 1600); }
   var PAYOUT = [6000, 4000, 3000, 2000, 1400, 1000];
   var ROAD_W = 18, HALF = ROAD_W / 2, CAR_HALF = 1.05, LAT = 30, BRAKE = 26;
+  var WALK_DRIVE = 3.4, CURB_H = 0.18;   // 2026-10-10: how much of the 4.5 m sidewalk you can drive on (the back of it stays for people, lamps and palms); curb height
 
   /* ════════════════ SAVE ════════════════ */
   function blankSave() { return { cash: 0, earned: 0, spent: 0, cash_at: 0, car: 'hatch', cars: { hatch: { eng: 0, tire: 0, nitro: 0, paint: CAR.hatch.paint } }, unlocked: 1, laps: {}, wins: 0, races: 0, podiums: {} }; }
@@ -589,8 +592,10 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   /* ════════════════ AUDIO (all synthesised) ════════════════ */
   var AC = null, master, MG, SG, EG, NB, DLY;
   function audioInit() {
-    if (AC) { if (AC.state === 'suspended') AC.resume(); return; }
+    // 2026-10-10: resume from any state that isn't running (Safari reports 'interrupted' after a call or a lock screen)
+    if (AC) { if (AC.state !== 'running' && AC.state !== 'closed') { try { var pr = AC.resume(); if (pr && pr.catch) pr.catch(function () {}); } catch (e) {} } return; }
     try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return; }
+    try { if (AC.state !== 'running') { var p0 = AC.resume(); if (p0 && p0.catch) p0.catch(function () {}); } } catch (e) {}
     master = AC.createGain(); master.gain.value = SET.sound ? 0.9 : 0; master.connect(AC.destination);
     MG = AC.createGain(); MG.gain.value = SET.music ? 0.26 : 0; MG.connect(master);
     SG = AC.createGain(); SG.gain.value = 0.55; SG.connect(master);
@@ -601,8 +606,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     NB = AC.createBuffer(1, AC.sampleRate * 2, AC.sampleRate); var d = NB.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     if (MUS.want) musicStart(MUS.want);
   }
-  function setSound(on) { SET.sound = on; saveSet(); if (master) master.gain.setTargetAtTime(on ? 0.9 : 0, AC.currentTime, 0.05); }
-  function setMusic(on) { SET.music = on; saveSet(); if (MG) MG.gain.setTargetAtTime(on ? 0.26 : 0, AC.currentTime, 0.1); }
+  function setSound(on) { SET.sound = on; saveSet(); if (master) master.gain.setTargetAtTime(on ? 0.9 : 0, AC.currentTime, 0.05); radioVolume(); }
+  function setMusic(on) { SET.music = on; saveSet(); if (MG) MG.gain.setTargetAtTime(on ? 0.26 : 0, AC.currentTime, 0.1); radioVolume(); }
   function tone(type, f0, f1, dur, vol, dest, when, attack) {
     if (!AC) return; var t = when || AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
     o.type = type; o.frequency.setValueAtTime(f0, t); if (f1 !== f0) o.frequency.exponentialRampToValueAtTime(Math.max(20, f1), t + dur);
@@ -638,6 +643,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     else if (n === 'takedown') { noise(0.5, 0.5, 'lowpass', 900); [0, 0.08, 0.16, 0.3].forEach(function (d, i) { var f = [659, 784, 988, 1319][i]; tone('square', f, f, 0.16, 0.1, null, AC.currentTime + 0.1 + d); }); }
     else if (n === 'nearmiss') { noise(0.25, 0.3 * v, 'bandpass', 1800, null, null, 1.5); tone('triangle', 1175, 1568, 0.12, 0.08); }
     else if (n === 'scrape') noise(0.12, 0.22 * v, 'highpass', 2600);
+    else if (n === 'curb') { tone('sine', 95, 45, 0.16, 0.42 * v); noise(0.09, 0.22 * v, 'lowpass', 600); tone('sine', 80, 40, 0.12, 0.25 * v, null, AC.currentTime + 0.07); }
     else if (n === 'drift') { [0, 0.07, 0.14].forEach(function (d, i) { var f = [988, 1319, 1760][i]; tone('triangle', f, f, 0.14, 0.07 + 0.05 * v, null, AC.currentTime + d); }); }
     else if (n === 'spin') { noise(0.7, 0.35, 'bandpass', 1300, null, null, 2); tone('sawtooth', 300, 120, 0.5, 0.06); }
     else if (n === 'slipready') { tone('sine', 660, 990, 0.18, 0.07); tone('sine', 990, 1320, 0.18, 0.06, null, AC.currentTime + 0.1); }
@@ -707,6 +713,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   function hz(semi) { return 110 * Math.pow(2, semi / 12); }   // 0 = A2
   function musicStart(style) {
     MUS.want = style;
+    if (radioTakesOver()) { if (MUS.timer) { clearInterval(MUS.timer); MUS.timer = 0; MUS.style = null; } radioResume(); return; }
     if (!AC) return;
     if (MUS.style === style && MUS.timer) return;
     musicStop(true); MUS.want = style;
@@ -912,7 +919,9 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var ahead = Ks.map(function (_, i) { var s = 0; for (var j = 0; j < 18; j++) s += Ks[(i + j) % n]; return s / 18; });
     var line = smooth(ahead.map(function (k) { return clamp(k * 900, -1, 1) * (HALF - 2.4); }), 12);
     var wl = [], wr = []; for (i = 0; i < n; i++) { wl.push(HALF); wr.push(HALF); }   // how far the walls are, each side (parked cars move them in)
-    var T0 = { def: def, L: L, n: n, step: step, P: P, T: T, R: R, U: U, K: Ks, vb: vb, line: line, wl: wl, wr: wr,
+    // 2026-10-10: on the drives with sidewalks (curb) you can mount the curb and drive the sidewalk; the wall is the building line
+    var walk = (THEMES[def.theme] || {}).side === 'curb';
+    var T0 = { def: def, L: L, n: n, step: step, P: P, T: T, R: R, U: U, K: Ks, vb: vb, line: line, wl: wl, wr: wr, walk: walk, ow: walk ? HALF + WALK_DRIVE : HALF,
       ymin: Math.min.apply(null, P.map(function (p) { return p.y; })), ymax: Math.max.apply(null, P.map(function (p) { return p.y; })) };
     // spatial hash: how far is a spot from the road centre line
     var G = {}, CS = 40;
@@ -1151,7 +1160,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     { style: 'neon', l: [{ t: 'LIQUORS', s: 120, y: .5, c: '#7fd8ff' }] }
   ];
   var BILLBOARDS = [
-    { style: 'paint', bg: '#d8794a', bg2: '#1e3462', l: [{ t: 'RADIO 98.5 FM', s: 64, y: .4, c: '#fff', w: 900 }, { t: 'The night drive mix · after midnight', s: 26, y: .72, c: '#ffe2bf', w: 700 }] },
+    { style: 'paint', bg: '#7a1650', bg2: '#140612', l: [{ t: 'DAD RADIO 104.7 FM', s: 60, y: .4, c: '#fff', w: 900 }, { t: 'Dex Ain\'t Dead · all night long', s: 34, y: .74, c: '#ffd27a', f: 'Yellowtail, cursive', w: 400 }] },
     { style: 'paint', bg: '#1a1a1a', bg2: '#3a2a4a', l: [{ t: 'YESTERDAYLAND', s: 58, y: .4, c: '#f4f7ff', f: 'Michroma, sans-serif', w: 400 }, { t: 'Go back for a while', s: 40, y: .74, c: '#ffc98c', f: 'Yellowtail, cursive', w: 400 }] },
     { style: 'paint', bg: '#e8d8b0', bg2: '#c8a870', l: [{ t: 'SUNCOAST COLA', s: 64, y: .4, c: '#a0221e', w: 900 }, { t: 'Ice cold since 1951', s: 28, y: .74, c: '#3a2a1a', w: 700 }] },
     { style: 'paint', bg: '#24407a', bg2: '#0e1a34', l: [{ t: 'CONTENTPAD ARCADE', s: 54, y: .4, c: '#ffd27a', w: 900 }, { t: 'Open all night', s: 30, y: .74, c: '#ffffff', w: 700 }] },
@@ -1250,13 +1259,13 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     // sodium street lamps: cobra-head poles, glowing heads, warm pools on the road
     var poles = new Merger(), lampPos = [], pools = new Merger(), every = { strip: 42, freeway: 48, desert: 120, nyc: 32, miami: 40, vegas: 38 }[def.theme];
     for (var s = 18, sd2 = 1; s < TR.L - 10; s += every, sd2 = (th.side === 'jersey' ? sd2 : -sd2)) {
-      var f = frameAt(TR, s), base = f.p.clone().addScaledVector(f.r, sd2 * (HALF + (th.side === 'curb' ? 1.0 : 1.6))), ph = th.side === 'jersey' ? 11 : 8.5, armL = th.side === 'jersey' ? 4.2 : 3.2;
+      var f = frameAt(TR, s), base = f.p.clone().addScaledVector(f.r, sd2 * (HALF + (th.side === 'curb' ? WALK - 0.6 : 1.6))), ph = th.side === 'jersey' ? 11 : 8.5, armL = th.side === 'jersey' ? 4.2 : th.side === 'curb' ? 3.2 + WALK - 1.6 : 3.2;
       var top = base.clone().add(V3(0, ph, 0)), arm = top.clone().addScaledVector(f.r, -sd2 * armL);
       poles.add(new THREE.CylinderGeometry(0.12, 0.18, ph, 6), mtx(base.x, base.y + ph / 2, base.z), 0x55525a);
       var mid = top.clone().lerp(arm, 0.5); poles.add(new THREE.BoxGeometry(0.12, 0.12, armL + 0.2), frameMtx(mid, f.t, f.r), 0x55525a);
       poles.add(new THREE.BoxGeometry(0.9, 0.22, 0.42), frameMtx(arm.clone().add(V3(0, -0.1, 0)), f.t, f.r, Math.PI / 2), 0x55525a);
       lampPos.push(arm.x, arm.y - 0.3, arm.z); out.lamps.push(arm.clone());
-      var c = f.p.clone().addScaledVector(f.r, sd2 * (HALF - armL - 0.4)); c.y += 0.05;
+      var c = f.p.clone().addScaledVector(f.r, sd2 * (HALF - (th.side === 'curb' ? 3.6 : armL + 0.4))); c.y += 0.05;
       var hw = 7, hl = th.wet ? 14 : 8;
       pools.quad(c.clone().addScaledVector(f.r, -hw).addScaledVector(f.t, -hl), c.clone().addScaledVector(f.r, hw).addScaledVector(f.t, -hl), c.clone().addScaledVector(f.r, hw).addScaledVector(f.t, hl), c.clone().addScaledVector(f.r, -hw).addScaledVector(f.t, hl), th.lamp);
       if (th.side === 'jersey') sd2 = -sd2;
@@ -1281,6 +1290,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     if (!chev.empty()) scene.add(new THREE.Mesh(chev.geo(), new THREE.MeshLambertMaterial({ map: chevTex, side: THREE.DoubleSide })));
 
     var extra = THEME_BUILD[def.theme](scene, TR, th, rng, gy, dark, WALK) || {};
+    dadTrack(scene, TR, th, def.theme, seeded(def.id.charCodeAt(1) * 131 + 7), WALK, gy);
     if (!dark.empty()) scene.add(new THREE.Mesh(dark.geo(), new THREE.MeshLambertMaterial({ vertexColors: true })));
     out.extra = extra;
     return out;
@@ -1353,7 +1363,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     }
     // people on the sidewalks
     for (s = 10; s < TR.L; s += opt.people * (0.5 + rng())) {
-      var sdl = opt.sides || [-1, 1], fp = frameAt(TR, s), sdp = sdl[Math.floor(rng() * sdl.length)], pp = fp.p.clone().addScaledVector(fp.r, sdp * (HALF + 0.9 + rng() * (WALK - 1.6))); pp.y += 0.18;
+      var sdl = opt.sides || [-1, 1], fp = frameAt(TR, s), sdp = sdl[Math.floor(rng() * sdl.length)], pp = fp.p.clone().addScaledVector(fp.r, sdp * (HALF + WALK - 0.95 + rng() * 0.55)); pp.y += 0.18;
       if (TR.near(pp.x, pp.z) < HALF + 0.5) continue;
       addPerson(people, pp, Math.atan2(fp.t.x, fp.t.z) + (rng() < 0.5 ? 0 : Math.PI), rng, opt.umbrellas);
     }
@@ -1427,7 +1437,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   };
   var THEME_BUILD = {
     strip: function (scene, TR, th, rng, gy, dark, WALK) {
-      var palms = spots(TR, rng, 15, WALK - 1.2, WALK - 0.6, WALK - 1.4, null, true).map(function (o) { o.rot = rng() * 6.28; o.sc = 0.9 + rng() * 0.45; o.p.y += 0.18; return o; });
+      var palms = spots(TR, rng, 15, WALK - 0.7, WALK - 0.35, WALK - 0.9, null, true).map(function (o) { o.rot = rng() * 6.28; o.sc = 0.9 + rng() * 0.45; o.p.y += 0.18; return o; });
       scene.add(instanced(palmGeo(), new THREE.MeshBasicMaterial({ color: 0x120c16, side: THREE.DoubleSide }), palms));
       citySide(scene, TR, rng, gy, WALK, { every: 20, w: [12, 24], h: [5, 13], facades: FACADES.strip, cols: [0xc8a890, 0xa8b0c0, 0xd8c0a0, 0x9890a0, 0xc09080], bright: 1.5, signs: [0, 1, 2, 3, 4, 5, 6, 14, 15], signP: 0.7, shopP: 0.7, parkGap: 0.45, people: 7 });
       billboards(scene, TR, rng, [0, 1, 2, 3, 4], 230, WALK + 6, WALK + 14, 15);
@@ -1518,7 +1528,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       }));
       ocean.rotation.x = -Math.PI / 2; ocean.position.set(300, gy + 1.0, -880); scene.add(ocean);
       var sand = new THREE.Mesh(new THREE.PlaneGeometry(1300, 70), new THREE.MeshLambertMaterial({ color: 0x8a7a68 })); sand.rotation.x = -Math.PI / 2; sand.position.set(260, gy + 1.2, -45); scene.add(sand);
-      var palms = spots(TR, rng, 12, WALK - 1.2, WALK + 18, WALK - 1.4, null, true).map(function (o) { o.rot = rng() * 6.28; o.sc = 0.9 + rng() * 0.6; o.p.y = Math.max(o.p.y + 0.18, gy + 1.2); return o; });
+      var palms = spots(TR, rng, 12, WALK - 0.7, WALK + 18, WALK - 0.9, null, true).map(function (o) { o.rot = rng() * 6.28; o.sc = 0.9 + rng() * 0.6; o.p.y = Math.max(o.p.y + 0.18, gy + 1.2); return o; });
       scene.add(instanced(palmGeo(), new THREE.MeshBasicMaterial({ color: 0x0a0c14, side: THREE.DoubleSide }), palms));
       citySide(scene, TR, rng, gy, WALK, { every: 26, w: [18, 32], h: [10, 30], facades: FACADES.miami, facadeP: 0.97, cols: [0xffc8d8, 0xb8f0e0, 0xffd8b8, 0xd8c8ff, 0xfff0c8, 0xc0e8ff], bright: 2.6, signs: [10, 11, 12, 8, 4, 0], signP: 0.85, shopP: 0.8, parkGap: 0.4, people: 6,
         filter: function (p) { return p.z > 6; } });
@@ -1526,7 +1536,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       return { ocean: ocean };
     },
     vegas: function (scene, TR, th, rng, gy, dark, WALK) {
-      var palms = spots(TR, rng, 18, WALK - 1.2, WALK - 0.6, WALK - 1.4, null, true).map(function (o) { o.rot = rng() * 6.28; o.sc = 1.0 + rng() * 0.4; o.p.y += 0.18; return o; });
+      var palms = spots(TR, rng, 18, WALK - 0.7, WALK - 0.35, WALK - 0.9, null, true).map(function (o) { o.rot = rng() * 6.28; o.sc = 1.0 + rng() * 0.4; o.p.y += 0.18; return o; });
       scene.add(instanced(palmGeo(), new THREE.MeshBasicMaterial({ color: 0x140e12, side: THREE.DoubleSide }), palms));
       citySide(scene, TR, rng, gy, WALK, { every: 22, w: [16, 30], h: [8, 80], hp: 2.2, facades: FACADES.vegas, facadeBase: true, facadeP: 0.95, cols: [0xe8dcc8, 0xd8c0a0, 0xc8b8a8, 0xf0e4d0, 0xb8a890], bright: 1.4, signs: [0, 3, 8, 4, 13, 15], signP: 0.6, shopP: 0.8, parkGap: 0.5, people: 5, taxis: 0.15 });
       billboards(scene, TR, rng, [6, 7, 8, 1], 380, WALK + 8, WALK + 16, 22);
@@ -1534,8 +1544,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       // pylon signs: two legs, a sign box facing the traffic both ways, a frame of bulbs that chase
       var sT = atlas(PYLONS, 512, 256), sm = new Merger(), legs = new Merger(), bA = [], bB = [], k = 0;
       for (var s = 60; s < TR.L - 40; s += 95 + rng() * 60, k++) {
-        var f = frameAt(TR, s), sd = k % 2 ? 1 : -1, base = f.p.clone().addScaledVector(f.r, sd * (HALF + WALK - 0.9));
-        if (TR.near(base.x, base.z) < HALF + WALK - 1.5 || Math.abs(sampleAt(TR.K, TR, s)) > 1 / 70) continue;
+        var f = frameAt(TR, s), sd = k % 2 ? 1 : -1, base = f.p.clone().addScaledVector(f.r, sd * (HALF + WALK + 2.4));
+        if (TR.near(base.x, base.z) < HALF + WALK + 1.8 || Math.abs(sampleAt(TR.K, TR, s)) > 1 / 70) continue;
         var w = 9 + rng() * 3, h = w / 2, H = 16 + rng() * 12, c = base.clone().add(V3(0, H, 0));
         // the sign spans across the road direction (r) with a face each way, so traffic both ways reads it the right way round
         var a = c.clone().addScaledVector(f.r, -w / 2), b = c.clone().addScaledVector(f.r, w / 2), uvk = atlasUV(sT, k % sT.n);
@@ -1775,7 +1785,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       v += a * h;
     } else v -= Math.sign(v) * Math.min(Math.abs(v), (0.6 + Math.abs(v) * 0.05) * h);
     if (v > vmax) v -= Math.min(v - vmax, 9 * h);
-    c.steerSm += (inp.steer - c.steerSm) * Math.min(1, h * (c.human != null ? 9 : 6));
+    // 2026-10-10: speed-sensitive steering for players: quick at parking speed, calmer flat out (less twitch on the straights)
+    c.steerSm += (inp.steer - c.steerSm) * Math.min(1, h * (c.human != null ? 12 - 5 * clamp(av / 55, 0, 1) : 6));
     var latMax = LAT * st.grip, yawMax = Math.min(1.9, latMax / Math.max(av, 7)), yawRate;
     var eb = inp.drift && av > 3 && c.spinT <= 0;
     if (eb) v -= Math.sign(v) * Math.min(Math.abs(v), (2.5 + av * 0.1) * h);   // the handbrake drags
@@ -1829,21 +1840,44 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     if (c.yaw > Math.PI) c.yaw -= 2 * Math.PI; if (c.yaw < -Math.PI) c.yaw += 2 * Math.PI;
     c.d += v * sy * h + c.kd * h;
     if (c.kd) { c.kd *= Math.max(0, 1 - 2.6 * h); if (Math.abs(c.kd) < 0.05) c.kd = 0; }
-    // walls (parked cars move them in)
-    var wr = lerp(TR.wr[i0], TR.wr[(i0 + 1) % TR.n], fi - Math.floor(fi)) - CAR_HALF, wl = -(lerp(TR.wl[i0], TR.wl[(i0 + 1) % TR.n], fi - Math.floor(fi)) - CAR_HALF);
+    // walls. 2026-10-10: on the sidewalk drives the outer wall is the building line (TR.ow), the curb is a bump you can mount,
+    // and a run of parked cars is a solid band between the lane and the curb (you pass it on either side). Elsewhere: as before.
+    var ff = fi - Math.floor(fi), pr = lerp(TR.wr[i0], TR.wr[(i0 + 1) % TR.n], ff), pl = lerp(TR.wl[i0], TR.wl[(i0 + 1) % TR.n], ff);
+    var hitSd = 0, newD = c.d;
     c.touch = 0;
-    if (c.d > wr || c.d < wl) {
-      var sd = c.d > wr ? 1 : -1; c.d = sd > 0 ? wr : wl;
+    if (TR.walk) {
+      var ow = (TR.ow || HALF) - CAR_HALF;
+      if (c.d > ow) { hitSd = 1; newD = ow; } else if (c.d < -ow) { hitSd = -1; newD = -ow; }
+      else {
+        var cb = HALF + 0.1 + CAR_HALF;
+        if (pr < HALF - 0.05) { var lo = pr - CAR_HALF; if (c.d > lo && c.d < cb) { if (c.d < (lo + cb) / 2) { hitSd = 1; newD = lo; } else { hitSd = -1; newD = cb; } } }
+        if (!hitSd && pl < HALF - 0.05) { var hi2 = -(pl - CAR_HALF); if (c.d < hi2 && c.d > -cb) { if (c.d > (hi2 - cb) / 2) { hitSd = -1; newD = hi2; } else { hitSd = 1; newD = -cb; } } }
+      }
+    } else {
+      var wr = pr - CAR_HALF, wl = -(pl - CAR_HALF);
+      if (c.d > wr) { hitSd = 1; newD = wr; } else if (c.d < wl) { hitSd = -1; newD = wl; }
+    }
+    if (hitSd) {
+      var sd = hitSd; c.d = newD;
       var vlat = v * Math.sin(c.yaw) * sd + c.kd * sd; c.kd = 0;
       if (vlat > 0) {
         var loss = Math.min(0.5, Math.abs(Math.sin(c.yaw)) * 1.1 + vlat * 0.012);
-        // slammed into the wall hard enough (usually shoved there by someone): a wreck
-        if (vlat > 15 && av > 22 && ev && !c.block && (c.human != null || c.cop || Math.abs(c.kd) > 1 || c.spinT > 0 || (c.hitBy && (TR.now || 0) - (c.hitT || -9) < 3))) ev.push(['wreck', c, vlat, 'wall']);
+        // slammed into the wall hard enough (usually shoved there by someone): a wreck. A player only wrecks on their own at a real slam.
+        if (vlat > 15 && av > 22 && ev && !c.block && ((c.human != null && vlat > 23) || c.cop || Math.abs(c.kd) > 1 || c.spinT > 0 || (c.hitBy && (TR.now || 0) - (c.hitT || -9) < 3))) ev.push(['wreck', c, vlat, 'wall']);
         else if (vlat > 2.5 && c.wallCd <= 0 && ev) { ev.push(['hit', c, vlat]); c.wallCd = 0.35; }
         v *= 1 - loss; c.yaw *= 0.25; c.slip *= 0.4; c.slipV *= 0.3;
       }
       if (av > 14 && ev && c.human != null && Math.random() < h * 12) ev.push(['scrape', c, av]);
       v -= Math.sign(v) * Math.min(Math.abs(v), 3 * h); c.touch = sd;
+    }
+    // the curb: up onto the sidewalk with a bump (a little speed and a jolt), never a wall
+    if (TR.walk) {
+      var ad = Math.abs(c.d), up = clamp((ad + CAR_HALF * 0.6 - HALF) / (CAR_HALF * 1.2), 0, 1), onW = ad > HALF;
+      if (onW !== !!c.onWalk && c.onWalk != null) {
+        var lat2 = Math.abs(v * Math.sin(c.yaw) + c.kd);
+        if (av > 3) { v *= 1 - Math.min(0.07, 0.01 + lat2 * 0.006); c.liftV = (c.liftV || 0) + (onW ? 1.6 : 0.8) + Math.min(1.5, lat2 * 0.12); if (ev && c.human != null) ev.push(['curb', c, Math.min(1, 0.35 + lat2 / 9)]); }
+      }
+      c.onWalk = onW; curbLift(c, up * CURB_H, h);
     }
     if (c.wallCd > 0) c.wallCd -= h;
     c.s = ((c.s + ds) % TR.L + TR.L) % TR.L; c.total += ds; c.v = v;
@@ -1970,7 +2004,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var F = c._F || (c._F = new THREE.Vector3()), Rg = c._R || (c._R = new THREE.Vector3());
     F.copy(f.t).multiplyScalar(cy).addScaledVector(f.r, sy).normalize();
     Rg.crossVectors(F, f.u).normalize();
-    var m = c.mesh; m.position.copy(f.p).addScaledVector(f.r, c.d);
+    var m = c.mesh; m.position.copy(f.p).addScaledVector(f.r, c.d); if (c.lift) m.position.y += c.lift;
     var M = c._M || (c._M = new THREE.Matrix4()); M.makeBasis(F, f.u, Rg); m.quaternion.setFromRotationMatrix(M);
     var fx = m.userData.fx; for (var i = 0; i < fx.wheels.length; i++) fx.wheels[i].rotation.z = -c.spin;
     if (fx.wheelMat) fx.wheelMat.uniforms.spin.value = c.spin % 6.2832;
@@ -2837,7 +2871,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     if (R.type !== 'hp') { pullOver(R, c); return; }
     c.busted = true; c.v = 0; c.inp = { thr: 0, brk: 1, steer: 0, nitro: false, drift: false };
     R.cars.forEach(function (o) { if (o.cop && o.cop.tgt === c && Math.abs(wrapD(o.s - c.s, R.TR.L)) < 40) { o.cop.hold = 3; } });
-    if (c.human != null) { R.hp.over = 'busted'; R.hp.overT = 0; hudMsg(c.human, 'BUSTED', 'warn bust', 4); sfx('busted'); if (c.eng) { c.eng.stop(); c.eng = null; } }
+    if (c.human != null) { R.hp.over = 'busted'; R.hp.overT = 0; hudMsg(c.human, 'BUSTED', 'warn bust', 4); sfx('busted'); c.noEng = true; if (c.eng) { c.eng.stop(); c.eng = null; } }
     else { c.ai = null; hudMsg(0, esc(c.name) + '<small>BUSTED</small>', '', 1.8); }
   }
   // every physics step: the bust meter, wrecked cruisers
@@ -3069,6 +3103,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     if (e[0] === 'hit') { driftFail(R, c); sfx('hit', clamp(e[2] / 12, 0.3, 1)); c.cam.userData.shake = Math.min(0.5, e[2] / 30); }
     else if (e[0] === 'crash') { driftFail(R, c); sfx('crash', clamp(e[2] / 25, 0.5, 1)); c.cam.userData.shake = Math.min(0.8, e[2] / 25); }
     else if (e[0] === 'bump') { if (e[2] > 4) driftFail(R, c); sfx('bump', clamp(e[2] / 10, 0.3, 1)); }
+    else if (e[0] === 'curb') { sfx('curb', e[2]); c.cam.userData.shake = Math.max(c.cam.userData.shake || 0, 0.06 + e[2] * 0.1); }   // up or down the curb: a thump, not a crash (keeps the drift)
     else if (e[0] === 'nitro') sfx('nitro');
     else if (e[0] === 'spinout') { driftFail(R, c); hudMsg(hi, 'SPUN OUT<small>too much angle · counter-steer to catch it</small>', 'warn', 1.5); sfx('spin'); }
     else if (e[0] === 'slipready') { popMsg(hi, 'SLIPSTREAM FULL', 'pull out to slingshot'); sfx('slipready'); }
@@ -3094,6 +3129,272 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       H.dlbl.textContent = L.ok ? '+ $' + L.cash.toLocaleString('en-US') + ' · NITRO' : 'DRIFT LOST';
       H.dang.style.width = '0%';
     }
+  }
+
+  /* ════════════════ 2026-10-10: CURBS, DEX AIN'T DEAD BILLBOARDS, THE RADIO, SOUND THAT ALWAYS COMES ON ════════════════ */
+
+  // A car's height over the road: a stiff little spring toward the curb height when it's up on the sidewalk, so going up
+  // or down the curb gives a quick bounce instead of a wall.
+  function curbLift(c, target, h) {
+    var y = c.lift || 0, vy = c.liftV || 0;
+    vy += ((target - y) * 520 - vy * 30) * h; y += vy * h;
+    if (y < -0.05) { y = -0.05; vy = Math.max(0, vy); } if (y > 0.5) { y = 0.5; vy = Math.min(0, vy); }
+    c.lift = y; c.liftV = vy;
+  }
+
+  /* ── Dex Ain't Dead billboards: five painted boards, drawn on a canvas from ContentPad art (Dex, the crowned skull,
+     the casino lobby) with exact type. The type draws first; the art drops in when it loads. ── */
+  var DAD_ART = { dex: 'a6034688-a4ab-4a30-9f04-c0e42bf4005d.jpg', skull: '83e5820e-c556-4306-9123-4dfc17b6c33b.png', lobby: '227b6d27-8cf7-4ad2-b411-6cf6e9b7e5ee.png' };
+  var DADTEX = null, DAD_N = 5, DAD_IMG = {};
+  function dFit(x, txt, weight, family, size, maxW) { for (; size > 10; size -= 2) { x.font = weight + ' ' + size + 'px ' + family; if (x.measureText(txt).width <= maxW) break; } return size; }
+  function dCrop(x, im, sx, sy, sw, sh, dx, dy, dw, dh) { if (!im) return false; var W = im.naturalWidth || im.width, H = im.naturalHeight || im.height; try { x.drawImage(im, sx * W, sy * H, sw * W, sh * H, dx, dy, dw, dh); } catch (e) { return false; } return true; }
+  function dGlow(x, t, cx, cy, col, blur) { x.shadowColor = col; x.shadowBlur = blur; x.fillStyle = col; x.fillText(t, cx, cy); x.shadowBlur = blur * 0.35; x.globalAlpha = 0.5; x.fillStyle = '#fff'; x.fillText(t, cx, cy); x.globalAlpha = 1; x.shadowBlur = 0; }
+  function dGold(x, y0, y1) { var g = x.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, '#fff3cc'); g.addColorStop(0.46, '#ffd27a'); g.addColorStop(0.54, '#b8792a'); g.addColorStop(1, '#ffe39c'); return g; }
+  var DAD_DRAW = [
+    // 0: Dex himself, the name in gold and chrome, the radio on the band
+    function (x, W, H, I) {
+      var g = x.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#16060f'); g.addColorStop(1, '#2c0b2c'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+      if (dCrop(x, I.dex, 0.25, 0, 0.5, 1, 0, 0, H, H)) { var f = x.createLinearGradient(H * 0.6, 0, H, 0); f.addColorStop(0, 'rgba(28,8,26,0)'); f.addColorStop(1, '#250a24'); x.fillStyle = f; x.fillRect(H * 0.6, 0, H * 0.4 + 2, H); }
+      x.textAlign = 'center'; x.textBaseline = 'middle'; var cx = H + (W - H) / 2, mw = W - H - 48;
+      dFit(x, 'DEX', '900', 'Orbitron, sans-serif', 176, mw); x.fillStyle = dGold(x, 60, 200); x.shadowColor = 'rgba(0,0,0,.6)'; x.shadowBlur = 12; x.fillText('DEX', cx, 128); x.shadowBlur = 0;
+      dFit(x, "AIN'T DEAD", '900', 'Orbitron, sans-serif', 96, mw); x.fillStyle = '#ffffff'; x.fillText("AIN'T DEAD", cx, 238);
+      dFit(x, 'Still here. Still loud.', '400', 'Yellowtail, cursive', 66, mw); dGlow(x, 'Still here. Still loud.', cx, 326, '#ff5ab8', 18);
+      x.fillStyle = '#ff4fb3'; x.fillRect(H, H - 88, W - H, 88); x.fillStyle = '#16060f'; dFit(x, 'DAD RADIO 104.7 FM', '800', 'Inter, sans-serif', 48, mw); x.fillText('DAD RADIO 104.7 FM', cx, H - 44);
+    },
+    // 1: the crowned skull, gold on black, like the card backs at the casino
+    function (x, W, H, I) {
+      x.fillStyle = '#07050a'; x.fillRect(0, 0, W, H);
+      x.strokeStyle = dGold(x, 0, H); x.lineWidth = 10; x.strokeRect(14, 14, W - 28, H - 28); x.lineWidth = 2; x.strokeRect(32, 32, W - 64, H - 64);
+      if (!dCrop(x, I.skull, 0.12, 0.2, 0.76, 0.507, 46, 46, H - 92, H - 92)) { x.fillStyle = '#1a1208'; x.beginPath(); x.arc(H / 2, H / 2, H * 0.36, 0, 7); x.fill(); }
+      x.textAlign = 'center'; x.textBaseline = 'middle'; var cx = H + (W - H) / 2 - 16, mw = W - H - 60;
+      dFit(x, "Dex Ain't Dead", '400', 'Yellowtail, cursive', 120, mw); dGlow(x, "Dex Ain't Dead", cx, 178, '#ffd27a', 16);
+      dFit(x, 'STILL HERE.', '900', 'Orbitron, sans-serif', 74, mw); x.fillStyle = '#ffffff'; x.fillText('STILL HERE.', cx, 300);
+      dFit(x, 'ALL NIGHT ON 104.7 FM', '800', 'Inter, sans-serif', 36, mw); x.fillStyle = '#ff5ab8'; x.fillText('ALL NIGHT ON 104.7 FM', cx, 392);
+    },
+    // 2: the casino
+    function (x, W, H, I) {
+      if (!dCrop(x, I.lobby, 0, 0.12, 1, 0.76, 0, 0, W, H)) { var g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#1a0a1e'); g.addColorStop(1, '#0a0608'); x.fillStyle = g; x.fillRect(0, 0, W, H); }
+      var v = x.createRadialGradient(W / 2, H / 2, H * 0.2, W / 2, H / 2, W * 0.62); v.addColorStop(0, 'rgba(8,4,10,.45)'); v.addColorStop(1, 'rgba(8,4,10,.88)'); x.fillStyle = v; x.fillRect(0, 0, W, H);
+      x.textAlign = 'center'; x.textBaseline = 'middle'; var mw = W - 110;
+      dFit(x, "DEX AIN'T DEAD", '900', 'Orbitron, sans-serif', 84, mw); x.fillStyle = dGold(x, 110, 190); x.fillText("DEX AIN'T DEAD", W / 2, 148);
+      dFit(x, 'CASINO', '900', 'Orbitron, sans-serif', 176, mw); dGlow(x, 'CASINO', W / 2, 282, '#ff4fb3', 26);
+      dFit(x, 'DEX DEALS  ·  PLAY MONEY ONLY', '800', 'Inter, sans-serif', 40, mw); x.fillStyle = '#ffffff'; x.fillText('DEX DEALS  ·  PLAY MONEY ONLY', W / 2, 410);
+      x.strokeStyle = 'rgba(255,210,122,.8)'; x.lineWidth = 6; x.strokeRect(10, 10, W - 20, H - 20);
+    },
+    // 3: the station, synthwave sunset
+    function (x, W, H) {
+      var g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#0c0418'); g.addColorStop(0.62, '#3a0a44'); g.addColorStop(1, '#14061c'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+      var sx = W * 0.79, sy = H * 0.6, sr = 168, sg = x.createLinearGradient(0, sy - sr, 0, sy + sr); sg.addColorStop(0, '#ffe08a'); sg.addColorStop(0.55, '#ff7a5a'); sg.addColorStop(1, '#ff3ea5');
+      x.save(); x.beginPath(); x.arc(sx, sy, sr, 0, 7); x.clip(); x.fillStyle = sg; x.fillRect(sx - sr, sy - sr, sr * 2, sr * 2);
+      x.fillStyle = '#2a0838'; for (var k = 0; k < 7; k++) { var yy = sy + 8 + k * 22; x.fillRect(sx - sr, yy, sr * 2, 3 + k * 1.6); } x.restore();
+      x.fillStyle = '#14061c'; x.fillRect(0, H * 0.78, W, H * 0.22);
+      x.strokeStyle = 'rgba(255,79,179,.55)'; x.lineWidth = 2;
+      for (var i = -14; i <= 14; i++) { x.beginPath(); x.moveTo(W / 2 + i * 22, H * 0.78); x.lineTo(W / 2 + i * 150, H); x.stroke(); }
+      for (var j = 0; j < 5; j++) { var y = H * 0.78 + Math.pow(j / 5, 1.7) * H * 0.22; x.beginPath(); x.moveTo(0, y); x.lineTo(W, y); x.stroke(); }
+      x.textAlign = 'center'; x.textBaseline = 'middle'; var cx = W * 0.34, mw = W * 0.6;
+      dFit(x, '104.7', '900', 'Orbitron, sans-serif', 196, mw); dGlow(x, '104.7', cx, 170, '#ff4fb3', 30);
+      dFit(x, 'DAD RADIO', '400', 'Michroma, sans-serif', 70, mw); dGlow(x, 'DAD RADIO', cx, 292, '#7fe8ff', 18);
+      dFit(x, "Dex Ain't Dead · all night long", '400', 'Yellowtail, cursive', 52, mw); x.fillStyle = '#ffd27a'; x.fillText("Dex Ain't Dead · all night long", cx, 362);
+    },
+    // 4: the DJ booth
+    function (x, W, H, I) {
+      x.fillStyle = '#09070d'; x.fillRect(0, 0, W, H);
+      var iw = H * 1.12, ix = W - iw;
+      if (dCrop(x, I.dex, 0.22, 0, 0.56, 1, ix, 0, iw, H)) { var f = x.createLinearGradient(ix, 0, ix + iw * 0.35, 0); f.addColorStop(0, '#09070d'); f.addColorStop(1, 'rgba(9,7,13,0)'); x.fillStyle = f; x.fillRect(ix, 0, iw * 0.35, H); }
+      x.textAlign = 'center'; x.textBaseline = 'middle'; var cx = ix / 2 + 24, mw = ix - 30;
+      dFit(x, 'TONIGHT', '800', 'Inter, sans-serif', 40, mw); x.fillStyle = '#ff5ab8'; x.fillText('TONIGHT', cx, 92);
+      dFit(x, 'DJ DEX', '900', 'Orbitron, sans-serif', 118, mw); x.fillStyle = '#ffffff'; x.fillText('DJ DEX', cx, 186);
+      dFit(x, 'HOBBES', '900', 'Orbitron, sans-serif', 118, mw); x.fillStyle = dGold(x, 230, 320); x.fillText('HOBBES', cx, 290);
+      dFit(x, 'All night · every night', '400', 'Yellowtail, cursive', 58, mw); dGlow(x, 'All night · every night', cx, 396, '#7fe8ff', 14);
+    }
+  ];
+  function dadBoards() {
+    if (DADTEX) return DADTEX;
+    var W = 1024, H = 512, c = cvs(W, H * DAD_N), x = c.getContext('2d'), t = texOf(c);
+    t.n = DAD_N; t.anisotropy = Math.min(8, MAXANI);
+    function draw() {
+      for (var i = 0; i < DAD_N; i++) { x.save(); x.translate(0, i * H); x.beginPath(); x.rect(0, 0, W, H); x.clip(); try { DAD_DRAW[i](x, W, H, DAD_IMG); } catch (e) {} x.restore(); }
+      t.needsUpdate = true;
+    }
+    draw();
+    Object.keys(DAD_ART).forEach(function (k) { loadImg(artUrl(ART + DAD_ART[k], 1024)).then(function (im) { if (im) { DAD_IMG[k] = im; draw(); } }); });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+    DADTEX = t; return t;
+  }
+  // one billboard: a 2:1 board on two legs with a frame, a catwalk and three lamps lighting it
+  function DadBuilder() { this.m = new Merger(); this.f = new Merger(); this.g = []; this.k = 0; }
+  DadBuilder.prototype.add = function (base, face, bottom, w, h, k, footY) {
+    face = face.clone().setY(0).normalize();
+    var right = new THREE.Vector3().crossVectors(UP, face).normalize(), c = base.clone().add(V3(0, bottom + h / 2, 0));
+    var a = c.clone().addScaledVector(right, -w / 2).add(V3(0, -h / 2, 0)), b = c.clone().addScaledVector(right, w / 2).add(V3(0, -h / 2, 0));
+    this.m.quad(a, b, b.clone().add(V3(0, h, 0)), a.clone().add(V3(0, h, 0)), 0xffffff, atlasUV(dadBoards(), (k == null ? this.k++ : k) % DAD_N));
+    var rot = new THREE.Matrix4().lookAt(V3(0, 0, 0), face, UP);
+    this.f.add(new THREE.BoxGeometry(w + 0.7, h + 0.7, 0.4), rot.clone().setPosition(c.clone().addScaledVector(face, -0.26)), 0x1c1a22);
+    var y0 = footY == null ? base.y - 2 : footY, top = base.y + bottom + h * 0.6, len = Math.max(1, top - y0), self = this;
+    [-1, 1].forEach(function (q) { var p = base.clone().addScaledVector(right, q * w * 0.28).addScaledVector(face, -0.6); self.f.add(new THREE.BoxGeometry(0.6, len, 0.6), mtx(p.x, y0 + len / 2, p.z), 0x2a2830); });
+    this.f.add(new THREE.BoxGeometry(w, 0.12, 1.1), rot.clone().setPosition(base.clone().add(V3(0, bottom - 0.35, 0)).addScaledVector(face, 0.45)), 0x34323a);
+    for (var i = 0; i < 3; i++) { var lp = base.clone().addScaledVector(right, (i - 1) * w * 0.33).add(V3(0, bottom - 0.75, 0)).addScaledVector(face, 1.5); this.g.push(lp.x, lp.y, lp.z); }
+  };
+  DadBuilder.prototype.flush = function (scene) {
+    if (this.m.empty()) return;
+    scene.add(new THREE.Mesh(this.m.geo(), new THREE.MeshBasicMaterial({ map: dadBoards(), side: THREE.DoubleSide, color: 0xe8e2dc })));
+    scene.add(new THREE.Mesh(this.f.geo(), new THREE.MeshLambertMaterial({ vertexColors: true })));
+    var lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(this.g, 3));
+    scene.add(new THREE.Points(lg, new THREE.PointsMaterial({ color: 0xfff0d0, size: 1.7, map: GLOW, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending })));
+  };
+  // the drives: boards up over the buildings (a little turned toward the traffic coming), lower out on the open road
+  function dadTrack(scene, TR, th, theme, rng, WALK, gy) {
+    var B = new DadBuilder(), every = { strip: 430, freeway: 560, desert: 480, nyc: 400, miami: 430, vegas: 380 }[theme] || 500;
+    var curb = th.side === 'curb', bottom = { strip: 15, freeway: 7, desert: 5, nyc: 32, miami: 26, vegas: 24 }[theme] || 10, k = (rng() * DAD_N) | 0;
+    for (var s = 150 + rng() * 120; s < TR.L - 100; s += every * (0.8 + rng() * 0.4)) {
+      var f = frameAt(TR, s), sd = rng() < 0.5 ? -1 : 1, off = curb ? HALF + WALK + 6 + rng() * 6 : HALF + 12 + rng() * 10;
+      var p = f.p.clone().addScaledVector(f.r, sd * off);
+      if (TR.near(p.x, p.z) < off - 1.5) continue;   // too close to another part of the road
+      var face = f.r.clone().multiplyScalar(-sd).addScaledVector(f.t, -0.8);   // toward the road and the cars coming
+      B.add(p, face, bottom, 16, 8, k++, curb ? p.y - 1 : Math.min(p.y, gy) - 1);
+    }
+    B.flush(scene);
+  }
+  // the city: boards over the low blocks (Sunset, Ocean Drive) at block corners turned toward the crossing,
+  // on the buildings' street wall in Manhattan and Vegas, and big ones out on the beach and in the lots
+  function dadCity(scene, rng) {
+    var B = new DadBuilder(), k = 0;
+    CG.segs.forEach(function (sg) {
+      if (rng() > 0.3) return;
+      var A = CG.nodes[sg.a], Bn = CG.nodes[sg.b], tx = (Bn.x - A.x) / sg.len, tz = (Bn.z - A.z) / sg.len, rx = -tz, rz = tx;
+      var sd = rng() < 0.5 ? -1 : 1, bk = sideBlock(sg, sd);
+      if (!bk || bk.lot) { sd = -sd; bk = sideBlock(sg, sd); if (!bk || bk.lot) return; }
+      var tall = bk.dist === 'nyc' || bk.dist === 'vegas', s = sg.len * (0.32 + rng() * 0.36);
+      if (tall) {   // flat on the street wall, over the shop signs
+        var off = HALF + 4.5 + 0.05, p = V3(A.x + tx * s + rx * sd * off, 0, A.z + tz * s + rz * sd * off);
+        B.add(p, V3(-rx * sd, 0, -rz * sd), 9.5, 13, 6.5, k++, 0);
+      } else {   // up over the roofs, turned toward the cars coming down this side of the street
+        var off2 = HALF + 4.5 + 7, dir = sd > 0 ? 1 : -1, p2 = V3(A.x + tx * s + rx * sd * off2, 0, A.z + tz * s + rz * sd * off2);
+        B.add(p2, V3(-rx * sd - tx * dir * 0.9, 0, -rz * sd - tz * dir * 0.9), bk.dist === 'strip' ? 15 : 31, 16, 8, k++, 0);
+      }
+    });
+    // the beach: facing the city across Ocean Drive
+    for (var z = CG.zs[4] + 40; z < CG.Z1 - 20; z += 150 + rng() * 60) B.add(V3(CG.X1 + 22, 0, z), V3(-1, 0, rng() < 0.5 ? -0.35 : 0.35), 6, 16, 8, k++, -0.5);
+    // the open lots: one board on the far edge of each
+    CG.blocks.forEach(function (bk) { if (!bk.lot) return; var cx = (bk.x0 + bk.x1) / 2; B.add(V3(cx, 0, bk.z1 - 3), V3(0, 0, -1), 5, 18, 9, k++, 0); });
+    B.flush(scene);
+  }
+
+  /* ── The radio. 88.5 Night FM is the game's own score; DAD Radio 104.7 plays Dex Ain't Dead (his SoundCloud, from the
+     talent.contentpad.io feed, through SoundCloud's official widget, like the casino); After Dark is his DJ mixes; or off.
+     R or the d-pad (up / down) flips stations, the 📻 button on touch. The choice is remembered (nd_settings.radio). ── */
+  var STATIONS = [
+    { id: 'score', f: '88.5', name: 'NIGHT FM', sub: 'the YESTERDAYLAND score' },
+    { id: 'dad', f: '104.7', name: 'DAD RADIO', sub: "Dex Ain't Dead" },
+    { id: 'mix', f: '104.7', name: 'DAD RADIO · AFTER DARK', sub: "Dex Ain't Dead · DJ mixes" },
+    { id: 'off', f: '', name: 'RADIO OFF', sub: 'engines only' }
+  ];
+  if (!(SET.radio >= 0 && SET.radio < STATIONS.length)) SET.radio = 0;
+  var RADIO = { feed: null, songs: [], mixes: [], idx: { dad: 0, mix: 0 }, w: null, ready: false, cur: null, curSt: null, playing: false };
+  function radioStation() { return STATIONS[SET.radio] || STATIONS[0]; }
+  function radioTakesOver() { return radioStation().id !== 'score'; }
+  function radioVol() { return SET.sound && SET.music !== false ? 62 : 0; }
+  function radioVolume() { try { if (RADIO.w && RADIO.ready) RADIO.w.setVolume(radioVol()); } catch (e) {} }
+  function radioMay() { var id = radioStation().id; return (id === 'dad' || id === 'mix') && !(typeof INTRO !== 'undefined' && INTRO && INTRO.on) && !document.hidden; }
+  function radioFeed() {
+    if (RADIO.feed) return RADIO.feed;
+    RADIO.feed = fetch('https://talent.contentpad.io/dexaintdead.json').then(function (r) { return r.json(); }).then(function (j) {
+      (j.tracks || []).forEach(function (t) { if (t.provider === 'soundcloud' && /^https:\/\/soundcloud\.com\/dexaintdead\//.test(t.url)) (/(DJ mix|Radio)/.test(t.note || '') ? RADIO.mixes : RADIO.songs).push(t); });
+      [RADIO.songs, RADIO.mixes].forEach(function (L) { for (var i = L.length - 1; i > 0; i--) { var r = Math.floor(Math.random() * (i + 1)), x = L[i]; L[i] = L[r]; L[r] = x; } });
+    }).catch(function () {});
+    return RADIO.feed;
+  }
+  function scApi(cb) { if (window.SC && SC.Widget) return cb(); var s = document.createElement('script'); s.src = 'https://w.soundcloud.com/player/api.js'; s.onload = cb; document.head.appendChild(s); }
+  function radioPause() { try { if (RADIO.w && RADIO.ready) RADIO.w.pause(); } catch (e) {} }
+  function radioResume() {
+    var id = radioStation().id;
+    if (id !== 'dad' && id !== 'mix') { radioPause(); return; }
+    if (!radioMay()) return;
+    if (RADIO.w && RADIO.ready && RADIO.curSt === id && RADIO.cur) { RADIO.w.setVolume(radioVol()); RADIO.w.play(); return; }
+    radioLoad();
+  }
+  function radioLoad() {
+    var id = radioStation().id;
+    radioFeed().then(function () {
+      if (radioStation().id !== id) return;
+      var L = id === 'mix' ? RADIO.mixes : RADIO.songs;
+      if (!L.length) { radioToast({ f: '104.7', name: 'DAD RADIO', sub: 'no signal right now' }); return; }
+      var t = L[RADIO.idx[id] % L.length]; RADIO.cur = t; RADIO.curSt = id;
+      var url = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(t.url) + '&auto_play=true&visual=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&sharing=false&buying=false&download=false';
+      if (!RADIO.w) {
+        var fr = document.createElement('iframe'); fr.id = 'scRadio'; fr.title = "DAD Radio · Dex Ain't Dead"; fr.setAttribute('allow', 'autoplay'); fr.src = url;
+        fr.style.cssText = 'position:fixed;left:0;bottom:0;width:300px;height:120px;border:0;opacity:0;pointer-events:none;z-index:-1';
+        document.body.appendChild(fr);
+        scApi(function () {
+          var w = RADIO.w = SC.Widget(fr);
+          w.bind(SC.Widget.Events.READY, function () { RADIO.ready = true; w.setVolume(radioVol()); if (radioMay()) w.play(); else w.pause(); });
+          w.bind(SC.Widget.Events.PLAY, function () { RADIO.playing = true; if (!radioMay()) w.pause(); });
+          w.bind(SC.Widget.Events.PAUSE, function () { RADIO.playing = false; });
+          w.bind(SC.Widget.Events.FINISH, function () { RADIO.idx[RADIO.curSt] = (RADIO.idx[RADIO.curSt] || 0) + 1; radioLoad(); });
+          w.bind(SC.Widget.Events.ERROR, function () { RADIO.idx[RADIO.curSt] = (RADIO.idx[RADIO.curSt] || 0) + 1; setTimeout(radioLoad, 1200); });
+        });
+      } else if (RADIO.ready) {
+        RADIO.w.load(t.url, { auto_play: true, visual: false, show_user: false, show_comments: false, sharing: false, buying: false, download: false, callback: function () { RADIO.w.setVolume(radioVol()); if (radioMay()) RADIO.w.play(); else RADIO.w.pause(); } });
+      }
+      radioToast(radioStation(), t.title);
+    });
+  }
+  function radioSet(i) {
+    SET.radio = ((i % STATIONS.length) + STATIONS.length) % STATIONS.length; saveSet();
+    var st = radioStation(), want = MUS.want || (STATE === 'race' ? (RACE && RACE.def ? RACE.def.id : 'city') : 'title');
+    audioInit(); sfx('radio');
+    if (st.id === 'score') { radioPause(); musicStop(true); musicStart(want); }
+    else { musicStop(true); MUS.want = want; if (st.id === 'off') radioPause(); else if (RADIO.curSt === st.id) radioResume(); else radioLoad(); }
+    radioToast(st, st.id === RADIO.curSt && RADIO.cur ? RADIO.cur.title : '');
+    var b = document.getElementById('tRadio'); if (b) b.classList.toggle('off', st.id === 'off');
+  }
+  function radioNext(d) { radioSet(SET.radio + (d || 1)); }
+  // the toast: frequency, station, what's on
+  var RT = null, RTt = 0;
+  function radioToast(st, song) {
+    if (!RT) {
+      RT = document.createElement('div'); RT.id = 'radioT'; RT.setAttribute('aria-live', 'polite');
+      RT.innerHTML = '<div class="rt1"><b class="rf"></b><span class="rn"></span></div><div class="rs"></div>';
+      document.body.appendChild(RT);
+    }
+    RT.querySelector('.rf').textContent = st.f ? st.f + ' FM' : '📻';
+    RT.querySelector('.rn').textContent = st.name;
+    RT.querySelector('.rs').textContent = song ? '♪ ' + song : st.sub;
+    RT.classList.add('on'); clearTimeout(RTt); RTt = setTimeout(function () { RT.classList.remove('on'); }, 3800);
+  }
+  (function () {
+    var css = document.createElement('style');
+    css.textContent = '#radioT{position:fixed;left:50%;top:calc(env(safe-area-inset-top) + 112px);transform:translate(-50%,-8px);z-index:12;pointer-events:none;opacity:0;transition:opacity .35s,transform .35s;' +
+      'max-width:calc(100vw - 32px);padding:10px 18px;border-radius:14px;background:rgba(8,6,16,.78);border:1px solid rgba(255,90,184,.55);box-shadow:0 0 24px rgba(255,79,179,.25);text-align:center;font-family:var(--hud,Orbitron,sans-serif);color:#fff}' +
+      '#radioT.on{opacity:1;transform:translate(-50%,0)}#radioT .rt1{display:flex;gap:10px;align-items:baseline;justify-content:center;flex-wrap:wrap}#radioT .rf{color:#ff5ab8;font-size:20px;letter-spacing:.04em}' +
+      '#radioT .rn{font-size:14px;letter-spacing:.18em}#radioT .rs{margin-top:4px;font:600 13px/1.35 Inter,sans-serif;color:#ffd27a;overflow-wrap:anywhere}' +
+      '@media (max-height:520px){#radioT{top:calc(env(safe-area-inset-top) + 64px);padding:7px 12px}#radioT .rf{font-size:16px}#radioT .rn{font-size:11px}}' +
+      '#tRadio{position:absolute;left:calc(50% + 32px);top:max(8px,env(safe-area-inset-top));width:44px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,.4);background:rgba(6,8,16,.5);pointer-events:auto;font:900 15px var(--hud);color:#fff}' +
+      '#tRadio.off{opacity:.55}' +
+      '#sndHint{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 16px);transform:translateX(-50%);z-index:13;display:none;padding:9px 16px;border-radius:999px;background:rgba(8,6,16,.86);border:1px solid rgba(255,210,122,.6);font:700 13px Inter,sans-serif;color:#ffd27a;cursor:pointer;max-width:calc(100vw - 32px);text-align:center}' +
+      '#sndHint.on{display:block}';
+    document.head.appendChild(css);
+    var t = document.getElementById('touch');
+    if (t) { var b = document.createElement('button'); b.type = 'button'; b.id = 'tRadio'; b.setAttribute('aria-label', 'Change radio station'); b.textContent = '📻'; t.appendChild(b); b.addEventListener('click', function () { radioNext(1); }); }
+    var hint = document.createElement('div'); hint.id = 'sndHint'; hint.textContent = '🔇 Sound is waiting on your browser: click or press any key'; document.body.appendChild(hint);
+    hint.addEventListener('click', function () { audioInit(); });
+  })();
+  document.addEventListener('visibilitychange', function () { if (document.hidden) radioPause(); else if (radioTakesOver() && MUS.want) radioResume(); });
+
+  /* ── Sound that always comes on. The engines used to be made once, at the start of a race, and only if the audio
+     had already been unlocked; start a race before that (or with the browser holding audio back) and the car stayed
+     silent all race. Now any key, click or touch unlocks it, a missing engine is made the moment audio is running,
+     and if the browser is still holding sound back a small note says so. ── */
+  ['keydown', 'mousedown', 'pointerup', 'touchend', 'click'].forEach(function (ev) { window.addEventListener(ev, function () { audioInit(); }, { capture: true, passive: true }); });
+  function ensureEngine(hh, i, n) {
+    if (hh.eng || hh.noEng || !AC || AC.state !== 'running') return;
+    hh.eng = Engine(n > 1 ? (i ? 0.45 : -0.45) : 0);
+  }
+  var sndShown = false;
+  function soundHint() {
+    var want = SET.sound && (STATE === 'race' || STATE === 'menu' || STATE === 'pause' || STATE === 'garage') && !(INTRO && INTRO.on);
+    var blocked = want && (!AC || AC.state !== 'running');
+    if (blocked !== sndShown) { sndShown = blocked; var el = document.getElementById('sndHint'); if (el) el.classList.toggle('on', blocked); }
   }
 
   /* ════════════════ YESTERDAYLAND CITY: the open world ════════════════
@@ -3122,10 +3423,17 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     function seg(a, b, axis) { var A = nodes[a], B = nodes[b], s = { id: segs.length, a: a, b: b, axis: axis, len: Math.hypot(B.x - A.x, B.z - A.z), park: {} }; segs.push(s); A.nb.push({ n: b, s: s }); B.nb.push({ n: a, s: s }); }
     for (i = 0; i < NN; i++) for (j = 0; j < N; j++) seg(i * NN + j, i * NN + j + 1, 'z');
     for (j = 0; j < NN; j++) for (i = 0; i < N; i++) seg(i * NN + j, (i + 1) * NN + j, 'x');
-    return { xs: xs, zs: zs, N: N, NN: NN, blocks: blocks, outer: outer, nodes: nodes, segs: segs, X0: X0, X1: X1, Z0: Z0, Z1: Z1, cx: (xs[0] + xs[N]) / 2, cz: (zs[0] + zs[N]) / 2, district: district };
+    // 2026-10-10: what's solid is the block minus the front of its sidewalk (WALK_DRIVE m you can drive on), and the same ring outside the grid
+    blocks.forEach(function (b) { b.solid = { x0: b.x0 + WALK_DRIVE, x1: b.x1 - WALK_DRIVE, z0: b.z0 + WALK_DRIVE, z1: b.z1 - WALK_DRIVE }; });
+    var outerSolid = [{ x0: -E, x1: X0 - WALK_DRIVE, z0: -E, z1: E }, { x0: X1 + WALK_DRIVE, x1: E, z0: -E, z1: E }, { x0: X0, x1: X1, z0: -E, z1: Z0 - WALK_DRIVE }, { x0: X0, x1: X1, z0: Z1 + WALK_DRIVE, z1: E }];
+    return { xs: xs, zs: zs, N: N, NN: NN, blocks: blocks, outer: outer, outerSolid: outerSolid, nodes: nodes, segs: segs, X0: X0, X1: X1, Z0: Z0, Z1: Z1, cx: (xs[0] + xs[N]) / 2, cz: (zs[0] + zs[N]) / 2, district: district };
   })();
   function cgIdx(arr, v) { var k = -1; while (k + 1 < arr.length && arr[k + 1] <= v) k++; return k; }   // street line at or before v
   function blockAt(x, z) { var i = cgIdx(CG.xs, x), j = cgIdx(CG.zs, z); if (i < 0 || j < 0 || i >= CG.N || j >= CG.N) return null; return CG.blocks[i * CG.N + j]; }
+  function cityOnWalk(x, z) {
+    if (x < CG.X0 || x > CG.X1 || z < CG.Z0 || z > CG.Z1) return true;
+    var bk = blockAt(x, z); return !!(bk && !bk.lot && x >= bk.x0 && x <= bk.x1 && z >= bk.z0 && z <= bk.z1);
+  }
   function districtAt(x, z) { var i = clamp(cgIdx(CG.xs, x), 0, CG.N - 1), j = clamp(cgIdx(CG.zs, z), 0, CG.N - 1); return CG.district(i, j); }
   // how far a spot is from the nearest street centre line
   function cityNear(x, z) {
@@ -3239,13 +3547,13 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       for (var q = 0; q < n; q++) {
         var s = 15 + (q + 0.5) * (sg.len - 30) / n, sd = (q + k) % 2 ? 1 : -1;
         if (!sideBlock(sg, sd) && sg.axis === 'z' && A.i === CG.N) sd = -sd;
-        var bx = A.x + tx * s + rx * sd * (HALF + 1.0), bz = A.z + tz * s + rz * sd * (HALF + 1.0), ph = 8.5, armL = 3.2;
+        var bx = A.x + tx * s + rx * sd * (HALF + 3.9), bz = A.z + tz * s + rz * sd * (HALF + 3.9), ph = 8.5, armL = 6.1;
         poles.add(new THREE.CylinderGeometry(0.12, 0.18, ph, 6), mtx(bx, ph / 2, bz), 0x55525a);
         var ax = bx - rx * sd * armL, az = bz - rz * sd * armL;
         poles.add(new THREE.BoxGeometry(0.12, 0.12, armL + 0.2), mtx((bx + ax) / 2, ph, (bz + az) / 2, Math.atan2(rx, rz)), 0x55525a);
         poles.add(new THREE.BoxGeometry(0.42, 0.22, 0.9), mtx(ax, ph - 0.1, az, Math.atan2(rx, rz)), 0x55525a);
         lampPos.push(ax, ph - 0.3, az); out.lamps.push(V3(ax, ph - 0.3, az));
-        var cx = A.x + tx * s + rx * sd * (HALF - armL - 0.4), cz = A.z + tz * s + rz * sd * (HALF - armL - 0.4), hw = 7, hl = 11;
+        var cx = A.x + tx * s + rx * sd * (HALF - 3.6), cz = A.z + tz * s + rz * sd * (HALF - 3.6), hw = 7, hl = 11;
         pools.quad(V3(cx - rx * hw - tx * hl, 0.05, cz - rz * hw - tz * hl), V3(cx + rx * hw - tx * hl, 0.05, cz + rz * hw - tz * hl), V3(cx + rx * hw + tx * hl, 0.05, cz + rz * hw + tz * hl), V3(cx - rx * hw + tx * hl, 0.05, cz - rz * hw + tz * hl), th.lamp);
       }
     });
@@ -3253,7 +3561,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     CG.nodes.forEach(function (n, k) {
       if (n.nb.length < 3) return;
       [[-1, -1], [1, 1]].forEach(function (c, q) {
-        var px = n.x + c[0] * (HALF + 1.2), pz = n.z + c[1] * (HALF + 1.2);
+        var px = n.x + c[0] * (HALF + 3.9), pz = n.z + c[1] * (HALF + 3.9);
         poles.add(new THREE.CylinderGeometry(0.1, 0.12, 5, 6), mtx(px, 2.5, pz), 0x3a3a40);
         poles.add(new THREE.BoxGeometry(0.4, 1.1, 0.4), mtx(px, 5.2, pz), 0x2a2a30);
         ((k + q) % 2 ? sigA : sigB).push(px, 5.45, pz);
@@ -3273,6 +3581,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     cityMiami(scene, rng, gy, out.extra);
     cityRain(scene, out.extra);
     cityLots(scene, rng, out);
+    dadCity(scene, seeded(4711));
     return out;
   }
   // palms along the sidewalks of Sunset and Ocean Drive, a few in Vegas
@@ -3284,7 +3593,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
         var bk = sideBlock(sg, sd), dist = bk ? bk.dist : districtAt((A.x + B.x) / 2 - rx * sd * 20, (A.z + B.z) / 2 - rz * sd * 20);
         if (bk && bk.lot) return;
         var every = dist === 'miami' ? 26 : dist === 'strip' ? 30 : dist === 'vegas' ? 60 : 0; if (!every) return;
-        for (var s = 18 + rng() * 6; s < sg.len - 18; s += every * (0.8 + rng() * 0.4)) list.push({ p: V3(A.x + tx * s + rx * sd * (HALF + 3.3), 0.18, A.z + tz * s + rz * sd * (HALF + 3.3)), rot: rng() * 6.28, sc: 0.9 + rng() * 0.45 });
+        for (var s = 18 + rng() * 6; s < sg.len - 18; s += every * (0.8 + rng() * 0.4)) list.push({ p: V3(A.x + tx * s + rx * sd * (HALF + 3.95), 0.18, A.z + tz * s + rz * sd * (HALF + 3.95)), rot: rng() * 6.28, sc: 0.9 + rng() * 0.45 });
       });
     });
     // and the beach
@@ -3298,7 +3607,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       var A = CG.nodes[sg.a], B = CG.nodes[sg.b], tx = (B.x - A.x) / sg.len, tz = (B.z - A.z) / sg.len, rx = -tz, rz = tx;
       [-1, 1].forEach(function (sd) {
         var bk = sideBlock(sg, sd); if (!bk || bk.dist !== 'vegas' || bk.lot || rng() < 0.35) return;
-        var s = 25 + rng() * (sg.len - 50), base = V3(A.x + tx * s + rx * sd * (HALF + 4.5 - 0.9), 0, A.z + tz * s + rz * sd * (HALF + 4.5 - 0.9));
+        var s = 25 + rng() * (sg.len - 50), base = V3(A.x + tx * s + rx * sd * (HALF + 4.5 + 2.4), 0, A.z + tz * s + rz * sd * (HALF + 4.5 + 2.4));
         var w = 9 + rng() * 3, h = w / 2, H = 15 + rng() * 12, c = base.clone().add(V3(0, H, 0)), r = V3(rx, 0, rz), t = V3(tx, 0, tz);
         var a = c.clone().addScaledVector(r, -w / 2), b = c.clone().addScaledVector(r, w / 2), uvk = atlasUV(sT, k % sT.n); k++;
         [[-1, a, b], [1, b, a]].forEach(function (fc) { var o = t.clone().multiplyScalar(fc[0] * 0.42), l = fc[1].clone().add(o), r2 = fc[2].clone().add(o); sm.quad(l, r2, r2.clone().add(V3(0, h, 0)), l.clone().add(V3(0, h, 0)), 0xffffff, uvk); });
@@ -3411,8 +3720,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       n++;
     }
     var i = cgIdx(CG.xs, x), j = cgIdx(CG.zs, z);
-    for (var a = i - 1; a <= i + 1; a++) for (var b = j - 1; b <= j + 1; b++) { if (a < 0 || b < 0 || a >= CG.N || b >= CG.N) continue; var bk = CG.blocks[a * CG.N + b]; if (!bk.lot) rect(bk); }
-    if (x - r < CG.X0 || x + r > CG.X1 || z - r < CG.Z0 || z + r > CG.Z1) CG.outer.forEach(rect);
+    for (var a = i - 1; a <= i + 1; a++) for (var b = j - 1; b <= j + 1; b++) { if (a < 0 || b < 0 || a >= CG.N || b >= CG.N) continue; var bk = CG.blocks[a * CG.N + b]; if (!bk.lot) rect(bk.solid); }
+    if (x - r < CG.X0 - WALK_DRIVE || x + r > CG.X1 + WALK_DRIVE || z - r < CG.Z0 - WALK_DRIVE || z + r > CG.Z1 + WALK_DRIVE) CG.outerSolid.forEach(rect);
     if (PARKHASH) {
       var ci = Math.floor(x / PH_CS), cj = Math.floor(z / PH_CS);
       for (var u = ci - 1; u <= ci + 1; u++) for (var w = cj - 1; w <= cj + 1; w++) {
@@ -3460,13 +3769,19 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
         var sp = Math.hypot(tx, tz);
         if (sp > 2 && v >= 0) { c.th = Math.atan2(tz, tx); c.v = sp; } else c.v = (tx * dx + tz * dz);
         c.kx = nx * bounce; c.kz = nz * bounce; c.slip *= 0.4; c.slipV *= 0.3;
-        if (imp > 15 && av > 22 && ev && !c.block && (c.human != null || c.cop || c.spinT > 0 || (c.hitBy && (R.t || 0) - (c.hitT || -9) < 3))) ev.push(['wreck', c, imp, 'wall']);
+        if (imp > 15 && av > 22 && ev && !c.block && ((c.human != null && imp > 23) || c.cop || c.spinT > 0 || (c.hitBy && (R.t || 0) - (c.hitT || -9) < 3))) ev.push(['wreck', c, imp, 'wall']);
         else if (imp > 2.5 && c.wallCd <= 0 && ev) { ev.push(['hit', c, imp]); c.wallCd = 0.35; }
       }
       if (av > 14 && ev && c.human != null && Math.random() < h * 12) ev.push(['scrape', c, av]);
       c.v -= Math.sign(c.v) * Math.min(Math.abs(c.v), 3 * h); c.touch = 1;
     }
     if (c.wallCd > 0) c.wallCd -= h;
+    var onW = cityOnWalk(c.x, c.z);
+    if (c.onWalk != null && onW !== c.onWalk && av > 3) {
+      c.v *= 1 - Math.min(0.07, 0.012 + av * 0.0008); c.liftV = (c.liftV || 0) + (onW ? 1.6 : 0.8) + Math.min(1.2, av * 0.03);
+      if (ev && c.human != null) ev.push(['curb', c, Math.min(1, 0.35 + av / 60)]);
+    }
+    c.onWalk = onW; curbLift(c, onW ? CURB_H : 0, h);
     c.spin += c.v * h / 0.34;
     c.vis += (c.slip - c.vis) * Math.min(1, h * 14);
   }
@@ -3477,7 +3792,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     f.p.set(c.x, 0, c.z); f.t.set(ct, 0, st); f.r.set(-st, 0, ct);
     var yaw = th + (c.vis || 0) + (c.visSpin || 0), F = c._F || (c._F = new THREE.Vector3()), Rg = c._R || (c._R = new THREE.Vector3());
     F.set(Math.cos(yaw), 0, Math.sin(yaw)); Rg.set(-F.z, 0, F.x);
-    var m = c.mesh; m.position.set(c.x, 0, c.z);
+    var m = c.mesh; m.position.set(c.x, c.lift || 0, c.z);
     var M = c._M || (c._M = new THREE.Matrix4()); M.makeBasis(F, f.u, Rg); m.quaternion.setFromRotationMatrix(M);
     var fx = m.userData.fx; if (fx) {
       for (var i = 0; i < fx.wheels.length; i++) fx.wheels[i].rotation.z = -c.spin;
@@ -4191,8 +4506,9 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     stepTyreFx(R, dt); stepSparks(R, dt);
     R.traffic.forEach(function (t) { if (!t.gone) placeTraffic(t); });
     updateTrafficLights(R);
-    R.humans.forEach(function (hh) {
+    R.humans.forEach(function (hh, hi) {
       if (hh.wreck) crashCam(hh.cam, hh, dt); else updateCam(hh.cam, hh, R.TR, dt, SET.cam);
+      ensureEngine(hh, hi, R.humans.length);
       if (hh.eng) {
         var v = Math.abs(hh.v), top = hh.st.top, G = [0, .2, .36, .52, .68, .84, 1.3], g = 1; while (g < G.length - 1 && v > G[g] * top) g++;
         var rpm = R.state === 'count' ? 0.12 + hh.inp.thr * 0.7 : clamp((v - G[g - 1] * top) / ((G[g] - G[g - 1]) * top), 0, 1) * 0.8 + 0.18;
@@ -4618,8 +4934,9 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     stepSparks(R, dt);
     for (j = 0; j < R.traffic.length; j++) placeCar(R.traffic[j], TR);
     updateTrafficLights(R);
-    R.humans.forEach(function (hh) {
+    R.humans.forEach(function (hh, hi) {
       if (hh.wreck) crashCam(hh.cam, hh, dt); else updateCam(hh.cam, hh, TR, dt, SET.cam);
+      ensureEngine(hh, hi, R.humans.length);
       if (hh.eng) {
         var v = Math.abs(hh.v), top = hh.st.top, G = [0, .2, .36, .52, .68, .84, 1.3], g = 1; while (g < G.length - 1 && v > G[g] * top) g++;
         var rpm = R.state === 'count' ? 0.12 + hh.inp.thr * 0.7 : clamp((v - G[g - 1] * top) / ((G[g] - G[g - 1]) * top), 0, 1) * 0.8 + 0.18;
@@ -4767,6 +5084,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     KEY[code] = true;
     if (repeat) return;
     if (code === 'KeyM') { setSound(!SET.sound); return; }
+    if (code === 'KeyR') { radioNext(1); return; }
     if (STATE === 'race') {
       if (code === 'Escape' || code === 'KeyP' || code === 'Backspace') pause();
       else if (code === 'KeyC') { SET.cam = (SET.cam + 1) % 3; saveSet(); RACE.humans.forEach(function (h) { h.cam.userData = {}; }); }
@@ -4792,11 +5110,11 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   function pollPadMenus() {
     var list = window.ArcadePad ? ArcadePad.pads() : [];
     for (var i = 0; i < Math.min(2, list.length); i++) {
-      var r = ArcadePad.read(list[i]), prev = PADPREV[i] || {}, now = { up: r.up, down: r.down, left: r.left, right: r.right, a: r.a, b: r.b, start: r.start, select: r.select };
+      var r = ArcadePad.read(list[i]), prev = PADPREV[i] || {}, now = { up: r.up, down: r.down, left: r.left, right: r.right, a: r.a, b: r.b, start: r.start, select: r.select, rup: r.up && !(r.ly < -0.4), rdn: r.down && !(r.ly > 0.4) };
       function edge(k) { return now[k] && !prev[k]; }
       if (r.any) audioInit();
       if (INTRO.on) { if (edge('a') || edge('b') || edge('start')) filmKey(); }
-      else if (STATE === 'race') { if (edge('start')) pause(); if (edge('select')) onKeyDown('KeyC'); }
+      else if (STATE === 'race') { if (edge('start')) pause(); if (edge('select')) onKeyDown('KeyC'); if (edge('rup')) radioNext(1); if (edge('rdn')) radioNext(-1); }
       else {
         if (edge('up')) UI.key('ArrowUp'); if (edge('down')) UI.key('ArrowDown'); if (edge('left')) UI.key('ArrowLeft'); if (edge('right')) UI.key('ArrowRight');
         if (edge('a')) UI.key('Enter'); if (edge('b')) UI.key('Escape'); if (edge('start')) UI.key(STATE === 'pause' ? 'Escape' : 'Enter');
@@ -5066,7 +5384,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   function filmShow(gate) {
     if (!FILM_SRC) return false;
     var f = $('film'), v = $('filmV');
-    INTRO.on = true; INTRO.gate = gate; STATE = 'film'; musicStop();
+    INTRO.on = true; INTRO.gate = gate; STATE = 'film'; musicStop(); radioPause();
     f.hidden = false; f.classList.remove('out'); $('filmLogo').classList.remove('on'); v.classList.remove('on');
     $('filmGate').hidden = !gate; $('filmSkip').hidden = gate; $('filmGo').textContent = TOUCH ? 'TAP TO BEGIN' : 'PRESS ANY KEY';
     if (!v.getAttribute('src')) { v.preload = 'auto'; v.src = FILM_SRC; }
@@ -5139,7 +5457,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     requestAnimationFrame(frame);
     perfWatch(Math.min(0.2, (now - last) / 1000));
     var dt = Math.min(0.05, (now - last) / 1000) * TS; last = now;
-    pollPadMenus();
+    pollPadMenus(); soundHint();
     if (STATE === 'race' && RACE) updateRace(dt);
     else if (STATE === 'results' && RACE) { updateRace(dt); }
     if (STATE !== 'menu' && STATE !== 'film') render();
@@ -5147,7 +5465,9 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 
   /* ── boot ── */
   UI.show('sTitle', true);
-  if (FILM_SRC && ls('nd_film_seen') !== FILM_ID) filmShow(true);   // a new film plays once for everyone
+  // 2026-10-10 (Dex): the intro film plays every time the game loads, like a game should; any key or tap starts it (with
+  // sound), and any key skips it. ?nofilm (the Arcade's automated checks) leaves it out.
+  if (FILM_SRC && !/[?&]nofilm\b/.test(location.search)) filmShow(true);
   // photo-skinned cars build in the background; until one is ready that car is drawn the classic way
   Object.keys(CAR_PHOTOS).forEach(function (id) { buildPhotoCar(id).then(function () { if (UI.cur === 'sGarage') renderGarage(); }); });
   resize();
