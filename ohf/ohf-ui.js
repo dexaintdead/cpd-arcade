@@ -429,13 +429,27 @@ function openSettings() { paintSettings(); $('codeMsg').textContent = ''; $('cod
 UI.openSettings = openSettings;
 function paintSettings() {
   $('sSound').textContent = O.soundOn ? '🔊 Sound: On' : '🔇 Sound: Off';
-  $('sTalk').textContent = O.SAVE.narrate ? '🗣️ Read aloud: On' : '🤫 Read aloud: Off';
+  UI.paintTalk();
   var touch = document.body.classList.contains('touch');
   $('sPlayers').textContent = O.SAVE.players === 2 ? '👥 2 players' : '🧑 1 player'; $('sPlayers').style.display = touch ? 'none' : '';
   $('sPlayersTip').style.display = touch ? 'none' : ''; $('sPlayersTip').textContent = O.SAVE.players === 2 ? 'Player 1: WASD + Space, F for the truck. Player 2: arrow keys + Enter, / for the truck. Or plug in two controllers!' : 'Turn on 2 players to farm together on one keyboard or two controllers.';
 }
 $('sSound').addEventListener('click', function () { O.audio(); O.setSound(!O.soundOn); paintSettings(); });
-$('sTalk').addEventListener('click', function () { O.audio(); O.SAVE.narrate = O.SAVE.narrate ? 0 : 1; O.save(); paintSettings(); if (O.SAVE.narrate) O.say('I will read things out loud for you!'); else O.stopTalk(); });
+function toggleTalk() {
+  O.audio(); var on = !O.SAVE.narrate; O.setNarrate(on); O.SFX.pop();
+  O.toast(on ? '🗣️ Read aloud is on' : '🤫 Read aloud is off', null, 1800);
+  if (on) O.say(O.soundOn ? 'Read aloud is on. I will read things out loud for you!' : '');
+  if (on && !O.soundOn) O.toast('Turn the sound on to hear the reading (M or Settings).', null, 3200);
+}
+// the read-aloud buttons (top right of the farm, the games and the Farm Map) and the Settings switch all show the same state
+UI.paintTalk = function () {
+  var on = !!O.SAVE.narrate;
+  ['bTalk', 'mapTalk'].forEach(function (id) { var b = $(id); if (!b) return; b.classList.toggle('off', !on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); b.title = on ? 'Read aloud is on (tap to turn off)' : 'Read aloud is off (tap to turn on)'; });
+  if ($('sTalk')) $('sTalk').textContent = on ? '🗣️ Read aloud: On' : '🤫 Read aloud: Off';
+};
+$('sTalk').addEventListener('click', toggleTalk);
+$('bTalk').addEventListener('click', toggleTalk);
+$('mapTalk').addEventListener('click', toggleTalk);
 $('sPlayers').addEventListener('click', function () { O.audio(); O.SAVE.players = O.SAVE.players === 2 ? 1 : 2; O.save(); O.SFX.pop(); paintSettings(); if (S.mode === 'farm') O.toast('Players change on the next day you start.'); });
 $('sKid').addEventListener('click', function () { O.audio(); openKid(null); });
 $('sHelp').addEventListener('click', function () { O.audio(); show('helpS'); });
@@ -484,7 +498,7 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 function boot() {
-  F.init(cx); resize(); UI.updateCoins(); O.setSound(O.soundOn);
+  F.init(cx); resize(); UI.updateCoins(); O.setSound(O.soundOn); UI.paintTalk();
   $('load').style.display = 'none';
   var q = /[?&]color=1/.test(location.search); toTitle(); if (q) O.COLOR.open();
   requestAnimationFrame(frame);
@@ -495,8 +509,8 @@ document.addEventListener('visibilitychange', function () {
   else if (O.soundOn && O.music && S.mode !== 'load' && !O.musicHold) { var p = O.music.play(); if (p && p.catch) p.catch(function () {}); }
 });
 // another tab (or the Arcade signing in) changed the save: adopt it when not mid-level
-addEventListener('storage', function (e) { if (e.key !== 'ohf_save' || inLevel()) return; O.reloadSave(); UI.updateCoins(); if (S.mode === 'map') paintMap(); });
-addEventListener('arcade:sync', function () { if (inLevel()) return; O.reloadSave(); UI.updateCoins(); if (S.mode === 'map') paintMap(); });
+addEventListener('storage', function (e) { if (e.key !== 'ohf_save' || inLevel()) return; O.reloadSave(); UI.updateCoins(); UI.paintTalk(); if (S.mode === 'map') paintMap(); });
+addEventListener('arcade:sync', function () { if (inLevel()) return; O.reloadSave(); UI.updateCoins(); UI.paintTalk(); if (S.mode === 'map') paintMap(); });
 
 /* test hooks */
 window.__ohf = { O: O, F: F, UI: UI, S: S, G: F.G, startLevel: function (id) { var lv = O.levelById(id); openCard(lv); startPending(); }, free: function (s) { openFree(s); startPending(); } };

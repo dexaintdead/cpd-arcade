@@ -223,7 +223,7 @@ O.randomDay = function (season, n) {
 };
 
 /* ---------------- save ---------------- */
-var DEF = { v: 2, coins: 0, stars: {}, best: {}, met: {}, hearts: {}, acc: {}, decor: {}, kid: '', sound: 1, narrate: 1, players: 1, crops: null, snowman: 0, stickers: {}, codes: {}, lastSeason: 'fall', seenIntro: {} };
+var DEF = { v: 2, coins: 0, stars: {}, best: {}, met: {}, hearts: {}, acc: {}, decor: {}, kid: '', sound: 1, narrate: 0, narrateSet: 0, players: 1, crops: null, snowman: 0, stickers: {}, codes: {}, lastSeason: 'fall', seenIntro: {} };
 function loadSave() {
   var s = null; try { s = JSON.parse(O.ls('ohf_save') || 'null'); } catch (e) {}
   var out = JSON.parse(JSON.stringify(DEF));
@@ -234,6 +234,8 @@ function loadSave() {
       for (var m in out.met) out.hearts[m] = 2;
     } else out = Object.assign(out, s);
   }
+  // read-aloud starts off; it stays on only for players who turned it on themselves
+  if (!out.narrateSet) out.narrate = 0;
   return out;
 }
 O.SAVE = loadSave();
@@ -350,6 +352,7 @@ O.say = function (text, interrupt) {
     speechSynthesis.speak(u);
   } catch (e) {}
 };
+O.setNarrate = function (on) { O.SAVE.narrate = on ? 1 : 0; O.SAVE.narrateSet = 1; O.save(); if (!on) O.stopTalk(); if (O.UI && O.UI.paintTalk) O.UI.paintTalk(); };
 O.stopTalk = function () { try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {} if (O.music) O.music.volume = 0.3; };
 
 /* ---------------- input ---------------- */
