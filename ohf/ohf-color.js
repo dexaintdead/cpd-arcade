@@ -14,7 +14,7 @@ C.PAGES = PAGES;
 var CRAYONS = ['#e8473a', '#ff8a3c', '#ffd65a', '#fff3a0', '#8fd16a', '#3f9a3e', '#7cc6f0', '#2a6fd6', '#8e5bd6', '#ff8ec7', '#ffc9a0', '#d9b37c', '#8a5a30', '#9aa3ad', '#2b2b2b', '#ffffff'];
 var SIZES = [6, 14, 28];
 // pages that were redrawn get a new revision, so old fills don't land on the new drawing
-var REV = { mini_b2p2: 2, mini_b2p5: 2, mini_b2p6: 2 };
+var REV = { mini_b2p2: 3, mini_b2p3: 2, mini_b2p5: 2, mini_b2p6: 2 };
 function rev(k) { return REV[k] || 1; }
 function pageSrc(k) { return 'ohf/color/' + k + '.png?v=' + rev(k); }
 function lsKey(k) { return 'ohf_color_' + k + (rev(k) > 1 ? '.' + rev(k) : ''); }

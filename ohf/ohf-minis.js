@@ -321,7 +321,7 @@ function navPress(d) { return O.pressed(DIR[d]) || O.gpPress(d, 0) || O.gpPress(
   var st, api, GY = 500, LEN = 13000;
   R.state = function () { return st; };
   var CHECK = [
-    { x: 3200, txt: 'Peter the Peacock and the donkeys, Charlotte and Penelope, chased after it. Stop, pumpkin, stop!', who: ['peter', 'charlotte', 'penelope'] },
+    { x: 3200, txt: 'Fern, Finn, Peter the Peacock and the donkeys Charlotte and Penelope all chased after it. Stop, pumpkin, stop!', who: ['kid_girl', 'kid_boy', 'peter', 'charlotte', 'penelope'] },
     { x: 7200, txt: 'Kiwi the goat tried to block it, but she jumped right over it instead. Boing!', who: ['kiwi'] },
     { x: 10600, txt: 'There is the farm truck at the bottom of the hill! Hurry, Boots!', who: [] }
   ];
@@ -347,7 +347,7 @@ function navPress(d) { return O.pressed(DIR[d]) || O.gpPress(d, 0) || O.gpPress(
     var want = Math.min(LEN - 330, b.x + (b.slow ? 560 : 430)); st.pk.x += (want - st.pk.x) * Math.min(1, dt * 1.5); st.pk.rot += dt * 6;
     st.obs.forEach(function (o) { if (!o.hit && Math.abs(o.x - (b.x + 30)) < o.w * 0.5 + 30 && b.y > GY - (o.kind === 'haystack' ? 80 : 50)) { o.hit = true; st.bumps++; b.slow = 1.0; O.SFX.bonk(); O.voice('boots'); st.parts.text(b.x, GY - 170, 'Oops!', '#fff', 30); if (o.kind === 'bunnies') O.voice('bunnies'); } });
     st.apples.forEach(function (a) { if (!a.got && Math.abs(a.x - (b.x + 30)) < 60 && Math.abs(a.y - (b.y - 80)) < 80) { a.got = true; st.got++; O.SFX.coin(); st.parts.text(a.x, a.y - 30, '+1', '#ffd65a'); } });
-    var C = CHECK[st.ci]; if (C && b.x > C.x) { st.ci++; st.banner = { txt: C.txt, life: 4.5 }; O.say(C.txt); C.who.forEach(function (id, i) { st.friends.push({ id: id, off: 170 + st.friends.length * 95, run: rnd(0, 6) }); O.voice(id); }); O.SFX.chime(); }
+    var C = CHECK[st.ci]; if (C && b.x > C.x) { st.ci++; st.banner = { txt: C.txt, life: 4.5 }; O.say(C.txt); C.who.forEach(function (id, i) { var kid = id.indexOf('kid_') === 0; st.friends.push({ id: id, h: kid ? 118 : O.BY[id].h * 0.85, off: 170 + st.friends.length * 95, run: rnd(0, 6) }); if (!kid) O.voice(id); }); O.SFX.chime(); }
     if (b.x >= LEN - 470) { st.win = 0.01; O.SFX.done(); st.banner = { txt: 'STOP! Just in time! Boots saved the farm truck!', life: 3.2 }; O.say('Stop! Boots saved the farm truck!'); st.parts.spark(st.pk.x, GY - 80, 24, '#ffb347'); }
     var S = sc(); st.cam += ((b.x - S.vw * 0.25) - st.cam) * Math.min(1, dt * 8);
     api.hud('🍎 ' + st.got + '/' + st.total);
@@ -366,7 +366,7 @@ function navPress(d) { return O.pressed(DIR[d]) || O.gpPress(d, 0) || O.gpPress(
     spr(c, 'truck', LEN - 90, GY + 4, 150, -1);
     if (!st.win) spr(c, 'pumpkin_big', st.pk.x, GY + 6, 96, 1, 0, st.pk.rot);
     else spr(c, 'pumpkin_big', st.b.x + 120, GY + 6, 96, 1, 0, 0);
-    st.friends.forEach(function (f) { f.run += 0.2; var fx = st.b.x - f.off, bob = Math.abs(Math.sin(f.run)) * -6; spr(c, f.id, fx, GY + 2 + bob, O.BY[f.id].h * 0.85, 1); });
+    st.friends.forEach(function (f) { f.run += 0.2; var fx = st.b.x - f.off, bob = Math.abs(Math.sin(f.run)) * -6; spr(c, f.id, fx, GY + 2 + bob, f.h, 1); });
     var b = st.b, bob2 = b.on ? Math.abs(Math.sin(b.run)) * -6 : 0, fl = b.slow > 0 && Math.floor(b.slow * 10) % 2;
     if (!fl) spr(c, 'boots', b.x, b.y + 2 + bob2, 150, 1, b.sq);
     if (st.win > 0.6) { var gx = st.b.x - 320 + Math.min(1, (st.win - 0.6)) * 220; spr(c, 'gaby', gx, GY + 2, 120, 1); }
