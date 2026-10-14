@@ -4,7 +4,7 @@
 var O = window.OHF = window.OHF || {};
 O.BUILD = '2026101001-ohf2';
 O.GAME_ID = 'oak-hill-farm';
-O.V = '?v=2';
+O.V = '?v=3';
 var EMBED = false; try { EMBED = window.top !== window; } catch (e) { EMBED = true; }
 O.EMBED = EMBED;
 O.post = function (type, extra) { try { if (window.parent !== window) window.parent.postMessage(Object.assign({ arcade: type, game: O.GAME_ID }, extra || {}), '*'); } catch (e) {} };

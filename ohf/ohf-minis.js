@@ -321,10 +321,15 @@ function navPress(d) { return O.pressed(DIR[d]) || O.gpPress(d, 0) || O.gpPress(
   var st, api, GY = 500, LEN = 13000;
   R.state = function () { return st; };
   var CHECK = [
+    { x: 1700, txt: 'It bounced right past the Chicken Dome. Rodney and the special chickens flapped out of the way!', who: [], say: ['rodney', 'aretha'] },
     { x: 3200, txt: 'Fern, Finn, Peter the Peacock and the donkeys Charlotte and Penelope all chased after it. Stop, pumpkin, stop!', who: ['kid_girl', 'kid_boy', 'peter', 'charlotte', 'penelope'] },
     { x: 7200, txt: 'Kiwi the goat tried to block it, but she jumped right over it instead. Boing!', who: ['kiwi'] },
+    { x: 8900, txt: 'Mo, Larry and Curley made a big fluffy wall, but the pumpkin rolled right between them!', who: [], say: ['mo', 'curley'] },
     { x: 10600, txt: 'There is the farm truck at the bottom of the hill! Hurry, Boots!', who: [] }
   ];
+  // story scenery along the hill (behind the track): the Chicken Dome with Rodney and the special chickens, then the sheep wall
+  var SCN = [{ id: 'dome', x: 2150, h: 210, dy: -34 }, { id: 'rodney', x: 1960, h: 82, dy: -30, flap: 1 }, { id: 'boca', x: 2340, h: 58, dy: -28, flap: 1 }, { id: 'aretha', x: 2410, h: 60, dy: -28, flap: 1 }, { id: 'betty', x: 2480, h: 58, dy: -28, flap: 1 }, { id: 'funny', x: 2550, h: 62, dy: -28, flap: 1 },
+    { id: 'mo', x: 9380, h: 104, dy: -26, part: -1 }, { id: 'larry', x: 9500, h: 104, dy: -26, part: 0 }, { id: 'curley', x: 9620, h: 104, dy: -26, part: 1 }];
   R.start = function (diff, a, season) {
     api = a; var obs = [], apples = [], x = 1100;
     while (x < LEN - 900) { var kind = Math.random() < 0.55 ? 'haystack' : 'bunnies'; obs.push({ x: x, kind: kind, hit: false, w: kind === 'haystack' ? 90 : 70 }); if (Math.random() < 0.7) apples.push({ x: x + rnd(-40, 40), y: GY - rnd(170, 230), got: false }); apples.push({ x: x + rnd(230, 330), y: GY - 60, got: false }); x += rnd(560, 820) / (diff > 1 ? 1.15 : 1); }
@@ -347,7 +352,7 @@ function navPress(d) { return O.pressed(DIR[d]) || O.gpPress(d, 0) || O.gpPress(
     var want = Math.min(LEN - 330, b.x + (b.slow ? 560 : 430)); st.pk.x += (want - st.pk.x) * Math.min(1, dt * 1.5); st.pk.rot += dt * 6;
     st.obs.forEach(function (o) { if (!o.hit && Math.abs(o.x - (b.x + 30)) < o.w * 0.5 + 30 && b.y > GY - (o.kind === 'haystack' ? 80 : 50)) { o.hit = true; st.bumps++; b.slow = 1.0; O.SFX.bonk(); O.voice('boots'); st.parts.text(b.x, GY - 170, 'Oops!', '#fff', 30); if (o.kind === 'bunnies') O.voice('bunnies'); } });
     st.apples.forEach(function (a) { if (!a.got && Math.abs(a.x - (b.x + 30)) < 60 && Math.abs(a.y - (b.y - 80)) < 80) { a.got = true; st.got++; O.SFX.coin(); st.parts.text(a.x, a.y - 30, '+1', '#ffd65a'); } });
-    var C = CHECK[st.ci]; if (C && b.x > C.x) { st.ci++; st.banner = { txt: C.txt, life: 4.5 }; O.say(C.txt); C.who.forEach(function (id, i) { var kid = id.indexOf('kid_') === 0; st.friends.push({ id: id, h: kid ? 118 : O.BY[id].h * 0.85, off: 170 + st.friends.length * 95, run: rnd(0, 6) }); if (!kid) O.voice(id); }); O.SFX.chime(); }
+    var C = CHECK[st.ci]; if (C && b.x > C.x) { st.ci++; st.banner = { txt: C.txt, life: 4.5 }; O.say(C.txt); (C.say || []).forEach(function (id, i) { setTimeout(function () { O.voice(id); }, i * 450); }); C.who.forEach(function (id, i) { var kid = id.indexOf('kid_') === 0; st.friends.push({ id: id, h: kid ? 118 : O.BY[id].h * 0.85, off: 170 + st.friends.length * 95, run: rnd(0, 6) }); if (!kid) O.voice(id); }); O.SFX.chime(); }
     if (b.x >= LEN - 470) { st.win = 0.01; O.SFX.done(); st.banner = { txt: 'STOP! Just in time! Boots saved the farm truck!', life: 3.2 }; O.say('Stop! Boots saved the farm truck!'); st.parts.spark(st.pk.x, GY - 80, 24, '#ffb347'); }
     var S = sc(); st.cam += ((b.x - S.vw * 0.25) - st.cam) * Math.min(1, dt * 8);
     api.hud('🍎 ' + st.got + '/' + st.total);
@@ -359,6 +364,8 @@ function navPress(d) { return O.pressed(DIR[d]) || O.gpPress(d, 0) || O.gpPress(
     c.setTransform(DPR * k, 0, 0, DPR * k, 0, DPR * S.oy); c.save(); c.translate(-st.cam, 0);
     c.fillStyle = '#c99c62'; c.fillRect(st.cam - 10, GY - 6, S.vw + 20, 600 - GY + 6); c.fillStyle = '#6fb24e'; c.fillRect(st.cam - 10, GY + 34, S.vw + 20, 600);
     c.fillStyle = 'rgba(120,80,40,.35)'; var d0 = Math.floor(st.cam / 70) * 70; for (var dx = d0; dx < st.cam + S.vw + 70; dx += 70) { c.beginPath(); c.ellipse(dx, GY + 12, 10, 3, 0, 0, 7); c.fill(); }
+    SCN.forEach(function (o) { if (o.x < st.cam - 300 || o.x > st.cam + S.vw + 300) return; var near = Math.max(0, 1 - Math.abs(st.pk.x - o.x) / 260), y = GY + o.dy, x = o.x;
+      if (o.flap) y -= near * 34 * Math.abs(Math.sin(st.t * 10 + o.x)); if (o.part != null) x += o.part * near * 50; spr(c, o.id, x, y, o.h, o.x < 3000 ? -1 : 1); });
     st.obs.forEach(function (o) { if (o.x < st.cam - 200 || o.x > st.cam + S.vw + 200) return; if (o.kind === 'haystack') spr(c, 'haystack', o.x, GY + 4, 92); else spr(c, 'bunnies', o.x, GY + 4, 62, o.hit ? 1 : -1, 0); });
     st.apples.forEach(function (a) { if (!a.got && a.x > st.cam - 80 && a.x < st.cam + S.vw + 80) spr(c, 'i_apple', a.x, a.y + 18 + Math.sin(st.t * 4 + a.x) * 4, 42); });
     // finish: the farm truck waiting at the bottom of the hill

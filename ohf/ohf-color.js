@@ -9,12 +9,14 @@ var MAIN = [["main_ph3_two_horses", "Boots and Nugget, Best Friends"], ["main_p0
 var BOOKS = [['Peekaboo, George!', 1], ['The Great Pumpkin Roll', 2], ['Rodney Oversleeps', 3]];
 var PAGES = {}, SECTIONS = [{ name: '📒 The Oak Hill Farm Coloring Book', keys: [] }];
 MAIN.forEach(function (m) { PAGES[m[0]] = m[1]; SECTIONS[0].keys.push(m[0]); });
-BOOKS.forEach(function (b) { var s = { name: '📖 ' + b[0], keys: [] }; for (var p = 1; p <= 6; p++) { var k = 'mini_b' + b[1] + 'p' + p; PAGES[k] = b[0] + ' · page ' + p; s.keys.push(k); } SECTIONS.push(s); });
+// Book 2 grew to 9 story pages (12-page 5x7 book); its art files are listed in story order
+var ORDER = { 2: [1, 2, 7, 3, 4, 8, 5, 9, 6] };
+BOOKS.forEach(function (b) { var s = { name: '📖 ' + b[0], keys: [] }; (ORDER[b[1]] || [1, 2, 3, 4, 5, 6]).forEach(function (a, i) { var k = 'mini_b' + b[1] + 'p' + a; PAGES[k] = b[0] + ' · page ' + (i + 1); s.keys.push(k); }); SECTIONS.push(s); });
 C.PAGES = PAGES;
 var CRAYONS = ['#e8473a', '#ff8a3c', '#ffd65a', '#fff3a0', '#8fd16a', '#3f9a3e', '#7cc6f0', '#2a6fd6', '#8e5bd6', '#ff8ec7', '#ffc9a0', '#d9b37c', '#8a5a30', '#9aa3ad', '#2b2b2b', '#ffffff'];
 var SIZES = [6, 14, 28];
 // pages that were redrawn get a new revision, so old fills don't land on the new drawing
-var REV = { mini_b2p2: 3, mini_b2p3: 2, mini_b2p5: 2, mini_b2p6: 2 };
+var REV = { mini_b1p3: 2, mini_b1p6: 2, mini_b2p1: 2, mini_b2p2: 3, mini_b2p3: 3, mini_b2p4: 2, mini_b2p5: 3, mini_b2p6: 3 };
 function rev(k) { return REV[k] || 1; }
 function pageSrc(k) { return 'ohf/color/' + k + '.png?v=' + rev(k); }
 function lsKey(k) { return 'ohf_color_' + k + (rev(k) > 1 ? '.' + rev(k) : ''); }
