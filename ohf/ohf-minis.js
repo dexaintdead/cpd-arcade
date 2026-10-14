@@ -317,13 +317,13 @@ function navPress(d) { return O.pressed(DIR[d]) || O.gpPress(d, 0) || O.gpPress(
    🎃 THE GREAT PUMPKIN ROLL — story runner with Boots
    ===================================================================== */
 (function () {
-  var R = M.roll = { intro: '', how: 'Press Space, Enter, Up or (A) to jump over hay bales and bunnies. Grab the apples!', howTouch: 'Tap anywhere to jump over the hay bales and bunnies. Grab the apples!' };
+  var R = M.roll = { intro: '', how: 'Catch the pumpkin before it hits the farm truck! Press Space, Enter, Up or (A) to jump over hay bales and bunnies, and grab the apples.', howTouch: 'Catch the pumpkin before it hits the farm truck! Tap anywhere to jump over the hay bales and bunnies, and grab the apples.' };
   var st, api, GY = 500, LEN = 13000;
   R.state = function () { return st; };
   var CHECK = [
-    { x: 3200, txt: 'Peter the Peacock and the donkeys, Charlotte and Penelope, chased after it!', who: ['peter', 'charlotte', 'penelope'] },
-    { x: 7200, txt: 'Kiwi the goat jumped right over it. Boing!', who: ['kiwi'] },
-    { x: 10600, txt: 'Gaby the alpaca came running too. Almost there, Boots!', who: ['gaby'] }
+    { x: 3200, txt: 'Peter the Peacock and the donkeys, Charlotte and Penelope, chased after it. Stop, pumpkin, stop!', who: ['peter', 'charlotte', 'penelope'] },
+    { x: 7200, txt: 'Kiwi the goat tried to block it, but she jumped right over it instead. Boing!', who: ['kiwi'] },
+    { x: 10600, txt: 'There is the farm truck at the bottom of the hill! Hurry, Boots!', who: [] }
   ];
   R.start = function (diff, a, season) {
     api = a; var obs = [], apples = [], x = 1100;
@@ -337,18 +337,18 @@ function navPress(d) { return O.pressed(DIR[d]) || O.gpPress(d, 0) || O.gpPress(
     st.parts.update(dt); if (st.banner) { st.banner.life -= dt; if (st.banner.life <= 0) st.banner = null; }
     if (!st.ready.update(dt)) return;
     var b = st.b, S0 = sc(); st.cam += ((b.x - S0.vw * 0.25) - st.cam) * Math.min(1, dt * 8);
-    if (st.win) { st.win += dt; if (st.win > 1.2 && !st.kissed) { st.kissed = 1; O.voice('gaby'); st.parts.heart(b.x + 40, b.y - 160, 12, 1.3); O.SFX.levelup(); } if (st.win > 3.2 && !st.done) { st.done = true; var s = st.bumps <= 1 && st.got >= st.total * 0.65 ? 3 : st.bumps <= 4 ? 2 : 1; api.end({ stars: s, score: st.got, t: st.t, text: 'Boots caught the Great Pumpkin! You got ' + st.got + ' of ' + st.total + ' apples' + (st.bumps ? ' with ' + st.bumps + (st.bumps === 1 ? ' bump.' : ' bumps.') : ' and never bumped into anything!'), need: 'Jump over almost everything and grab lots of apples for 3 stars.', hearts: ['boots', 'gaby', 'peter', 'charlotte', 'penelope', 'kiwi'] }); } return; }
+    if (st.win) { st.win += dt; if (st.win > 1.2 && !st.kissed) { st.kissed = 1; O.voice('gaby'); st.parts.heart(b.x - 40, b.y - 150, 12, 1.3); O.SFX.levelup(); } if (st.win > 3.2 && !st.done) { st.done = true; var s = st.bumps <= 1 && st.got >= st.total * 0.65 ? 3 : st.bumps <= 4 ? 2 : 1; api.end({ stars: s, score: st.got, t: st.t, text: 'Boots stopped the Great Pumpkin just before it bumped the farm truck! You got ' + st.got + ' of ' + st.total + ' apples' + (st.bumps ? ' with ' + st.bumps + (st.bumps === 1 ? ' bump.' : ' bumps.') : ' and never bumped into anything!'), need: 'Jump over almost everything and grab lots of apples for 3 stars.', hearts: ['boots', 'gaby', 'peter', 'charlotte', 'penelope', 'kiwi'] }); } return; }
     st.t += dt;
     if (inp.act || O.pressed(['ArrowUp', 'w']) || O.gpPress('up', 0)) b.buf = 0.15; b.buf -= dt;
     if (b.buf > 0 && b.on) { b.vy = -860; b.on = false; b.buf = 0; b.sq = -0.1; O.SFX.jump(); }
     b.slow = Math.max(0, b.slow - dt); var spd = st.speed * (b.slow > 0 ? 0.45 : 1);
     b.x += spd * dt; b.run += dt * (b.slow ? 6 : 14); b.vy += 2100 * dt; b.y += b.vy * dt; if (b.y >= GY) { if (!b.on) { b.sq = 0.1; O.SFX.drop(); } b.y = GY; b.vy = 0; b.on = true; } b.sq += (0 - b.sq) * Math.min(1, dt * 10);
     // the pumpkin stays just ahead (it gets away a little when Boots bumps something)
-    var want = Math.min(LEN, b.x + (b.slow ? 560 : 430)); st.pk.x += (want - st.pk.x) * Math.min(1, dt * 1.5); st.pk.rot += dt * 6;
+    var want = Math.min(LEN - 330, b.x + (b.slow ? 560 : 430)); st.pk.x += (want - st.pk.x) * Math.min(1, dt * 1.5); st.pk.rot += dt * 6;
     st.obs.forEach(function (o) { if (!o.hit && Math.abs(o.x - (b.x + 30)) < o.w * 0.5 + 30 && b.y > GY - (o.kind === 'haystack' ? 80 : 50)) { o.hit = true; st.bumps++; b.slow = 1.0; O.SFX.bonk(); O.voice('boots'); st.parts.text(b.x, GY - 170, 'Oops!', '#fff', 30); if (o.kind === 'bunnies') O.voice('bunnies'); } });
     st.apples.forEach(function (a) { if (!a.got && Math.abs(a.x - (b.x + 30)) < 60 && Math.abs(a.y - (b.y - 80)) < 80) { a.got = true; st.got++; O.SFX.coin(); st.parts.text(a.x, a.y - 30, '+1', '#ffd65a'); } });
     var C = CHECK[st.ci]; if (C && b.x > C.x) { st.ci++; st.banner = { txt: C.txt, life: 4.5 }; O.say(C.txt); C.who.forEach(function (id, i) { st.friends.push({ id: id, off: 170 + st.friends.length * 95, run: rnd(0, 6) }); O.voice(id); }); O.SFX.chime(); }
-    if (b.x >= LEN - 470) { st.win = 0.01; O.SFX.done(); st.banner = { txt: 'STOP! Boots caught it with one big, fluffy hoof!', life: 3.2 }; O.say('Stop! Boots caught it!'); st.parts.spark(st.pk.x, GY - 80, 24, '#ffb347'); }
+    if (b.x >= LEN - 470) { st.win = 0.01; O.SFX.done(); st.banner = { txt: 'STOP! Just in time! Boots saved the farm truck!', life: 3.2 }; O.say('Stop! Boots saved the farm truck!'); st.parts.spark(st.pk.x, GY - 80, 24, '#ffb347'); }
     var S = sc(); st.cam += ((b.x - S.vw * 0.25) - st.cam) * Math.min(1, dt * 8);
     api.hud('🍎 ' + st.got + '/' + st.total);
   };
@@ -362,17 +362,18 @@ function navPress(d) { return O.pressed(DIR[d]) || O.gpPress(d, 0) || O.gpPress(
     st.obs.forEach(function (o) { if (o.x < st.cam - 200 || o.x > st.cam + S.vw + 200) return; if (o.kind === 'haystack') spr(c, 'haystack', o.x, GY + 4, 92); else spr(c, 'bunnies', o.x, GY + 4, 62, o.hit ? 1 : -1, 0); });
     st.apples.forEach(function (a) { if (!a.got && a.x > st.cam - 80 && a.x < st.cam + S.vw + 80) spr(c, 'i_apple', a.x, a.y + 18 + Math.sin(st.t * 4 + a.x) * 4, 42); });
     // finish: the farm truck waiting at the bottom of the hill
-    spr(c, 'truck', LEN + 140, GY + 4, 150, -1);
+    // the farm truck parked at the bottom of the hill: the pumpkin must not hit it
+    spr(c, 'truck', LEN - 90, GY + 4, 150, -1);
     if (!st.win) spr(c, 'pumpkin_big', st.pk.x, GY + 6, 96, 1, 0, st.pk.rot);
     else spr(c, 'pumpkin_big', st.b.x + 120, GY + 6, 96, 1, 0, 0);
     st.friends.forEach(function (f) { f.run += 0.2; var fx = st.b.x - f.off, bob = Math.abs(Math.sin(f.run)) * -6; spr(c, f.id, fx, GY + 2 + bob, O.BY[f.id].h * 0.85, 1); });
     var b = st.b, bob2 = b.on ? Math.abs(Math.sin(b.run)) * -6 : 0, fl = b.slow > 0 && Math.floor(b.slow * 10) % 2;
     if (!fl) spr(c, 'boots', b.x, b.y + 2 + bob2, 150, 1, b.sq);
-    if (st.win > 0.6) { var gx = st.b.x + 260 - Math.min(1, (st.win - 0.6)) * 150; spr(c, 'gaby', gx, GY + 2, 120, -1); }
+    if (st.win > 0.6) { var gx = st.b.x - 320 + Math.min(1, (st.win - 0.6)) * 220; spr(c, 'gaby', gx, GY + 2, 120, 1); }
     st.parts.draw(c); c.restore();
     c.setTransform(DPR, 0, 0, DPR, 0, 0);
     if (st.banner) { var bw = Math.min(W - 30, 720), lines = wrapLines(c, st.banner.txt, bw - 30, 20); c.globalAlpha = Math.min(1, st.banner.life * 2); c.fillStyle = '#fffdf6'; c.strokeStyle = '#4a2e1a'; c.lineWidth = 4; rr(c, W / 2 - bw / 2, 66, bw, 22 + lines.length * 26, 16); c.fill(); c.stroke(); c.fillStyle = '#4a2e1a'; c.font = '600 20px Fredoka'; c.textAlign = 'center'; lines.forEach(function (l, i) { c.fillText(l, W / 2, 92 + i * 26); }); c.globalAlpha = 1; }
-    var pr = clamp(st.b.x / LEN, 0, 1), pw = Math.min(260, W * 0.4); c.fillStyle = 'rgba(255,255,255,.6)'; c.strokeStyle = '#4a2e1a'; c.lineWidth = 3; rr(c, W / 2 - pw / 2, H - 30, pw, 14, 7); c.fill(); c.stroke(); spr(c, 'boots', W / 2 - pw / 2 + pw * pr, H - 20, 34); spr(c, 'pumpkin_big', W / 2 + pw / 2, H - 18, 26);
+    var pr = clamp(st.b.x / LEN, 0, 1), pw = Math.min(260, W * 0.4); c.fillStyle = 'rgba(255,255,255,.6)'; c.strokeStyle = '#4a2e1a'; c.lineWidth = 3; rr(c, W / 2 - pw / 2, H - 30, pw, 14, 7); c.fill(); c.stroke(); spr(c, 'truck', W / 2 + pw / 2 + 10, H - 16, 26, -1); spr(c, 'pumpkin_big', W / 2 - pw / 2 + pw * clamp(st.pk.x / LEN, 0, 1), H - 19, 20, 1, 0, st.pk.rot); spr(c, 'boots', W / 2 - pw / 2 + pw * pr, H - 20, 34);
     st.ready.draw(c, W, H);
   };
   function wrapLines(c, s, maxw, size) { c.font = '600 ' + size + 'px Fredoka'; var w = s.split(' '), out = [], cur = ''; w.forEach(function (x) { var t = cur ? cur + ' ' + x : x; if (c.measureText(t).width > maxw && cur) { out.push(cur); cur = x; } else cur = t; }); if (cur) out.push(cur); return out; }

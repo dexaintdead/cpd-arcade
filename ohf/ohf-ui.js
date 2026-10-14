@@ -13,8 +13,8 @@ O.BOOKS = {
     "There you are, George! Everybody gave him a great big hug. Now it's George's turn to count!"] },
   roll: { n: 2, title: 'The Great Pumpkin Roll', pages: [
     'It was fall at Oak Hill Farm. Gaby and Boots found the biggest pumpkin at the farm stand.',
-    'Uh-oh! The big pumpkin started rolling down the hill! Help Boots chase it. Jump over the hay bales and the bunnies!',
-    'At the bottom of the hill, Boots put out one big, fluffy hoof. STOP! He caught it! Gaby gave Boots a kiss.'] },
+    'Uh-oh! The big pumpkin started rolling down the hill, straight toward the farm truck! Help Boots catch it before it hits the truck. Jump over the hay bales and the bunnies!',
+    'Just before it bumped the farm truck, Boots put out one big, fluffy hoof. STOP! He saved the truck! Everyone cheered, and Gaby gave Boots a kiss.'] },
   wake: { n: 3, title: 'Rodney Oversleeps', pages: [
     'Every morning, Rodney the show rooster crows to wake up Oak Hill Farm. But one morning, Rodney was fast asleep. Zzzzz...',
     'Help the farm wake him up! Watch who makes a sound, then make the same sounds in the same order.',
