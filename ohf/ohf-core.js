@@ -4,9 +4,11 @@
 var O = window.OHF = window.OHF || {};
 O.BUILD = '2026101001-ohf2';
 O.GAME_ID = 'oak-hill-farm';
-O.V = '?v=3';
+O.V = '?v=4';
 var EMBED = false; try { EMBED = window.top !== window; } catch (e) { EMBED = true; }
 O.EMBED = EMBED;
+// framed by the kids' page farmfriends.contentpad.io (?home=farm): never mention the Arcade
+O.HOME = ''; try { if (EMBED && /[?&]home=farm\b/.test(location.search)) O.HOME = 'farm'; } catch (e) {}
 O.post = function (type, extra) { try { if (window.parent !== window) window.parent.postMessage(Object.assign({ arcade: type, game: O.GAME_ID }, extra || {}), '*'); } catch (e) {} };
 O.$ = function (id) { return document.getElementById(id); };
 O.ls = function (k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } };

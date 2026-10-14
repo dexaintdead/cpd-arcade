@@ -320,7 +320,7 @@ function pause(on) {
     if (!inLevel() || visibleScreen()) return; O.engineOn(false);
     var G = F.G;
     $('pauseInfo').textContent = S.mode === 'mini' ? O.MINI_NAMES[S.miniGame] : G.mode === 'seek' ? 'Peekaboo, George! · round ' + G.seek.round + ' of ' + G.seek.rounds : (S.level ? O.SEASONS[S.level.season].name + ' · Day ' + S.level.n + ' · ' : '') + G.def.name + ' · ' + G.tasks.filter(F.taskDone).length + '/' + G.tasks.length + ' chores done';
-    $('pQuit').textContent = O.EMBED ? '← Quit to the Arcade' : '← Back to the Arcade'; $('pAlbum').style.display = S.mode === 'farm' ? '' : 'none';
+    $('pQuit').textContent = O.HOME === 'farm' ? '← Leave the game' : O.EMBED ? '← Quit to the Arcade' : '← Back to the Arcade'; $('pAlbum').style.display = S.mode === 'farm' ? '' : 'none';
     show('pauseS');
   } else { hide('pauseS'); if (F.G.driver >= 0 && S.mode === 'farm') O.engineOn(true); }
 }
