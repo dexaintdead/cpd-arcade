@@ -46,6 +46,9 @@ body[data-mode=mini] #bAlbum,body[data-mode=mini] .carry,body[data-mode=mini] #c
 .ib{width:44px;height:44px;border-radius:14px;border:3px solid var(--ink);background:var(--card);font-size:22px;display:grid;place-items:center;cursor:pointer;box-shadow:0 4px 0 rgba(74,46,26,.3);padding:0;color:var(--ink)}
 .ib:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(74,46,26,.3)}
 .ib.home{background:#ffd65a}
+.ib.talk{position:relative;background:#bfe6ff}
+.ib.talk.off{background:#ece6dc;filter:grayscale(.6)}
+.ib.talk.off::after{content:'';position:absolute;left:50%;top:50%;width:30px;height:4px;margin:-2px 0 0 -15px;background:#c8432d;border-radius:2px;transform:rotate(-45deg)}
 #sun{position:fixed;z-index:4;left:50%;top:max(10px,env(safe-area-inset-top));transform:translateX(-50%);width:min(240px,30vw);height:12px;border-radius:99px;background:rgba(255,255,255,.55);border:2px solid var(--ink);pointer-events:none;display:none}
 #sun i{position:absolute;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff6b0,#ffc531 60%,#f39a1b);border:2px solid var(--ink);left:0}
 body[data-mode=farm]:not(.seek) #sun{display:block}
@@ -203,7 +206,8 @@ body[data-mode=mini] #mhud{display:flex}
 #printArea{display:none}
 @media print{body>*{display:none!important}#printArea{display:block!important;position:static}#printArea img{width:100%;height:auto}html,body{overflow:visible;height:auto;background:#fff}}
 @media (max-width:600px){#clip{width:min(250px,58vw)}#clip li{font-size:12.5px}#clip li img{width:24px;height:24px}.ib{width:40px;height:40px;font-size:19px}.pill{font-size:13px;padding:3px 8px;height:40px}#sun{display:none!important}.btn{min-width:120px;font-size:16px;padding:10px 14px}}
-@media (max-width:600px){#mhud{left:max(10px,env(safe-area-inset-left));transform:none;max-width:calc(100vw - 120px);font-size:14px;padding:5px 10px;flex-wrap:wrap;gap:2px 8px;border-radius:16px}}
+@media (max-width:600px){#stats{max-width:calc(100vw - min(250px,58vw) - 32px);flex-wrap:wrap;justify-content:flex-end}body[data-mode=mini] #stats{max-width:none}}
+@media (max-width:600px){#mhud{left:max(10px,env(safe-area-inset-left));transform:none;max-width:calc(100vw - 172px);font-size:14px;padding:5px 10px;flex-wrap:wrap;gap:2px 8px;border-radius:16px}}
 @media (max-height:520px){.daycard .tasks{gap:5px;margin:6px 0}.daycard .tasks div{width:98px;padding:4px;font-size:12px}.daycard .tasks img{height:30px}.panel .cover{width:min(130px,30vw)}.panel .icon{height:54px}.panel p{font-size:14px;margin:4px 0}.stars{font-size:32px}}
 @media (max-height:430px){#clip li{padding:2px 0}#clip li img{width:22px;height:22px}#act{width:84px;height:84px}.panel{padding:10px 14px}.panel h2{font-size:22px}.btn{padding:8px 14px;margin:4px}}
 </style>
@@ -219,6 +223,7 @@ body[data-mode=mini] #mhud{display:flex}
   <div class="pill carry p2" id="carry1" title="Player 2" style="display:none"><img alt=""><b></b></div>
   <button class="ib home" id="bHome" title="Farm Map (H)">🏠</button>
   <button class="ib" id="bAlbum" title="Farm Friends album (L)">📖</button>
+  <button class="ib talk off" id="bTalk" title="Read aloud is off (tap to turn on)" aria-pressed="false" aria-label="Read aloud">🗣️</button>
   <button class="ib" id="bPause" title="Pause (Esc / P)">⏸</button>
 </div>
 <div id="sun"><i id="suni"></i></div>
@@ -247,6 +252,7 @@ body[data-mode=mini] #mhud{display:flex}
       <div class="pill" title="Coins">🪙 <b id="mapCoins">0</b></div>
       <button class="ib" id="mapAlbum" title="Farm Friends album">📖</button>
       <button class="ib" id="mapColor" title="Coloring">🖍️</button>
+      <button class="ib talk off" id="mapTalk" title="Read aloud is off (tap to turn on)" aria-pressed="false" aria-label="Read aloud">🗣️</button>
       <button class="ib" id="mapSet" title="Settings">⚙️</button>
     </div>
   </div>
@@ -299,11 +305,11 @@ body[data-mode=mini] #mhud{display:flex}
 <div id="printArea"></div>
 
 <script src="gamepad.js?v=1"></script>
-<script src="ohf/ohf-core.js?v=3"></script>
+<script src="ohf/ohf-core.js?v=4"></script>
 <script src="ohf/ohf-farm.js?v=3"></script>
 <script src="ohf/ohf-minis.js?v=3"></script>
 <script src="ohf/ohf-color.js?v=3"></script>
-<script src="ohf/ohf-ui.js?v=3"></script>
+<script src="ohf/ohf-ui.js?v=4"></script>
 <script>OHF.UI.boot();</script>
 </body>
 </html>
