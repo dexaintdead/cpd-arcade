@@ -10,6 +10,17 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Michroma&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/arcade.css?v=5">
+<script>
+// Reached from the kids' Farm Friends page: no Arcade links at all, just a friendly note.
+try { if (/[?&]home=farm\b/.test(location.search)) document.documentElement.className += ' farm'; } catch (e) {}
+</script>
+<style>
+html.farm .bar,html.farm footer,html.farm .btns,html.farm .sky,html.farm .scan{display:none!important}
+html.farm,html.farm body{background:#7cc6f0!important}
+html.farm .off{min-height:100vh}
+html.farm .off h1{font-family:Fredoka,system-ui,sans-serif!important;color:#4a2e1a!important;background:none!important;-webkit-text-fill-color:#4a2e1a!important}
+html.farm .off p{color:#4a2e1a!important;font-family:Fredoka,system-ui,sans-serif}
+</style>
 <style>
 .off{min-height:calc(100vh - 160px);display:grid;place-items:center;text-align:center;padding:40px 16px}
 .off .box{max-width:520px}
@@ -39,6 +50,12 @@
 (function () {
   var slug = (new URLSearchParams(location.search).get('g') || '').replace(/[^a-z0-9-]/g, '');
   var g = (window.ARCADE_GAMES || []).filter(function (x) { return x.slug === slug; })[0];
+  if (/[?&]home=farm\b/.test(location.search)) {
+    document.getElementById('h').textContent = 'Farm Friends is resting right now';
+    document.querySelector('.off p').textContent = 'The animals are taking a nap. Please come back and play a little later.';
+    document.title = 'Farm Friends';
+    return;
+  }
   if (g) { document.getElementById('h').textContent = g.title + " isn't available right now"; document.title = g.title + ' · not available · ContentPad Arcade'; }
 })();
 </script>

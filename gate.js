@@ -35,6 +35,9 @@
 
   function block() {
     var to = '/unavailable.html?g=' + encodeURIComponent(slug);
+    // Played from the kids' page (farmfriends.contentpad.io frames the game with ?home=farm):
+    // keep the flag so unavailable.html shows a note with no links into the Arcade.
+    try { if (/[?&]home=farm\b/.test(location.search)) to += '&home=farm'; } catch (e) {}
     if (location.pathname === '/unavailable.html') return;
     try { location.replace(to); } catch (e) { location.href = to; }
   }
