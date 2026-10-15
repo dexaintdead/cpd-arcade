@@ -21,7 +21,7 @@ O.BOOKS = {
     'COCK-A-DOODLE-DOO! Good morning, Oak Hill Farm!'] }
 };
 O.BOOKS.seek.cover = O.BOOKS.roll.cover = O.BOOKS.wake.cover = null;
-['seek', 'roll', 'wake'].forEach(function (k) { O.BOOKS[k].cover = 'ohf/books/src/c' + O.BOOKS[k].n + '.jpg?v=2'; });
+['seek', 'roll', 'wake'].forEach(function (k) { O.BOOKS[k].cover = 'ohf/books/src/c' + O.BOOKS[k].n + '.jpg?v=3'; });
 
 /* ---------------- canvas ---------------- */
 var cv = $('g'), cx = cv.getContext('2d'), DPR = 1, VW = 0, VH = 0;
