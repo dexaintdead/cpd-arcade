@@ -99,13 +99,15 @@
       read: function () {
         var s = lsj('nd_save') || {};
         return { cash: s.cash || 0, earned: s.earned != null ? s.earned : (s.cash || 0), spent: s.spent || 0, cash_at: s.cash_at || 0, car: s.car || 'hatch', cars: s.cars || {},
-          unlocked: s.unlocked || 1, laps: s.laps || {}, wins: s.wins || 0, races: s.races || 0, podiums: s.podiums || {} };
+          unlocked: s.unlocked || 1, laps: s.laps || {}, wins: s.wins || 0, races: s.races || 0, podiums: s.podiums || {}, city: s.city || {} };
       },
       empty: function (d) { return !d.earned && !d.races && !Object.keys(d.laps || {}).length; },
       write: function (d) {
         if (!d) return;
-        var cur = lsj('nd_save') || {};
-        ['cash', 'earned', 'spent', 'cash_at', 'car', 'cars', 'unlocked', 'laps', 'wins', 'races', 'podiums'].forEach(function (k) { if (d[k] != null) cur[k] = d[k]; });
+        var cur = lsj('nd_save') || {}, had = cur.cars || {}, car0 = cur.car;
+        ['cash', 'earned', 'spent', 'cash_at', 'car', 'cars', 'unlocked', 'laps', 'wins', 'races', 'podiums', 'city'].forEach(function (k) { if (d[k] != null) cur[k] = d[k]; });
+        // cars owned and their upgrades only go up: keep any the merged save doesn't list (2026-10-20, City 2.0 cars)
+        if (d.cars) { Object.keys(had).forEach(function (id) { var o = had[id] || {}, n = cur.cars[id]; if (!n) cur.cars[id] = o; else ['eng', 'tire', 'nitro'].forEach(function (k) { n[k] = Math.max(n[k] || 0, o[k] || 0); }); }); if (car0 && had[car0] && d.car === 'hatch' && !d.cars[car0]) cur.car = car0; }
         ls('nd_save', JSON.stringify(cur)); ls('arcade_best_night-drive', String(cur.wins || 0));
         try { window.dispatchEvent(new Event('arcade:sync')); } catch (e) {}
       }
