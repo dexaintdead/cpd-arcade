@@ -171,6 +171,32 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 .pt.cur{border-color:#fff;box-shadow:0 0 0 2px #ffc98c,0 0 12px rgba(255,154,60,.8)}
 .pt.sel,.pt:focus-visible{transform:scale(1.15)}
 .gmsg{min-height:18px;font:700 12.5px var(--ui);color:#ffd29a;margin:8px 0 0}
+/* story */
+.tk.sm .in{padding:12px 14px 14px}.tk.sm .ep2{display:block;font:400 10px var(--wide);letter-spacing:.2em;color:#ffc98c;margin-bottom:6px}
+.tk.sm .br{color:#dfe6f4;font-weight:500;line-height:1.45;margin-top:6px}.tk.sm em{font-size:11px;line-height:1.6}
+.tk.boss{border-color:rgba(255,95,158,.45)}.tk.boss .ep2{color:#ff8ab0}
+.smis{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
+.stars{font-style:normal;color:#ffc98c;letter-spacing:.1em;margin-right:4px}
+.sstars{font:900 clamp(22px,3.4vw,34px)/1.2 var(--hud);color:#ffc98c;letter-spacing:.2em;text-shadow:0 0 18px rgba(255,154,60,.6);margin-top:4px}
+#talk{position:fixed;inset:0;z-index:30;display:flex;align-items:flex-end;justify-content:center;padding:0 max(14px,env(safe-area-inset-right)) max(22px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));background:#0a0d18 center/cover no-repeat;cursor:pointer}
+#talk:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(6,8,16,.2) 0%,rgba(6,8,16,.35) 45%,rgba(6,8,16,.92) 100%)}
+#talk.over{background:rgba(6,8,16,.45)!important}#talk.over:before{display:none}
+.tkbox{position:relative;width:100%;max-width:820px;background:rgba(8,10,20,.86);border:1px solid rgba(255,226,191,.28);border-radius:14px;padding:16px 18px 12px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 18px 50px rgba(0,0,0,.5)}
+.tkhd{display:flex;gap:12px;align-items:center}
+#tkBadge{flex:0 0 auto;width:46px;height:46px;border-radius:50%;border:2px solid;display:grid;place-items:center;font:900 15px var(--hud);letter-spacing:.04em;background:rgba(255,255,255,.04)}
+#tkWho{display:block;font:400 clamp(13px,1.8vw,16px) var(--wide);letter-spacing:.12em}
+#tkRole{display:block;font:600 12px var(--ui);color:#cfd8ea;margin-top:2px}
+#tkText{font:500 clamp(16px,2.2vw,20px)/1.5 var(--ui);color:#fff;margin:12px 2px 8px;min-height:3em}
+.tkft{display:flex;justify-content:space-between;align-items:center;font:600 11px var(--ui);color:#aab6cc}
+.tkft b{color:#ffc98c;font-size:14px;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:.25}}
+#sObj{position:fixed;left:50%;top:max(10px,env(safe-area-inset-top));transform:translateX(-50%);z-index:7;pointer-events:none;text-align:center;max-width:min(560px,calc(100vw - 260px));font-family:var(--hud);text-shadow:0 2px 0 rgba(0,0,0,.6),0 0 14px rgba(0,0,0,.5)}
+#sObj b{display:block;font:400 clamp(9px,1.1vw,11px) var(--wide);letter-spacing:.24em;color:#ffc98c}
+#sObj span{display:block;font:700 clamp(13px,1.6vw,17px) var(--hud);color:#fff;margin-top:3px;letter-spacing:.04em}
+#sObj span i{font-style:normal;color:#ffc98c;letter-spacing:.12em}
+#sObj em{display:block;font:600 clamp(12px,1.4vw,14px)/1.4 var(--ui);font-style:normal;margin-top:6px;background:rgba(8,10,20,.6);border-radius:8px;padding:5px 10px}
+#sObj em q{color:#fff}
+@media (max-width:640px){#sObj{top:auto;bottom:calc(150px + env(safe-area-inset-bottom));max-width:calc(100vw - 24px)}}
 /* results */
 .res{width:100%;border-collapse:collapse;margin:6px 0 4px;font:700 14px var(--hud)}
 .res td{padding:9px 10px;border-bottom:1px solid rgba(255,255,255,.1);white-space:nowrap}
@@ -296,7 +322,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     <h1 class="logo"><span class="a">YESTERDAYLAND</span><span class="b">Night Drive</span></h1>
     <div class="sub">Six drives and the city · 1984 – 1986</div>
     <div class="menu">
-      <button class="mi" type="button" data-go="city">City <small>open world · new</small></button>
+      <button class="mi" type="button" data-go="story">Story <small>the Midnight Circuit · new</small></button>
+      <button class="mi" type="button" data-go="city">City <small>open world</small></button>
       <button class="mi" type="button" data-go="gp">Grand Prix <small>vs 5 rivals</small></button>
       <button class="mi" type="button" data-go="free">Free Race <small>your rules</small></button>
       <button class="mi" type="button" data-go="hp">Hot Pursuit <small>outrun the police</small></button>
@@ -309,6 +336,20 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     </div>
     <div class="tagline">Go back for a while.</div>
     <div class="hint" id="titleHint"></div>
+  </section>
+
+  <!-- story: chapters, then a chapter's missions -->
+  <section class="scr" id="sStory" hidden>
+    <h2 class="h2">Story · The Midnight Circuit</h2>
+    <p class="p" id="stSub"></p>
+    <div class="tracks" id="stList"></div>
+    <div class="row"><button class="mi ghost" type="button" data-go="garage">Garage</button><button class="mi ghost" type="button" data-go="back">Back</button></div>
+  </section>
+  <section class="scr" id="sChap" hidden>
+    <h2 class="h2" id="scTitle"></h2>
+    <p class="p" id="scSub"></p>
+    <div class="tracks smis" id="scList"></div>
+    <div class="row"><button class="mi ghost" type="button" data-go="garage">Garage</button><button class="mi ghost" type="button" data-go="back">Back</button></div>
   </section>
 
   <!-- track select -->
@@ -429,6 +470,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     </div>
   </section>
 </div>
+<div id="talk" hidden><div class="tkbox"><div class="tkhd"><div id="tkBadge"></div><div><b id="tkWho"></b><small id="tkRole"></small></div></div><p id="tkText"></p><div class="tkft"><span>Enter · (A) · tap to go on   ·   Esc · (B) to skip</span><b id="tkNext"></b></div></div></div>
+<div id="sObj" hidden></div>
 <div id="film" hidden>
   <video id="filmV" playsinline preload="metadata"></video>
   <div id="filmLogo"><h1 class="logo"><span class="a">YESTERDAYLAND</span><span class="b">Night Drive</span></h1><div class="tagline">Go back for a while.</div></div>
@@ -446,7 +489,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 <script>
 (function () {
   'use strict';
-  var GAME_ID = 'night-drive', BUILD = '2026102702-nd';
+  var GAME_ID = 'night-drive', BUILD = '2026102703-nd';
   var $ = function (id) { return document.getElementById(id); };
   var EMBED = false; try { EMBED = window.top !== window; } catch (e) { EMBED = true; }
   function post(type, extra) { try { if (EMBED) window.parent.postMessage(Object.assign({ arcade: type, game: GAME_ID }, extra || {}), '*'); } catch (e) {} }
@@ -574,7 +617,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   var WALK_DRIVE = 3.4, CURB_H = 0.18;   // 2026-10-10: how much of the 4.5 m sidewalk you can drive on (the back of it stays for people, lamps and palms); curb height
 
   /* ════════════════ SAVE ════════════════ */
-  function blankSave() { return { cash: 0, earned: 0, spent: 0, cash_at: 0, car: 'hatch', cars: { hatch: { eng: 0, tire: 0, nitro: 0, paint: CAR.hatch.paint } }, unlocked: 1, laps: {}, wins: 0, races: 0, podiums: {} }; }
+  function blankSave() { return { cash: 0, earned: 0, spent: 0, cash_at: 0, car: 'hatch', cars: { hatch: { eng: 0, tire: 0, nitro: 0, paint: CAR.hatch.paint } }, unlocked: 1, laps: {}, wins: 0, races: 0, podiums: {}, story: { done: {} } }; }
   var SAVE = blankSave();
   function loadSave() {
     var s = lsj('nd_save'), b = blankSave();
@@ -592,6 +635,10 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
         Object.keys(sc.trap || {}).forEach(function (k) { if (/^\d+$/.test(k) && +sc.trap[k] > 0 && +sc.trap[k] < 140) oc.trap[k] = +sc.trap[k]; });
         if (Array.isArray(sc.bb)) oc.bb = sc.bb.filter(function (v, i, a) { return v === (v | 0) && v >= 0 && v < 200 && a.indexOf(v) === i; });
         b.city = oc;
+      }
+      if (s.story && typeof s.story === 'object') {   // 2026-10-27: Story Mode stars per mission (1-3) and chapter intros seen
+        Object.keys(s.story.done || {}).forEach(function (k) { var v = s.story.done[k] | 0; if (/^s\d{1,2}m\d{1,2}$/.test(k) && v >= 1 && v <= 3) b.story.done[k] = v; });
+        if (s.story.seen && typeof s.story.seen === 'object') { b.story.seen = {}; Object.keys(s.story.seen).forEach(function (k) { if (/^s\d{1,2}$/.test(k)) b.story.seen[k] = 1; }); }
       }
       // a top-3 finish on a drive opens the next one (so Drive 06 opens for anyone who already podiumed Miami)
       TRACKS.forEach(function (t, i) { if (b.podiums[t.id] && b.podiums[t.id] <= 3) b.unlocked = Math.max(b.unlocked, Math.min(TRACKS.length, i + 2)); });
@@ -4382,19 +4429,20 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     PARKHASH = parkHash(W.S.parked);
     var TR = { L: 1e9, now: 0, theme: 'city', fake: true };
     var u0 = myCar(SAVE.car), me = newCar(CAR[SAVE.car], u0, u0.paint, 'You', 0); humans.push(me);
-    var D = DIFFS[clamp(opt.diff == null ? 1 : opt.diff, 0, 3)], nAI = race ? clamp(opt.rivals == null ? 5 : opt.rivals, 0, 7) : 0, used = [me.paint], rivals = [];
+    var D = DIFFS[clamp(opt.diff == null ? 1 : opt.diff, 0, 3)], nAI = race ? (opt.cast ? opt.cast.length : clamp(opt.rivals == null ? 5 : opt.rivals, 0, 7)) : 0, used = [me.paint], rivals = [];
     for (var i = 0; i < nAI; i++) {
       var rid = race.rivals[i % race.rivals.length], lv = clamp(race.rupg + D.upg, 0, 3), paint;
       if (D.upg >= 3) rid = i % 3 === 2 ? 'wedge' : 'exotic';
       do { paint = Math.floor(Math.random() * PAINTS.length); } while (used.indexOf(paint) >= 0 && used.length < PAINTS.length);
       used.push(paint);
-      var rc = newCar(CAR[rid], { eng: lv, tire: lv, nitro: lv }, paint, RIVALS[i % RIVALS.length], null);
-      rc.ai = { skill: clamp(race.skill + D.skill + (i === 0 ? 0.03 : i === 1 ? 0.015 : -0.01 * i), 0.7, 1.08) };
+      var CC = opt.cast && opt.cast[i]; if (CC) { rid = CC.car; lv = CC.lv; }
+      var rc = newCar(CAR[rid], { eng: lv, tire: lv, nitro: lv }, paint, CC ? CC.name : RIVALS[i % RIVALS.length], null);
+      rc.ai = { skill: CC ? CC.skill : clamp(race.skill + D.skill + (i === 0 ? 0.03 : i === 1 ? 0.015 : -0.01 * i), 0.7, 1.08) };
       rivals.push(rc);
     }
     var all = rivals.concat(humans);
     // the grid behind the start corner (race), or a quiet spot on Sunset (free roam)
-    var S0 = race ? raceStartNode(race) : (opt.at ? CG.nodes[opt.at] : CG.nodes[nodeId([3, 7])]), sdir = race ? raceStartDir(race) : [1, 0], dx = sdir[0], dz = sdir[1];
+    var S0 = race ? raceStartNode(race) : (opt.at != null ? CG.nodes[Array.isArray(opt.at) ? nodeId(opt.at) : opt.at] : CG.nodes[nodeId([3, 7])]), sdir = race ? raceStartDir(race) : [1, 0], dx = sdir[0], dz = sdir[1];
     if (opt.spawn) { me.x = opt.spawn.x; me.z = opt.spawn.z; me.th = opt.spawn.th; }
     all.forEach(function (c, k) {
       var row = Math.floor(k / 2), col = k % 2;
@@ -4411,7 +4459,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     if (race) {
       R.cps = raceCps(race); R.routes = R.cps.map(routeTo);
       R.beacons = [beaconMesh(0xffb050, 8, 70), beaconMesh(0x9fc8ff, 7, 45)]; R.beacons.forEach(function (b) { W.S.scene.add(b); });
-    } else {
+    } else if (!opt.story) {
       // free roam: the race starts are lit (cyan); stop in one to race from there
       R.markers = CITY_RACES.map(function (rc, k) { var N = raceStartNode(rc), b = beaconMesh(0x5ee0ff, 7, 40); b.position.set(N.x, N.y || 0, N.z); W.S.scene.add(b); return { race: k, node: N, mesh: b, inT: 0 }; });
     }
@@ -5705,6 +5753,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   /* ── one frame in the city ── */
   function updateCity(dt) {
     var R = RACE;
+    if (R.story) storyTick(R, dt);
     if (R.slow > 0) { R.slow -= dt; dt *= 0.3; }
     R.humans.forEach(function (h, i) { if (!h.finished && !h.busted && !AUTO) h.inp = humanInput(i, 1); });
     if (R.state === 'count') {
@@ -5889,6 +5938,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     cityMapDraw(H, h);
   }
   function cityShowResults() {
+    if (RACE.story) return storyResults();
     var R = RACE, rc = R.race, you = R.humans[0], legs = cityLegs(R);
     var rows = R.racers.map(function (c) {
       var t = c.finished ? c.finishT : R.t + Math.max(0, R.total - cityMetres(R, c)) / Math.max(20, c.st.top * 0.75);
@@ -5962,6 +6012,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       [opt.c0 || SAVE.car, opt.c1 || SAVE.car].forEach(function (id, i) { var u = myCar(id), c = newCar(CAR[id], u, i === 1 && (opt.c0 === opt.c1) ? (u.paint + 2) % PAINTS.length : u.paint, 'Player ' + (i + 1), i); humans.push(c); });
     } else { var u0 = myCar(SAVE.car); humans.push(newCar(CAR[SAVE.car], u0, u0.paint, 'You', 0)); }
     var nAI = type === 'gp' ? 5 : type === 'free' ? clamp(opt.rivals == null ? 5 : opt.rivals, 0, 7) : type === 'hp' ? clamp(opt.rivals == null ? 3 : opt.rivals, 0, 5) : type === '2p' ? (opt.ai ? 4 : 0) : 0, rivals = [];
+    if (opt.cast) nAI = opt.cast.length;
     var D = DIFFS[type === 'free' ? clamp(opt.diff == null ? 1 : opt.diff, 0, 3) : 1];
     var used = humans.map(function (h) { return h.paint; });
     for (var i = 0; i < nAI; i++) {
@@ -5969,8 +6020,9 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       if (D.upg >= 3) rid = i % 3 === 2 ? 'wedge' : 'exotic';
       do { paint = Math.floor(Math.random() * PAINTS.length); } while (used.indexOf(paint) >= 0 && used.length < PAINTS.length);
       used.push(paint);
-      var rc = newCar(CAR[rid], { eng: lv, tire: lv, nitro: lv }, paint, RIVALS[i % RIVALS.length], null);
-      rc.ai = { skill: clamp(def.skill + D.skill + (i === 0 ? 0.03 : i === 1 ? 0.015 : -0.01 * i), 0.7, 1.08), lane: 0, laneNow: 0, laneT: 0, nitroOn: false };
+      var CC = opt.cast && opt.cast[i]; if (CC) { rid = CC.car; lv = CC.lv; }
+      var rc = newCar(CAR[rid], { eng: lv, tire: lv, nitro: lv }, paint, CC ? CC.name : RIVALS[i % RIVALS.length], null);
+      rc.ai = { skill: CC ? CC.skill : clamp(def.skill + D.skill + (i === 0 ? 0.03 : i === 1 ? 0.015 : -0.01 * i), 0.7, 1.08), lane: 0, laneNow: 0, laneT: 0, nitroOn: false };
       rivals.push(rc);
     }
     // grid: rivals in front, the human(s) at the back (time trial: alone on the line)
@@ -6129,6 +6181,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   function updateRace(dt) {
     if (RACE.city) return updateCity(dt);
     var R = RACE, TR = R.TR;
+    if (R.story) storyTick(R, dt);
     if (R.slow > 0) { R.slow -= dt; dt *= 0.3; }   // slow motion for your own wreck
     // humans: read input (engines rev on the grid too)
     R.humans.forEach(function (h, i) { if (!h.finished && !h.busted && !AUTO) h.inp = humanInput(i, R.humans.length); });
@@ -6264,6 +6317,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 
   /* ── results ── */
   function showResults() {
+    if (RACE.story) return storyResults();
     var R = RACE, def = R.def, idx = TRACKS.indexOf(def), you = R.humans[0];
     // unfinished cars: estimate their time from how far they still had to go; busted cars go to the bottom
     var rows = R.racers.map(function (c) {
@@ -6355,6 +6409,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   function onKeyDown(code, repeat) {
     audioInit();
     if (INTRO.on) { if (!repeat) filmKey(); return; }
+    if (TALK.on) { if (!repeat) { if (code === 'Escape' || code === 'Backspace') talkEnd(); else if (code !== 'KeyM' && code !== 'KeyR') talkNext(); } return; }
     KEY[code] = true;
     if (repeat) return;
     if (code === 'KeyM') { setSound(!SET.sound); return; }
@@ -6369,7 +6424,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   }
   window.addEventListener('keydown', function (e) {
     var c = codeOf(e);
-    if (/^(Arrow|Space|Tab$|Slash|Backspace)/.test(c) || (STATE === 'race' && /^(Key|Shift|Enter|Period)/.test(c))) e.preventDefault();
+    if (TALK.on || /^(Arrow|Space|Tab$|Slash|Backspace)/.test(c) || (STATE === 'race' && /^(Key|Shift|Enter|Period)/.test(c))) e.preventDefault();
     onKeyDown(c, e.repeat);
   });
   window.addEventListener('keyup', function (e) { KEY[codeOf(e)] = false; });
@@ -6389,6 +6444,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       function edge(k) { return now[k] && !prev[k]; }
       if (r.any) audioInit();
       if (INTRO.on) { if (edge('a') || edge('b') || edge('start')) filmKey(); }
+      else if (TALK.on) { if (edge('a') || edge('start')) talkNext(); else if (edge('b')) talkEnd(); }
       else if (STATE === 'race') { if (edge('start')) pause(); if (edge('select')) onKeyDown('KeyC'); if (edge('rup')) radioNext(1); if (edge('rdn')) radioNext(-1); }
       else {
         if (edge('up')) UI.key('ArrowUp'); if (edge('down')) UI.key('ArrowDown'); if (edge('left')) UI.key('ArrowLeft'); if (edge('right')) UI.key('ArrowRight');
@@ -6427,14 +6483,14 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     show: function (id, fresh) {
       if (fresh) this.stack = []; else if (this.cur && this.cur !== id) this.stack.push(this.cur);
       var ui = $('ui'); ui.hidden = false; ui.classList.remove('dim');
-      ['sTitle', 'sTracks', 'sCity', 's2P', 'sFree', 'sGarage', 'sSettings', 'sPause', 'sResults'].forEach(function (s) { $(s).hidden = s !== id; });
+      ['sTitle', 'sStory', 'sChap', 'sTracks', 'sCity', 's2P', 'sFree', 'sGarage', 'sSettings', 'sPause', 'sResults'].forEach(function (s) { $(s).hidden = s !== id; });
       this.cur = id; this.refresh();
       var inRace = !!RACE && (STATE === 'pause' || STATE === 'results');
       $('bg').hidden = inRace || id === 'sGarage'; ui.classList.toggle('dim', inRace);
       if (id === 'sGarage') STATE = 'garage'; else if (!inRace) STATE = 'menu';
       if (!inRace && id !== 'sGarage') { setBg(TITLE_ART); musicStart('title'); }
-      $('cash').hidden = !(id === 'sTitle' || id === 'sTracks' || id === 'sCity' || id === 'sGarage' || id === 'sResults');
-      var f = this.items()[0]; this.focus(id === 'sTracks' ? (this.items().filter(function (x) { return x.classList.contains('tk') && !x.dataset.locked; }).pop() || f) : f);
+      $('cash').hidden = !(id === 'sTitle' || id === 'sStory' || id === 'sChap' || id === 'sTracks' || id === 'sCity' || id === 'sGarage' || id === 'sResults');
+      var f = this.items()[0]; this.focus(id === 'sTracks' || id === 'sStory' || id === 'sChap' ? (this.items().filter(function (x) { return x.classList.contains('tk') && !x.dataset.locked; }).pop() || f) : f);
     },
     back: function () {
       if (this.cur === 'sPause') return resume();
@@ -6469,6 +6525,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       $('cash').textContent = money(SAVE.cash);
       if (this.cur === 'sTracks') renderTracks();
       if (this.cur === 'sCity') renderCity();
+      if (this.cur === 'sStory') renderStory();
+      if (this.cur === 'sChap') renderChapter();
       if (this.cur === 's2P') render2P();
       if (this.cur === 'sFree') renderFree();
       if (this.cur === 'sGarage') renderGarage();
@@ -6535,16 +6593,19 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       if (go === 'gp' || go === 'tt' || go === '2p' || go === 'free' || go === 'hp') { UI.mode = go; UI.show('sTracks'); }
       else if (go === 'film') filmShow(false);
       else if (go === 'city') UI.show('sCity');
+      else if (go === 'story') UI.show('sStory');
       else if (go === 'garage') { UI.gsel = Math.max(0, CARS.indexOf(CAR[SAVE.car])); UI.show('sGarage'); }
       else if (go === 'settings') UI.show('sSettings');
       else if (go === 'back') UI.back();
       else if (go === 'exit') post('exit');
       else if (go === 'resume') resume();
-      else if (go === 'restart') startRace(LAST.type, LAST.def, LAST.opt);
+      else if (go === 'restart') { if (RACE && RACE.story) storyStart(RACE.story.ci, RACE.story.mi); else startRace(LAST.type, LAST.def, LAST.opt); }
       else if (go === 'reset') { resume(); if (RACE && RACE.city) RACE.resetReq = true; }
       else if (go === 'quit') { endRace(); UI.show('sTitle', true); }
       return;
     }
+    if ((d = b.dataset.sch) != null) { if (b.dataset.locked) { sfx('no'); return; } sfx('ok'); UI.sci = +d; UI.show('sChap'); return; }
+    if ((d = b.dataset.smi) != null) { if (b.dataset.locked) { sfx('no'); return; } sfx('ok'); storyGo(UI.sci, +d); return; }
     if ((d = b.dataset.tk) != null) {
       var t = TRACKS[+d]; if (b.dataset.locked) { sfx('no'); return; }
       sfx('ok');
@@ -6582,7 +6643,9 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       sfx('ok'); $('ui').classList.remove('dim');
       var L = LAST;
       if (d === 'next') { var i = TRACKS.indexOf(L.def) + 1; startRace('gp', TRACKS[i], {}); }
-      else if (d === 'again') startRace(L.type, L.def, L.opt);
+      else if (d === 'again') { if (RACE && RACE.story) storyStart(RACE.story.ci, RACE.story.mi); else startRace(L.type, L.def, L.opt); }
+      else if (d === 'snext') { var nn = b.dataset.n.split(':'); endRace(); UI.sci = +nn[0]; storyGo(+nn[0], +nn[1]); }
+      else if (d === 'sstory') { var sci = RACE && RACE.story ? RACE.story.ci : UI.sci; endRace(); UI.show('sTitle', true); UI.show('sStory'); UI.sci = sci; UI.show('sChap'); }
       else if (d === 'roam') { var me = RACE && RACE.humans[0], sp = me ? { x: me.x, z: me.z, th: me.th } : null; startCity(CITY, Object.assign({}, CITY_OPT, { mode: 'roam', spawn: sp })); }
       else if (d === 'garage') { endRace(); UI.show('sTitle', true); UI.gsel = Math.max(0, CARS.indexOf(CAR[SAVE.car])); UI.show('sGarage'); }
       else { endRace(); UI.show('sTitle', true); }
@@ -6687,6 +6750,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     v.addEventListener('ended', function () { setTimeout(filmEnd, 1600); });
     v.addEventListener('error', function () { if (INTRO.on) filmEnd(); });
     $('filmGate').addEventListener('click', function () { audioInit(); filmPlay(); });
+    $('talk').addEventListener('click', function () { audioInit(); talkNext(); });
     $('filmSkip').addEventListener('click', function () { filmEnd(); });
   })();
 
@@ -6733,7 +6797,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     requestAnimationFrame(frame);
     perfWatch(Math.min(0.2, (now - last) / 1000));
     var dt = Math.min(0.05, (now - last) / 1000) * TS; last = now;
-    pollPadMenus(); soundHint();
+    pollPadMenus(); soundHint(); if (TALK.on) talkTick();
     if (STATE === 'race' && RACE) updateRace(dt);
     else if (STATE === 'results' && RACE) { updateRace(dt); }
     if (STATE !== 'menu' && STATE !== 'film') render();
@@ -6752,7 +6816,359 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   requestAnimationFrame(frame);
   ['pointerdown', 'touchstart'].forEach(function (ev) { window.addEventListener(ev, function () { audioInit(); }, { passive: true }); });
   // test hook (used by the Arcade's automated checks; harmless for players)
-  window.__nd = { get race() { return RACE; }, get state() { return STATE; }, start: function (type, i, opt) { startRace(type, TRACKS[i], opt || {}); }, photo: function () { var o = {}; Object.keys(PHOTO).forEach(function (k) { o[k] = (PHOTO[k].wheels || []).map(function (w) { return [w.x.toFixed(3), w.y.toFixed(3), w.r.toFixed(3)]; }); }); return o; }, film: function (src) { if (src) FILM_SRC = src; return filmShow(false); }, auto: function (on) { AUTO = !!on; if (RACE) RACE.humans.forEach(function (h) { if (on && !h.ai) h.ai = { skill: 1, lane: 0, laneNow: 0, laneT: 2, nitroOn: false }; }); }, speed: function (s) { TS = s; }, _step: function (sec, fn) { for (var i = 0; i < Math.round(sec * 60); i++) { if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); if (fn) fn(i); } }, sim: function (sec) { for (var i = 0; i < Math.round(sec * 60); i++) if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); render(); }, save: function () { return SAVE; }, tracks: TRACKS, build: BUILD, city: function (opt) { startCity(CITY, opt || {}); }, _HW: HW, _STUNT: STUNT, _TRAPS: TRAPS, _BOARDS: function () { return BOARDS; }, _PROPS: function () { return PROPS; }, _CS: function () { return CS(); }, _surf: function (c) { return surfaceAt(c); }, _push: function (x, z, r, y) { CP_Y = y || 0; var p = cityPush(x, z, r), o = { x: p.x, z: p.z, n: p.n }; CP_Y = 0; return o; }, _sp: function (x, z, r, y) { return stuntPush(x, z, r, y); }, _hgp: function (x, z, r) { return hwGroundPush(x, z, r); }, _open: function () { return OPEN; }, _CITY_RACES: CITY_RACES, _CG: CG, _drive: drive, _newCar: newCar, _CAR: CAR, info: function () { return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geos: renderer.info.memory.geometries, tex: renderer.info.memory.textures }; } };
+  /* ════════════════ STORY MODE · THE MIDNIGHT CIRCUIT (2026-10-27) ════════════════
+     Seven nights across the YESTERDAYLAND map. Lou Castellano lost his Sunset garage to Sly Vega in '79; the
+     Midnight Circuit (six cities, invitation only) pays the Key to the Loop and Sly's paper on the garage to whoever
+     wins every round. Each chapter is a run of missions built on the modes the game already has (a race, a duel, a
+     drift lap, a traffic run, Hot Pursuit, a City race, a timed City free-roam job) plus talk between them.
+     A mission is scored on one number (place, margin over the next car, drift points, near misses, jumps, smashes,
+     escapes) against three marks: the first mark passes it, each mark is a star. Stars pay once, as you earn them.
+     Save: SAVE.story = { done: { s1m1: stars 1-3, … } } in nd_save; the worker merges it (max per mission). */
+  var CAST = {
+    LOU: { n: 'Lou Castellano', r: "Lou's Garage, Sunset", c: '#ffc98c' },
+    VELVET: { n: 'Velvet', r: 'the night shift, on the radio', c: '#ff5f9e' },
+    RICKY: { n: 'Ricky Chrome', r: 'the Chrome Kings, Sunset', c: '#cfe3ff' },
+    NOVA: { n: 'Nova Kincaid', r: 'the freeway', c: '#7fb2ff' },
+    DUKE: { n: 'Duke Delgado', r: 'the desert', c: '#e8b06a' },
+    TINA: { n: 'Tina Starr', r: 'Manhattan', c: '#ffd84a' },
+    LOLA: { n: 'Lola Reyes', r: 'Ocean Drive', c: '#ff8ab0' },
+    MAX: { n: 'Max Montana', r: 'Ocean Drive', c: '#9be7c4' },
+    SLY: { n: 'Sly Vega', r: 'the Strip', c: '#b98cff' },
+    BRIGGS: { n: 'Capt. Ruth Briggs', r: 'Highway Patrol', c: '#ff5a6a' }
+  };
+  var GOAL = {   // what a mission is scored on; lo: lower is better
+    place: { n: 'Finish', lo: true, f: function (v) { return v === 1 ? '1st' : v === 2 ? '2nd' : v === 3 ? '3rd' : v + 'th'; } },
+    margin: { n: 'Win by', f: function (v) { return (v >= 0 ? '' : '−') + Math.abs(v).toFixed(1) + ' s'; } },
+    drift: { n: 'Drift', f: function (v) { return Math.round(v).toLocaleString('en-US') + ' pts'; } },
+    nm: { n: 'Near misses', f: function (v) { return String(v); } },
+    jumps: { n: 'Jumps landed', f: function (v) { return String(v); } },
+    smash: { n: 'Smashed', f: function (v) { return String(v); } },
+    esc: { n: 'Cops lost', f: function (v) { return String(v); } }
+  };
+  function R6(car, name, skill, lv) { return { car: car, name: name, skill: skill, lv: lv }; }
+  var STORY = [
+    { id: 's1', title: 'Sunset Boulevard', place: 'Los Angeles · 1985', track: 0, rec: 'Pocket Rocket 1.6',
+      intro: [['VELVET', "This is Velvet on the night shift. It's 1985, it's two in the morning, and somewhere on Sunset an engine just turned over."],
+        ['LOU', "So you're the one who answered my ad. 'Driver wanted. Nights. No questions.' You sure about the no-questions part?"],
+        ['LOU', "There's a circuit. Six cities, six nights, invitation only. They call it the Midnight Circuit."],
+        ['LOU', "Win every round and you get the Key to the Loop: the first run on the new highway, before they cut the ribbon."],
+        ['LOU', "And Sly Vega, the man who runs it, holds the paper on my garage. Lost it to him in '79. I'd like it back."],
+        ['LOU', "The car's my old hatch. Quick, if you're nice to it. Finish a race and we'll talk."]],
+      missions: [
+        { id: 's1m1', name: 'First Night Out', kind: 'free', track: 0, laps: 2, cast: [R6('hatch', 'Ricky Chrome', .8, 0), R6('hatch', 'Sly Vega', .78, 0), R6('muscle', 'Duke Delgado', .76, 0)], traffic: 1, police: 0,
+          goal: 'place', marks: [3, 2, 1], pay: 3000, brief: 'Two laps of Sunset against three regulars. Top 3 passes.',
+          win: [['LOU', "You finished, and the car's still in one piece. Both are rarer than you'd think."]],
+          lose: [['LOU', 'Back of the pack. Happens. Run it again and stay off the curbs.']] },
+        { id: 's1m2', name: "Lou's Lesson", kind: 'free', track: 0, laps: 1, cast: [], traffic: 0, police: 0, goal: 'drift', marks: [2000, 4500, 8000], pay: 3000,
+          brief: 'One lap, the road to yourself. Drift: e-brake, or brake then back on the gas the same way. Hold the angle.',
+          intro: [['LOU', 'Corners on Sunset are slow. Slow is boring. Tap the e-brake, or brake and flick back onto the gas, and let the rear come round.'],
+            ['LOU', 'Hold the angle and keep your foot in. The longer you hang it out, the more the nitro fills. One lap. Show me some smoke.']],
+          radio: [[8, 'LOU', 'Steer into it to hold it. Counter-steer to catch it.']],
+          win: [['LOU', "Now that's how they did it in '78. Okay. You're dangerous."]], lose: [['LOU', "That's a lot of tire for not a lot of angle. Again."]] },
+        { id: 's1m3', name: 'Rush Hour on Sunset', kind: 'free', track: 0, laps: 1, cast: [], traffic: 3, police: 1, goal: 'nm', marks: [5, 10, 16], pay: 3500,
+          brief: 'Rush-hour traffic, one lap. Shave past cars, close enough to read the plates. Every near miss counts.',
+          intro: [['VELVET', "Traffic's backed up from Doheny to the Strip, and the Chrome Kings are out. Word is Ricky Chrome wants a look at the new car."],
+            ['LOU', 'Before you race Ricky, learn to thread. Close enough to read their plates. Every near miss pays.']],
+          win: [['RICKY', "Cute driving. You and me, tomorrow night, three laps. Bring the hatch. I'll bring the hatch that's faster."]],
+          lose: [['LOU', 'You drove around the traffic. I said through it. Closer.']] },
+        { id: 's1m4', name: 'Ricky Chrome', boss: 'RICKY', kind: 'free', track: 0, laps: 3, cast: [R6('hatch', 'Ricky Chrome', .85, 0)], traffic: 1, police: 1, goal: 'margin', marks: [0.01, 2.5, 6], pay: 5000,
+          brief: 'One on one with the king of Sunset. Three laps. Win by more for more stars.',
+          intro: [['RICKY', "They call me Chrome 'cause I shine. They're gonna call you 'the one who was behind Ricky.'"],
+            ['LOU', 'Ricky brakes late and turns in early. Let him lunge, then go under him on the exit.']],
+          radio: [[18, 'LOU', 'Sit on his bumper. Let the slipstream fill, then pull out.'], [75, 'RICKY', 'You still back there?']],
+          win: [['RICKY', "Fine. FINE. You're on the list. Nova runs the freeway Friday. She doesn't do talking."], ['VELVET', 'Ricky Chrome lost on his own street tonight. Somebody tell the freeway.']],
+          lose: [['RICKY', 'Shine on, rookie. Shine on.']] }
+      ] },
+    { id: 's2', title: 'Midnight Freeway', place: 'Southern California · 1984', track: 1, rec: 'Blackjack 5.0 or better',
+      intro: [['VELVET', 'Friday. The 10 is empty, the sodium lamps are humming, and the Midnight Circuit moves to the freeway.'],
+        ['LOU', "Out here it's top speed and nerve. Nobody brakes, so whoever keeps it pinned wins. If the hatch feels slow, the Garage has the Blackjack."]],
+      missions: [
+        { id: 's2m1', name: 'Four Lanes Wide', kind: 'free', track: 1, laps: 2, cast: [R6('muscle', 'Max Montana', .85, 1), R6('gull', 'Nova Kincaid', .84, 1), R6('muscle', 'Tina Starr', .83, 1), R6('hatch', 'Ricky Chrome', .84, 2), R6('gull', 'Lola Reyes', .82, 1)], traffic: 1, police: 1,
+          goal: 'place', marks: [3, 2, 1], pay: 4000, brief: 'Two laps of the freeway against five. Tuck in, draft, slingshot past.',
+          win: [['NOVA', "You draft like you mean it. Most people don't."]], lose: [['LOU', "You can't make up time in the corners out here. Get behind somebody and steal their air."]] },
+        { id: 's2m2', name: 'Blue Lights', kind: 'hp', track: 1, laps: 2, rivals: 3, traffic: 1, goal: 'place', marks: [4, 2, 1], pay: 4500,
+          brief: 'Hot Pursuit, two laps. The Highway Patrol is waiting. Get busted and you fail.',
+          intro: [['BRIGGS', "This is Captain Ruth Briggs, Highway Patrol. To whoever's running the Circuit tonight: I've got eleven units and nothing better to do."],
+            ['LOU', "Briggs. She's chased this circuit for six years. Don't stop, don't slow down, and don't let her box you in."]],
+          win: [['BRIGGS', "Got away from me tonight. I know your car now, though. Lou's plates."]], lose: [['BRIGGS', 'Out of the car. Slowly. ...Next time, maybe not 120 past a cruiser.']] },
+        { id: 's2m3', name: 'Night Traffic', kind: 'free', track: 1, laps: 1, cast: [], traffic: 3, police: 1, goal: 'nm', marks: [5, 10, 16], pay: 4500,
+          brief: 'One lap in heavy freeway traffic. Near misses only. Never lift.',
+          intro: [['VELVET', "Big rigs and night buses on the 10 eastbound. If you're out there tonight, keep it between the lines."],
+            ['NOVA', "Want to know why I win? I don't lift. Not for trucks, not for anyone. Show me you won't either."]],
+          win: [['NOVA', 'Okay. Saturday, two in the morning. You and me.']], lose: [['NOVA', 'You lifted. I saw.']] },
+        { id: 's2m4', name: 'Nova Kincaid', boss: 'NOVA', kind: 'free', track: 1, laps: 3, cast: [R6('gull', 'Nova Kincaid', .87, 1)], traffic: 1, police: 1, goal: 'margin', marks: [0.01, 2.5, 6], pay: 7000,
+          brief: 'One on one with the queen of the freeway. Three laps.',
+          intro: [['NOVA', 'No speeches. Three laps.'], ['LOU', "Nova doesn't make mistakes. So don't try to beat her in the corners. Beat her on the straights: nitro, every one."]],
+          radio: [[30, 'NOVA', '...'], [95, 'LOU', "She's human after all. Push!"]],
+          win: [['NOVA', "Huh. ...Duke Delgado runs the desert. He'll hate you. Old men hate everybody faster than them."], ['VELVET', 'Nova Kincaid, second place. First time anybody has heard that sentence.']],
+          lose: [['NOVA', 'Better luck next lifetime.']] }
+      ] },
+    { id: 's3', title: 'Desert Run', place: 'The Southwest · 1985', track: 2, rec: 'Chronos SS or better',
+      intro: [['VELVET', "Out past Barstow the radio fades to static and the stars come out like somebody spilled them. The Circuit's in the desert tonight."],
+        ['DUKE', "Lou's driver. I raced Lou in '72, back when cars had chrome and drivers had manners. Let's see which one you've got."]],
+      missions: [
+        { id: 's3m1', name: 'Mesa Sprint', kind: 'free', track: 2, laps: 2, cast: [R6('gull', 'Nova Kincaid', .87, 1), R6('wedge', 'Sly Vega', .86, 1), R6('muscle', 'Duke Delgado', .88, 2), R6('gull', 'Max Montana', .85, 1), R6('wedge', 'Lola Reyes', .84, 1)], traffic: 1, police: 1,
+          goal: 'place', marks: [3, 2, 1], pay: 5000, brief: 'Two laps through the mesas against five. The crests go light.',
+          win: [['DUKE', 'Lucky on the crests. Do it again with the sun in your eyes.']], lose: [['DUKE', 'Desert eats rookies. It ate me once.']] },
+        { id: 's3m2', name: 'Dune Jumping', kind: 'roam', at: [8, 2], time: 180, traffic: 1, police: 0, goal: 'jumps', marks: [3, 6, 10], pay: 5500,
+          brief: 'City desert, east of the Strip. Three minutes. Land as many jumps as you can: kickers, dunes, the tabletop.',
+          intro: [['LOU', 'The Circuit runs a stunt night out in the dunes east of the Strip. Ramps, kickers, a tabletop. Fly far and land straight.'],
+            ['LOU', 'Three minutes. Every jump you land counts. Follow the amber arrows on the map: those are kickers.']],
+          win: [['DUKE', "Ha! The kid's got air. Fine. One on one, at dawn. Don't be late."]], lose: [['LOU', 'More time in the air, less time looking for ramps. Again.']] },
+        { id: 's3m3', name: 'Heat Haze', kind: 'free', track: 2, laps: 1, cast: [], traffic: 0, police: 0, goal: 'drift', marks: [2500, 6000, 10000], pay: 5500,
+          brief: 'One lap of the desert, the road to yourself. Hang it out on the long sweepers.',
+          intro: [['DUKE', 'Out here we slide and we pray. Show me you can hang it out on the long sweepers.']],
+          win: [['DUKE', 'Smoke like a brush fire. I like it.']], lose: [['DUKE', 'Wider. Longer. Braver.']] },
+        { id: 's3m4', name: 'Duke Delgado', boss: 'DUKE', kind: 'free', track: 2, laps: 3, cast: [R6('muscle', 'Duke Delgado', .89, 2)], traffic: 1, police: 1, goal: 'margin', marks: [0.01, 3, 7], pay: 9000,
+          brief: "One on one with the desert's oldest legend. Three laps.",
+          intro: [['DUKE', 'Five-oh, four on the floor and forty years of knowing where the road goes. Try and keep up.'],
+            ['LOU', "Duke's car has torque but it's heavy. Brake early, turn in tight, and he'll run wide on every crest."]],
+          radio: [[40, 'DUKE', 'Not bad. Not good either.']],
+          win: [['DUKE', "...Tell Lou he finally built a driver. Manhattan's next. Tina Starr. Drove a cab. Don't laugh. Don't ever laugh."]],
+          lose: [['DUKE', 'Forty years, kid. Forty years.']] }
+      ] },
+    { id: 's4', title: 'Rainy Manhattan', place: 'New York · 1984', track: 3, rec: 'Razor 88 or better',
+      intro: [['VELVET', 'New York. Rain on the windshield, steam out of the street, and every cab in the city honking in a different key.'],
+        ['TINA', "Welcome to New York, Hollywood. Here the corners are square and the cabs don't brake. Learn fast."]],
+      missions: [
+        { id: 's4m1', name: 'Wet Streets', kind: 'free', track: 3, laps: 2, cast: [R6('wedge', 'Tina Starr', .88, 2), R6('gull', 'Nova Kincaid', .88, 2), R6('wedge', 'Max Montana', .87, 2), R6('gull', 'Ricky Chrome', .86, 2), R6('wedge', 'Lola Reyes', .86, 2)], traffic: 2, police: 1,
+          goal: 'place', marks: [3, 2, 1], pay: 6000, brief: 'Two laps of Midtown in the rain against five. Brake in a straight line, then turn.',
+          intro: [['LOU', "Rain kills grip. Brake in a straight line, then turn. Don't get greedy on the gas."]],
+          win: [['TINA', 'Not bad for a tourist.']], lose: [['TINA', 'Taxi! ...Oh, it is you.']] },
+        { id: 's4m2', name: 'Cab Rank', kind: 'free', track: 3, laps: 1, cast: [], traffic: 3, police: 1, goal: 'nm', marks: [5, 10, 16], pay: 6500,
+          brief: 'One lap of Manhattan at rush hour. Thread the cabs.',
+          intro: [['TINA', 'I drove a Checker for nine years. I know every gap on Seventh Avenue. Rush hour. Thread it.']],
+          win: [['TINA', 'Okay, okay. You might be a New Yorker.']], lose: [['TINA', 'You drive like you pay for the gas.']] },
+        { id: 's4m3', name: 'Manhattan in the Rain', kind: 'city', race: 1, cast: [R6('wedge', 'Tina Starr', .9, 2), R6('wedge', 'Nova Kincaid', .89, 2), R6('gull', 'Ricky Chrome', .88, 2), R6('wedge', 'Max Montana', .88, 2), R6('gull', 'Duke Delgado', .87, 2)], traffic: 2, police: 1,
+          goal: 'place', marks: [3, 2, 1], pay: 7000, brief: 'City race across Midtown. Checkpoints, any street you like.',
+          intro: [['VELVET', "The Circuit's opened up the city grid tonight. Checkpoints across Midtown, any street you like."],
+            ['LOU', 'Your call on the route. The arrow knows a way. Doesn\'t mean it\'s the fastest.']],
+          win: [['TINA', "Alright, Hollywood. Tomorrow. My streets. My rules."]], lose: [['LOU', 'Alleys, kid. Look for the alleys.']] },
+        { id: 's4m4', name: 'Tina Starr', boss: 'TINA', kind: 'free', track: 3, laps: 3, cast: [R6('wedge', 'Tina Starr', .89, 2)], traffic: 2, police: 1, goal: 'margin', marks: [0.01, 2, 5], pay: 11000,
+          brief: 'One on one in the rain with the fastest cabbie in New York. Three laps.',
+          intro: [['TINA', "My meter's running, Hollywood."]],
+          radio: [[25, 'TINA', 'Watch the cab on your right!'], [80, 'LOU', 'She drifts every corner. Take the inside and make her go long.']],
+          win: [['TINA', 'You beat me in my own town. In the rain. ...Lola and Max hold the Miami round. Bring sunglasses.']],
+          lose: [['TINA', "That'll be eight-fifty, plus tip."]] }
+      ] },
+    { id: 's5', title: 'Midnight in Miami', place: 'Ocean Drive · 1986', track: 4, rec: 'Rosso Veloce 12 or better',
+      intro: [['VELVET', "Ocean Drive. Pink hotels, white suits, the Atlantic slapping the sea wall. It's 1986 and nobody here has slept since '84."],
+        ['MAX', "Max Montana. I drive, Lola talks. You must be the one Ricky's been crying about."], ['LOLA', "Be nice, Max. ...But not too nice. Let's see what Lou's been building."]],
+      missions: [
+        { id: 's5m1', name: 'Neon Mile', kind: 'free', track: 4, laps: 2, cast: [R6('exotic', 'Lola Reyes', .9, 2), R6('exotic', 'Max Montana', .9, 2), R6('wedge', 'Tina Starr', .9, 3), R6('wedge', 'Nova Kincaid', .89, 3), R6('wedge', 'Sly Vega', .88, 2)], traffic: 1, police: 1,
+          goal: 'place', marks: [3, 2, 1], pay: 7000, brief: 'Two laps of Ocean Drive against five.',
+          win: [['LOLA', 'Mm. Fast and quiet. My favorite kind.']], lose: [['MAX', "Don't feel bad. Everybody loses on Ocean Drive. That's why they come."]] },
+        { id: 's5m2', name: 'Heat Wave', kind: 'hp', track: 4, laps: 2, rivals: 3, traffic: 1, goal: 'place', marks: [4, 2, 1], pay: 8000,
+          brief: 'Hot Pursuit, two laps on Ocean Drive. Get busted and you fail.',
+          intro: [['BRIGGS', "Captain Briggs. I'm on loan to Miami for a week. Guess who asked for the transfer."]],
+          win: [['BRIGGS', 'Cross my state line one more time. I dare you.']], lose: [['BRIGGS', 'Hands on the wheel. Sunglasses off.']] },
+        { id: 's5m3', name: 'Lose Briggs', kind: 'roam', at: [6, 7], time: 180, traffic: 2, police: 2, goal: 'esc', marks: [1, 2, 3], pay: 8000,
+          brief: 'City free roam, every unit out. Get a cruiser on your tail, then lose it. Three minutes.',
+          intro: [['BRIGGS', "Every unit on Ocean Drive: the hatch with Lou's plates. Light it up."],
+            ['LOU', "She's got the whole city looking for you. Get them on your tail and shake them. Then do it again."]],
+          win: [['BRIGGS', 'Where did it go? WHERE DID IT GO?']], lose: [['LOU', 'Out of sight is out of mind. Break line of sight, then put the hammer down.']] },
+        { id: 's5m4', name: 'Lola & Max', boss: 'LOLA', kind: 'free', track: 4, laps: 3, cast: [R6('exotic', 'Lola Reyes', .89, 2), R6('exotic', 'Max Montana', .87, 2)], traffic: 1, police: 1, goal: 'margin', marks: [0.01, 2, 5], pay: 13000,
+          brief: 'Two on one. Beat both of them. Three laps.',
+          intro: [['LOLA', 'Two of us, one of you. Seems fair.'], ['MAX', "It's not."]],
+          radio: [[35, 'MAX', 'Lola, block him!'], [90, 'LOLA', "I'm TRYING, Max."]],
+          win: [['LOLA', "Okay. I'm impressed, and I don't impress. Sly's waiting in Vegas. He knows you're coming. He knows everything."], ['MAX', 'Watch his hands. The house always wins in Vegas.']],
+          lose: [['LOLA', 'Ciao.']] }
+      ] },
+    { id: 's6', title: 'Las Vegas Strip', place: 'Las Vegas · 1986', track: 5, rec: 'Rosso Veloce 12 or Nightshade GTX',
+      intro: [['VELVET', 'Las Vegas, 1986. Twenty-four hours a day, and the Midnight Circuit owns about four of them.'],
+        ['SLY', "So this is Lou's driver. Sit. Have a drink. No? Smart. Win my town, you get the Key and Lou gets his garage."],
+        ['SLY', 'Lose, and I keep the garage, the car, and the kid who drives it. Everybody antes up.']],
+      missions: [
+        { id: 's6m1', name: 'The Strip', kind: 'free', track: 5, laps: 2, cast: [R6('exotic', 'Sly Vega', .91, 3), R6('exotic', 'Lola Reyes', .91, 3), R6('exotic', 'Max Montana', .9, 3), R6('wedge', 'Tina Starr', .91, 3), R6('exotic', 'Nova Kincaid', .9, 3)], traffic: 2, police: 1,
+          goal: 'place', marks: [3, 2, 1], pay: 9000, brief: 'Two laps of the Strip against five. Pylon signs, searchlights, and nobody braking.',
+          win: [['SLY', 'Beginner\'s luck. Every table has some.']], lose: [['SLY', 'The house thanks you for playing.']] },
+        { id: 's6m2', name: 'Wreck the House', kind: 'roam', at: [6, 1], time: 150, traffic: 1, police: 1, goal: 'smash', marks: [20, 38, 60], pay: 9000,
+          brief: "City free roam on the Strip. Two and a half minutes. Smash Sly's cones, barricades, news boxes and billboards (a board counts 3).",
+          intro: [['LOU', "Sly's boys left you a welcome: cones, barricades and his billboards, all over the Strip. Wreck the place."]],
+          win: [['SLY', "That's coming out of Lou's garage. Oh wait. It's my garage."]], lose: [['LOU', "Keep moving. Combos pay. A billboard's worth three."]] },
+        { id: 's6m3', name: 'Roadblock', kind: 'hp', track: 5, laps: 3, rivals: 3, traffic: 2, goal: 'place', marks: [4, 2, 1], pay: 10000,
+          brief: 'Hot Pursuit, three laps on the Strip. Roadblock on the last lap. Get busted and you fail.',
+          intro: [['BRIGGS', 'Nevada Highway Patrol owes me a favor. Roadblock on the last lap. Merry Christmas.']],
+          win: [['BRIGGS', "...Fine. Win the thing. I'll be on the Loop."]], lose: [['BRIGGS', 'Read him his rights. Slowly. I want to enjoy it.']] },
+        { id: 's6m4', name: 'Sly Vega', boss: 'SLY', kind: 'free', track: 5, laps: 3, cast: [R6('hyper', 'Sly Vega', .9, 2)], traffic: 2, police: 2, goal: 'margin', marks: [0.01, 2, 5], pay: 15000,
+          brief: 'One on one with the man who runs the Circuit. Winner takes the paper on the garage. Three laps.',
+          intro: [['SLY', "Three laps. Winner takes the paper on Lou's garage. Loser walks home. It's a long walk from Vegas."],
+            ['LOU', "He's in a Nightshade. Nitro every straight. Drift it, earn it, spend it."]],
+          radio: [[40, 'SLY', 'Cute.'], [100, 'LOU', "He's sweating. I can hear it from here!"]],
+          win: [['SLY', '...The house doesn\'t lose.'], ['LOU', 'The house just did, Sly. Hand it over.'], ['VELVET', "Big news out of Vegas: Lou's Garage on Sunset is back in Lou's hands. One round to go."]],
+          lose: [['SLY', 'Everybody antes up, kid.']] }
+      ] },
+    { id: 's7', title: 'The Loop', place: 'YESTERDAYLAND City · opening night', city: true, rec: 'Nightshade GTX',
+      intro: [['VELVET', "Tonight they cut the ribbon on the YESTERDAYLAND Loop. Nobody's driven it. Nobody, except whoever holds the Key."],
+        ['LOU', 'They all showed up. Ricky, Nova, Duke, Tina, Lola, Max, Sly. Everybody you beat wants one more go.'],
+        ['BRIGGS', "And so do I. Every unit I have is on that highway tonight. Good luck. You'll need it."],
+        ['LOU', "Whatever happens, Lou's Garage is open again because of you. Now go get the Key."]],
+      missions: [
+        { id: 's7m1', name: 'Opening Night', boss: 'SLY', kind: 'city', race: 4, cast: [R6('hyper', 'Sly Vega', .9, 2), R6('exotic', 'Lola Reyes', .88, 2), R6('exotic', 'Max Montana', .87, 2), R6('wedge', 'Tina Starr', .89, 3), R6('exotic', 'Nova Kincaid', .88, 2), R6('muscle', 'Duke Delgado', .87, 3), R6('wedge', 'Ricky Chrome', .86, 3)],
+          traffic: 1, police: 2, goal: 'margin', marks: [0.01, 3, 8], pay: 25000, brief: 'Two laps of the Loop against everyone you beat, and Briggs. Win it.',
+          radio: [[20, 'VELVET', "They're on the Loop, folks. Seven cars and a lot of flashing lights."], [70, 'LOU', 'Halfway. Stay out of the barriers and keep your foot in.']],
+          win: [['VELVET', "And that's the Midnight Circuit, 1986. The Loop opens to the public in the morning. Tonight, it belonged to one car."],
+            ['LOU', 'Go back for a while, kid. Then come back and drive.']],
+          lose: [['LOU', 'Second on the Loop is still a hell of a night. Go again.']] }
+      ] }
+  ];
+  var STORY_IDS = {}; STORY.forEach(function (ch, ci) { ch.missions.forEach(function (m, mi) { STORY_IDS[m.id] = [ci, mi]; }); });
+  function SS() { var s = SAVE.story || (SAVE.story = {}); if (!s.done || typeof s.done !== 'object') s.done = {}; return s; }
+  function stStars(id) { return SS().done[id] | 0; }
+  function stOpen(ci, mi) {
+    if (!ci && !mi) return true;
+    if (mi) return stStars(STORY[ci].missions[mi - 1].id) > 0;
+    var pc = STORY[ci - 1]; return stStars(pc.missions[pc.missions.length - 1].id) > 0;
+  }
+  function stTotals() { var got = 0, all = 0; STORY.forEach(function (ch) { ch.missions.forEach(function (m) { got += stStars(m.id); all += 3; }); }); return [got, all]; }
+  function stNext() { for (var ci = 0; ci < STORY.length; ci++) for (var mi = 0; mi < STORY[ci].missions.length; mi++) if (!stStars(STORY[ci].missions[mi].id)) return [ci, mi]; return null; }
+  function starStr(n) { return '★★★'.slice(0, n) + '☆☆☆'.slice(0, 3 - n); }
+  function stMarkText(m) { var G = GOAL[m.goal]; return (m.goal === 'margin' ? 'Win · by ' : G.n + ' ') + m.marks.map(function (v, i) { return m.goal === 'margin' && !i ? null : G.f(v); }).filter(Boolean).join(' · '); }
+
+  /* the menus: chapters, then a chapter's missions */
+  UI.sci = 0;
+  function renderStory() {
+    var T = stTotals(), nx = stNext();
+    $('stSub').textContent = 'Lou needs his garage back. Six cities, six nights, then the Loop.  ·  ' + T[0] + ' / ' + T[1] + ' ★';
+    $('stList').innerHTML = STORY.map(function (ch, ci) {
+      var got = 0; ch.missions.forEach(function (m) { got += stStars(m.id); });
+      var open = stOpen(ci, 0), still = ch.city ? CITY.still : TRACKS[ch.track].still, cur = nx && nx[0] === ci;
+      return '<button class="tk" type="button" data-sch="' + ci + '"' + (open ? '' : ' data-locked="1"') + ' data-still="' + esc(still) + '"><div class="ph" style="background-image:url(\'' + artUrl(still, 640) + '\')"><span class="ep">CHAPTER ' + (ci + 1) + (cur ? ' · NOW' : '') + '</span></div><div class="in"><b>' + esc(ch.title) + '</b><span>' + esc(ch.place) + '</span><em>' + got + ' / ' + ch.missions.length * 3 + ' ★</em></div>' +
+        (open ? '' : '<div class="lock"><div><b>🔒</b>Beat ' + esc(STORY[ci - 1].missions[STORY[ci - 1].missions.length - 1].name) + '</div></div>') + '</button>';
+    }).join('');
+  }
+  function renderChapter() {
+    var ch = STORY[UI.sci], still = ch.city ? CITY.still : TRACKS[ch.track].still;
+    $('scTitle').textContent = 'Chapter ' + (UI.sci + 1) + ' · ' + ch.title;
+    $('scSub').textContent = ch.place + '  ·  Lou suggests: ' + ch.rec + '  ·  your car: ' + CAR[SAVE.car].name;
+    $('scList').innerHTML = ch.missions.map(function (m, mi) {
+      var open = stOpen(UI.sci, mi), st = stStars(m.id), who = m.boss ? CAST[m.boss].n : '';
+      return '<button class="tk sm' + (m.boss ? ' boss' : '') + '" type="button" data-smi="' + mi + '"' + (open ? '' : ' data-locked="1"') + ' data-still="' + esc(still) + '"><div class="in"><span class="ep2">' + (m.boss ? 'BOSS · ' + esc(who) : 'MISSION ' + (mi + 1)) + '</span><b>' + esc(m.name) + '</b><span class="br">' + esc(m.brief) + '</span><em><i class="stars">' + starStr(st) + '</i> ' + esc(stMarkText(m)) + '</em></div>' +
+        (open ? '' : '<div class="lock"><div><b>🔒</b>Finish ' + esc(ch.missions[mi - 1].name) + '</div></div>') + '</button>';
+    }).join('');
+  }
+
+  /* talk: who's speaking, the line typing out; any key, (A) or a tap goes on, Esc / (B) skips the rest */
+  var TALK = { on: false, lines: null, i: 0, done: null, t0: 0, full: false };
+  function talkShow(lines, done, still) {
+    if (!lines || !lines.length) { if (done) done(); return; }
+    TALK.on = true; TALK.lines = lines; TALK.i = 0; TALK.done = done || null; try { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch (e) {}
+    var el = $('talk'); el.hidden = false; el.style.backgroundImage = still ? 'url("' + artUrl(still, 1600) + '")' : '';
+    el.classList.toggle('over', !!RACE); talkLine();
+  }
+  function talkLine() {
+    var L = TALK.lines[TALK.i], who = CAST[L[0]] || { n: L[0], r: '', c: '#fff' };
+    $('tkWho').textContent = who.n; $('tkRole').textContent = who.r; $('tkWho').style.color = who.c;
+    $('tkBadge').textContent = who.n.replace(/^Capt\. /, '').split(' ').map(function (w) { return w[0]; }).join('').slice(0, 2); $('tkBadge').style.borderColor = who.c; $('tkBadge').style.color = who.c;
+    $('tkText').textContent = ''; TALK.t0 = performance.now(); TALK.full = false; TALK.text = L[1];
+    $('tkNext').textContent = TALK.i < TALK.lines.length - 1 ? '▶' : '■'; sfx('move');
+  }
+  function talkTick() {
+    if (!TALK.on || TALK.full) return;
+    var n = Math.floor((performance.now() - TALK.t0) / 22); if (n >= TALK.text.length) { n = TALK.text.length; TALK.full = true; }
+    $('tkText').textContent = TALK.text.slice(0, n);
+  }
+  function talkNext() {
+    if (!TALK.on) return;
+    if (!TALK.full) { TALK.full = true; $('tkText').textContent = TALK.text; return; }
+    if (++TALK.i < TALK.lines.length) return talkLine();
+    talkEnd();
+  }
+  function talkEnd() { if (!TALK.on) return; TALK.on = false; $('talk').hidden = true; var d = TALK.done; TALK.done = null; KEY = {}; if (d) d(); }
+
+  /* starting a mission: the chapter intro the first time, the mission's own talk, then the race */
+  function storyGo(ci, mi, skipTalk) {
+    var ch = STORY[ci], M = ch.missions[mi], still = ch.city || M.kind === 'roam' || M.kind === 'city' ? CITY.still : TRACKS[M.track].still;
+    var seen = SS().seen || (SS().seen = {}), lines = [];
+    if (!skipTalk) { if (!mi && !seen[ch.id]) lines = lines.concat(ch.intro || []); if (!stStars(M.id)) lines = lines.concat(M.intro || []); }
+    talkShow(lines, function () { if (!mi) { seen[ch.id] = 1; persist(); } storyStart(ci, mi); }, still);
+  }
+  function storyStart(ci, mi) {
+    var M = STORY[ci].missions[mi], st = { ci: ci, mi: mi, M: M, said: {} };
+    if (M.kind === 'free') startRace('free', TRACKS[M.track], { laps: M.laps, rivals: M.cast.length, cast: M.cast, traffic: M.traffic, police: M.police, diff: 1, story: st });
+    else if (M.kind === 'hp') startRace('hp', TRACKS[M.track], { laps: M.laps, rivals: M.rivals, traffic: M.traffic, story: st });
+    else if (M.kind === 'city') startCity(CITY, { mode: 'race', race: M.race, rivals: M.cast.length, cast: M.cast, traffic: M.traffic, police: M.police, diff: 1, story: st });
+    else startCity(CITY, { mode: 'roam', at: M.at, traffic: M.traffic, police: M.police, story: st });
+    if (RACE) { st.left = M.time || 0; RACE.story = st; storyHud(true); hudMsg(0, esc(M.name.toUpperCase()) + '<small>' + esc(M.brief) + '</small>', '', 4.5); }
+  }
+  // the number a mission is scored on
+  function stValue(R, M, rows) {
+    var B = R.bonus[0] || {}, you = R.humans[0];
+    if (M.goal === 'place' || M.goal === 'margin') {
+      var pl = rows ? rows.findIndex(function (r) { return r.c === you; }) + 1 : (you.place || 1);
+      if (M.goal === 'place') return pl;
+      if (!rows || rows.length < 2) return 0;
+      return pl === 1 ? rows[1].t - rows[0].t : -(rows[pl - 1].t - rows[0].t);
+    }
+    if (M.goal === 'drift') return (B.dpts || 0) + (you.dr && you.dr.on ? Math.round(you.dr.pts) : 0);
+    if (M.goal === 'nm') return B.nm || 0;
+    if (M.goal === 'jumps') return B.jumps || 0;
+    if (M.goal === 'smash') return (B.smash || 0) + (B.boards || 0) * 3;
+    if (M.goal === 'esc') return B.esc || 0;
+    return 0;
+  }
+  function stStarsFor(M, v) { var lo = GOAL[M.goal].lo, n = 0; M.marks.forEach(function (m) { if (lo ? v <= m : v >= m) n++; }); return n; }
+  // every frame of a story run: the objective box, radio chatter, the free-roam clock
+  function storyTick(R, dt) {
+    var st = R.story; if (!st) return;
+    var M = st.M, live = R.state === 'run';
+    if (live && M.radio) M.radio.forEach(function (r, k) { if (!st.said[k] && R.t >= r[0]) { st.said[k] = 1; st.chat = r; st.chatT = 5; sfx('radio'); } });
+    if (st.chatT > 0) st.chatT -= dt;
+    if (M.kind === 'roam' && live && !R.done) {
+      st.left -= dt;
+      var v = stValue(R, M);
+      if (st.left <= 0 || stStarsFor(M, v) >= 3) { R.done = true; st.final = v; setTimeout(function () { if (RACE && RACE.story === st) storyResults(); }, st.left <= 0 ? 300 : 1400); if (st.left > 0) hudMsg(0, 'THREE STARS<small>' + esc(GOAL[M.goal].f(v)) + '</small>', '', 2); }
+    }
+    storyHud(false);
+  }
+  function storyHud(force) {
+    var R = RACE, st = R && R.story, el = $('sObj');
+    if (!st || STATE !== 'race') { if (!el.hidden) el.hidden = true; return; }
+    var M = st.M, G = GOAL[M.goal], v = M.goal === 'place' || M.goal === 'margin' ? null : stValue(R, M), s = v == null ? 0 : stStarsFor(M, v);
+    var line = v == null ? (M.goal === 'margin' ? (M.cast.length > 1 ? 'Beat all of them' : 'Beat ' + M.cast[0].name) : 'Finish top ' + M.marks[0])
+      : G.n + ' ' + G.f(v) + (s < 3 ? ' / ' + G.f(M.marks[s]) : '');
+    var html = '<b>' + esc(M.name) + '</b><span>' + esc(line) + (v != null ? ' <i>' + starStr(s) + '</i>' : '') + (M.kind === 'roam' ? ' · ' + fmtT2(Math.max(0, st.left) * 1000).replace(/\.\d+$/, '') : '') + '</span>' +
+      (st.chatT > 0 ? '<em style="color:' + (CAST[st.chat[1]] || {}).c + '">' + esc((CAST[st.chat[1]] || { n: st.chat[1] }).n) + ': <q>' + esc(st.chat[2]) + '</q></em>' : '');
+    if (force || el.dataset.h !== html) { el.innerHTML = html; el.dataset.h = html; }
+    el.hidden = false;
+  }
+  // the results: the score, the stars, the pay (stars pay once, as you earn them), then the talk
+  function storyResults() {
+    var R = RACE, st = R.story, M = st.M, you = R.humans[0], B = R.bonus[0] || { cash: 0 }, rows = null;
+    $('sObj').hidden = true;
+    if (M.kind !== 'roam') {
+      rows = R.racers.map(function (c) {
+        var t = c.finished ? c.finishT : R.city ? R.t + Math.max(0, R.total - cityMetres(R, c)) / Math.max(20, c.st.top * 0.75) : R.t + (R.laps * R.TR.L - c.total) / Math.max(20, c.st.top * 0.8);
+        return { c: c, t: t, est: !c.finished, bust: !!c.busted };
+      }).sort(function (a, b) { if (a.bust !== b.bust) return a.bust ? 1 : -1; return a.t - b.t; });
+    }
+    var v = st.final != null ? st.final : stValue(R, M, rows), busted = !!you.busted, stars = busted ? 0 : stStarsFor(M, v);
+    var prev = stStars(M.id), gain = Math.max(0, stars - prev), prize = Math.round(M.pay * gain / 3 / 100) * 100 + (stars && !gain ? Math.round(M.pay * 0.1 / 100) * 100 : 0), street = Math.round(B.cash || 0);
+    if (stars > prev) SS().done[M.id] = stars;
+    if (prize + street) addCash(prize + street);
+    SAVE.races++; if (rows && rows[0].c === you && !busted) SAVE.wins++;
+    persist();
+    var nx = stars ? (STORY[st.ci].missions[st.mi + 1] ? [st.ci, st.mi + 1] : STORY[st.ci + 1] ? [st.ci + 1, 0] : null) : null;
+    $('rBig').innerHTML = (busted ? 'Busted' : stars ? (M.boss && stars ? esc(CAST[M.boss].n) + ' beaten' : 'Mission complete') : 'Mission failed') + '<div class="sstars">' + starStr(stars) + '</div>';
+    $('rTrack').textContent = 'Chapter ' + (st.ci + 1) + ' · ' + STORY[st.ci].title + ' · ' + M.name;
+    var table = rows ? rows.map(function (r, i) { return '<tr' + (r.c === you ? ' class="you"' : '') + '><td>' + (r.bust ? '–' : i + 1) + '</td><td>' + esc(r.c.name) + '<small>' + esc(r.c.def.name) + '</small></td><td class="r">' + (r.bust ? 'BUSTED' : (r.est ? '+' : '') + fmtT(r.t * 1000)) + '</td></tr>'; }).join('') : '';
+    $('rTable').innerHTML = '<tr class="you"><td>★</td><td>' + esc(GOAL[M.goal].n) + '<small>' + esc(stMarkText(M)) + '</small></td><td class="r">' + esc(GOAL[M.goal].f(v)) + '</td></tr>' + table;
+    $('rPrize').textContent = prize + street ? '+ ' + money(prize + street) : '';
+    $('rNote').textContent = (gain ? '+' + gain + ' ★ · mission pay ' + money(prize) : stars ? 'Replay pay ' + money(prize) : 'Hit the first mark to pass.') + (street ? ' · street cash ' + money(street) : '') + (nx && !prev ? '  ·  Next: ' + STORY[nx[0]].missions[nx[1]].name : '');
+    var btns = [];
+    if (nx) btns.push('<button class="mi" type="button" data-r="snext" data-n="' + nx[0] + ':' + nx[1] + '">Next ▶ ' + esc(STORY[nx[0]].missions[nx[1]].name) + '</button>');
+    btns.push('<button class="mi" type="button" data-r="again">' + (stars ? 'Replay' : 'Try again') + '</button>');
+    btns.push('<button class="mi ghost" type="button" data-r="sstory">Story</button><button class="mi ghost" type="button" data-r="garage">Garage</button>');
+    $('rBtns').innerHTML = btns.join('');
+    STATE = 'results'; $('touch').hidden = true;
+    UI.show('sResults', true); $('ui').classList.add('dim');
+    musicStart('results');
+    if (R.siren) R.siren.set(400, 0.016);
+    post('over', { score: SAVE.wins, place: rows ? rows.findIndex(function (r) { return r.c === you; }) + 1 : 0, mode: 'story', track: M.id });
+    var talk = stars ? (prev ? null : M.win) : M.lose;
+    if (talk) setTimeout(function () { if (STATE === 'results') talkShow(talk, null, null); }, 700);
+  }
+  window.__nd = { get race() { return RACE; }, get state() { return STATE; }, start: function (type, i, opt) { startRace(type, TRACKS[i], opt || {}); }, photo: function () { var o = {}; Object.keys(PHOTO).forEach(function (k) { o[k] = (PHOTO[k].wheels || []).map(function (w) { return [w.x.toFixed(3), w.y.toFixed(3), w.r.toFixed(3)]; }); }); return o; }, film: function (src) { if (src) FILM_SRC = src; return filmShow(false); }, auto: function (on) { AUTO = !!on; if (RACE) RACE.humans.forEach(function (h) { if (on && !h.ai) h.ai = { skill: 1, lane: 0, laneNow: 0, laneT: 2, nitroOn: false }; }); }, speed: function (s) { TS = s; }, _step: function (sec, fn) { for (var i = 0; i < Math.round(sec * 60); i++) { if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); if (fn) fn(i); } }, sim: function (sec) { for (var i = 0; i < Math.round(sec * 60); i++) if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); render(); }, save: function () { return SAVE; }, _STORY: STORY, storyGo: function (ci, mi) { storyStart(ci, mi); }, _storyResults: function () { storyResults(); }, _talk: function () { return TALK; }, tracks: TRACKS, build: BUILD, city: function (opt) { startCity(CITY, opt || {}); }, _HW: HW, _STUNT: STUNT, _TRAPS: TRAPS, _BOARDS: function () { return BOARDS; }, _PROPS: function () { return PROPS; }, _CS: function () { return CS(); }, _surf: function (c) { return surfaceAt(c); }, _push: function (x, z, r, y) { CP_Y = y || 0; var p = cityPush(x, z, r), o = { x: p.x, z: p.z, n: p.n }; CP_Y = 0; return o; }, _sp: function (x, z, r, y) { return stuntPush(x, z, r, y); }, _hgp: function (x, z, r) { return hwGroundPush(x, z, r); }, _open: function () { return OPEN; }, _CITY_RACES: CITY_RACES, _CG: CG, _drive: drive, _newCar: newCar, _CAR: CAR, info: function () { return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geos: renderer.info.memory.geometries, tex: renderer.info.memory.textures }; } };
 })();
 </script>
 </body>
