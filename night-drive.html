@@ -493,7 +493,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 <script>
 (function () {
   'use strict';
-  var GAME_ID = 'night-drive', BUILD = '2026102801-nd';
+  var GAME_ID = 'night-drive', BUILD = '2026102802-nd';
   var $ = function (id) { return document.getElementById(id); };
   var EMBED = false; try { EMBED = window.top !== window; } catch (e) { EMBED = true; }
   function post(type, extra) { try { if (EMBED) window.parent.postMessage(Object.assign({ arcade: type, game: GAME_ID }, extra || {}), '*'); } catch (e) {} }
@@ -505,6 +505,52 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   function seeded(seed) { var s = seed >>> 0; return function () { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function money(n) { return '$' + Math.round(n || 0).toLocaleString('en-US'); }
+  /* ── PHOTO MODE (2026-10-28): the frame on screen becomes a 1200×630 share card — YESTERDAYLAND · Night Drive,
+     the drive, the car, the result, and the Arcade address. Web Share on phones (the file goes straight into
+     Messages / IG), a download everywhere else. The WebGL buffer is read right after a render() in the same task,
+     so no preserveDrawingBuffer. ── */
+  var PHOTO_BUSY = false;
+  function photoLines() {
+    var R = RACE, L = LAST, def = (R && R.def) || (L && L.def) || null, car = CAR[SAVE.car] || {};
+    var big = '', sub = car.name || '';
+    if (R && R.story && R.story.M) { big = R.story.M.name; sub = 'The Midnight Circuit · ' + (STORY[R.story.ci] ? STORY[R.story.ci].title : '') + ' · ' + sub; }
+    else if (R && R.city) { big = R.cps ? ((R.race && R.race.name) || 'City race') : 'YESTERDAYLAND City'; sub = (R.cps && R.race && R.race.place ? R.race.place + ' · ' : '') + sub; }
+    else if (def) { big = 'Drive ' + def.ep + ' · ' + def.name; sub = def.place + ' · ' + sub; }
+    var you = R && R.humans && R.humans[0], best = you && you.best ? fmtT(you.best * 1000) : (def && SAVE.laps[def.id] ? fmtT(SAVE.laps[def.id]) : '');
+    var rb = STATE === 'results' ? ($('rBig').textContent || '') : '';
+    return { big: big || 'Night Drive', sub: sub, tag: (rb ? rb + (best ? ' · best lap ' + best : '') : (best ? 'Best lap ' + best : '')) };
+  }
+  function sharePhoto() {
+    if (PHOTO_BUSY) return; PHOTO_BUSY = true;
+    try {
+      var gl = $('gl'); render();
+      var W = 1200, H = 630, c = document.createElement('canvas'); c.width = W; c.height = H; var x = c.getContext('2d');
+      x.fillStyle = '#0a0d18'; x.fillRect(0, 0, W, H);
+      var sw = gl.width, sh = gl.height, k = Math.max(W / sw, H / sh), dw = sw * k, dh = sh * k;
+      x.drawImage(gl, (W - dw) / 2, (H - dh) / 2, dw, dh);
+      var g = x.createLinearGradient(0, H * .45, 0, H); g.addColorStop(0, 'rgba(10,13,24,0)'); g.addColorStop(1, 'rgba(10,13,24,.92)'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+      x.fillStyle = 'rgba(0,0,0,.35)'; x.fillRect(0, 0, W, 64);
+      var L = photoLines();
+      x.textBaseline = 'alphabetic'; x.fillStyle = '#cfe3ff'; x.font = '500 16px Michroma, Inter, sans-serif'; x.textAlign = 'left'; x.fillText('Y E S T E R D A Y L A N D', 40, 42);
+      x.textAlign = 'right'; x.fillStyle = '#ffae5c'; x.font = '500 14px Orbitron, Inter, sans-serif'; x.fillText('NIGHT DRIVE', W - 40, 42);
+      x.textAlign = 'left'; x.fillStyle = '#ffffff'; x.font = '700 48px Michroma, Inter, sans-serif';
+      var big = L.big; while (x.measureText(big).width > W - 80 && big.length > 8) big = big.slice(0, -2); x.fillText(big, 40, H - 118);
+      x.fillStyle = '#ffae5c'; x.font = '500 22px Inter, sans-serif'; if (L.tag) x.fillText(L.tag, 40, H - 80);
+      x.fillStyle = '#cfe3ff'; x.font = '400 18px Inter, sans-serif'; if (L.sub) x.fillText(L.sub, 40, H - 48);
+      x.textAlign = 'right'; x.fillStyle = '#ffffff'; x.font = '600 16px Inter, sans-serif'; x.fillText('arcade.contentpad.io/night-drive', W - 40, H - 48);
+      x.fillStyle = '#7fb2ff'; x.font = '400 13px Inter, sans-serif'; x.fillText('Go back for a while.', W - 40, H - 80);
+      c.toBlob(function (blob) {
+        var name = 'night-drive-' + (L.big || 'photo').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.jpg';
+        var file = null; try { file = new File([blob], name, { type: 'image/jpeg' }); } catch (e) { file = null; }
+        var done = function () { PHOTO_BUSY = false; };
+        if (file && navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+          navigator.share({ files: [file], title: 'YESTERDAYLAND: Night Drive', text: L.big + (L.tag ? ' — ' + L.tag : '') + ' · arcade.contentpad.io/night-drive' }).then(done, function () { downloadBlob(blob, name); done(); });
+        } else { downloadBlob(blob, name); done(); }
+        hudMsg(0, 'PHOTO SAVED<small>' + esc(name) + '</small>', '', 2.5);
+      }, 'image/jpeg', 0.9);
+    } catch (e) { PHOTO_BUSY = false; }
+  }
+  function downloadBlob(blob, name) { var u = URL.createObjectURL(blob), a = document.createElement('a'); a.href = u; a.download = name; document.body.appendChild(a); a.click(); setTimeout(function () { a.remove(); URL.revokeObjectURL(u); }, 1500); }
   function fmtT(ms) { if (ms == null || !isFinite(ms) || ms <= 0) return '--:--.---'; var m = Math.floor(ms / 60000), s = (ms % 60000) / 1000; return m + ':' + (s < 10 ? '0' : '') + s.toFixed(3); }
   function fmtT2(ms) { if (ms == null || !isFinite(ms) || ms < 0) return '0:00.00'; var m = Math.floor(ms / 60000), s = (ms % 60000) / 1000; return m + ':' + (s < 10 ? '0' : '') + s.toFixed(2); }
   var TOUCH = matchMedia('(pointer:coarse)').matches || 'ontouchstart' in window;
@@ -5964,7 +6010,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     if (B.jumps) notes.push('jumps ' + B.jumps + ' (longest ' + Math.round(B.jbest) + ' m)'); if (B.boards) notes.push('billboards ' + B.boards); if (B.smash) notes.push('smashed ' + B.smash);
     if (n < 4) notes.push('race 3 or more rivals for prize money');
     $('rNote').textContent = notes.filter(Boolean).join(' · ') + (street ? ' (street cash + ' + money(street) + ')' : '');
-    $('rBtns').innerHTML = '<button class="mi" type="button" data-r="again">Race again</button><button class="mi" type="button" data-r="roam">Free roam</button><button class="mi ghost" type="button" data-r="garage">Garage</button><button class="mi ghost" type="button" data-r="menu">Menu</button>';
+    $('rBtns').innerHTML = '<button class="mi" type="button" data-r="again">Race again</button><button class="mi" type="button" data-r="roam">Free roam</button><button class="mi ghost" type="button" data-r="garage">Garage</button><button class="mi ghost" type="button" data-r="photo">📷 Share card</button><button class="mi ghost" type="button" data-r="menu">Menu</button>';
     STATE = 'results'; $('touch').hidden = true;
     UI.show('sResults', true); $('ui').classList.add('dim');
     musicStart('results');
@@ -6371,6 +6417,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     if (R.type === 'gp' && place <= 3 && idx + 1 < TRACKS.length) btns.push('<button class="mi" type="button" data-r="next">Next drive ▶</button>');
     btns.push('<button class="mi" type="button" data-r="again">' + (R.type === '2p' ? 'Rematch' : R.type === 'hp' ? 'Run again' : 'Race again') + '</button>');
     if (R.type !== '2p') btns.push('<button class="mi ghost" type="button" data-r="garage">Garage</button>');
+    btns.push('<button class="mi ghost" type="button" data-r="photo">📷 Share card</button>');
     btns.push('<button class="mi ghost" type="button" data-r="menu">Menu</button>');
     $('rBtns').innerHTML = btns.join('');
     STATE = 'results'; $('touch').hidden = true;
@@ -6422,6 +6469,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       if (code === 'Escape' || code === 'KeyP' || code === 'Backspace') pause();
       else if (code === 'KeyT' && RACE && RACE.city) RACE.resetReq = true;
       else if (code === 'KeyC') { SET.cam = (SET.cam + 1) % 3; saveSet(); RACE.humans.forEach(function (h) { h.cam.userData = {}; }); }
+      else if (code === 'KeyV') sharePhoto();
       return;
     }
     UI.key(code);
@@ -6652,6 +6700,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       else if (d === 'sstory') { var sci = RACE && RACE.story ? RACE.story.ci : UI.sci; endRace(); UI.show('sTitle', true); UI.show('sStory'); UI.sci = sci; UI.show('sChap'); }
       else if (d === 'roam') { var me = RACE && RACE.humans[0], sp = me ? { x: me.x, z: me.z, th: me.th } : null; startCity(CITY, Object.assign({}, CITY_OPT, { mode: 'roam', spawn: sp })); }
       else if (d === 'garage') { endRace(); UI.show('sTitle', true); UI.gsel = Math.max(0, CARS.indexOf(CAR[SAVE.car])); UI.show('sGarage'); }
+      else if (d === 'photo') { sharePhoto(); }
       else { endRace(); UI.show('sTitle', true); }
       return;
     }
