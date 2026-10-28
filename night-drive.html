@@ -183,7 +183,10 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 #talk.over{background:rgba(6,8,16,.45)!important}#talk.over:before{display:none}
 .tkbox{position:relative;width:100%;max-width:820px;background:rgba(8,10,20,.86);border:1px solid rgba(255,226,191,.28);border-radius:14px;padding:16px 18px 12px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 18px 50px rgba(0,0,0,.5)}
 .tkhd{display:flex;gap:12px;align-items:center}
-#tkBadge{flex:0 0 auto;width:46px;height:46px;border-radius:50%;border:2px solid;display:grid;place-items:center;font:900 15px var(--hud);letter-spacing:.04em;background:rgba(255,255,255,.04)}
+#tkBadge{flex:0 0 auto;width:46px;height:46px;border-radius:50%;border:2px solid;display:grid;place-items:center;font:900 15px var(--hud);letter-spacing:.04em;background:rgba(255,255,255,.04);position:relative;overflow:hidden;transition:width .2s,height .2s}
+#tkBadge.pic{width:84px;height:84px;font-size:0;box-shadow:0 6px 24px rgba(0,0,0,.45)}#tkBadge img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
+.tk.sm .bp{float:right;width:56px;height:56px;border-radius:50%;object-fit:cover;margin:-2px 0 6px 10px;border:2px solid rgba(255,138,176,.6);box-shadow:0 4px 14px rgba(0,0,0,.4)}
+@media (max-width:600px){#tkBadge.pic{width:64px;height:64px}}
 #tkWho{display:block;font:400 clamp(13px,1.8vw,16px) var(--wide);letter-spacing:.12em}
 #tkRole{display:block;font:600 12px var(--ui);color:#cfd8ea;margin-top:2px}
 #tkText{font:500 clamp(16px,2.2vw,20px)/1.5 var(--ui);color:#fff;margin:12px 2px 8px;min-height:3em}
@@ -486,10 +489,11 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="gamepad.js?v=1"></script>
+<script src="night-drive-vo.js?v=1"></script>
 <script>
 (function () {
   'use strict';
-  var GAME_ID = 'night-drive', BUILD = '2026102703-nd';
+  var GAME_ID = 'night-drive', BUILD = '2026102801-nd';
   var $ = function (id) { return document.getElementById(id); };
   var EMBED = false; try { EMBED = window.top !== window; } catch (e) { EMBED = true; }
   function post(type, extra) { try { if (EMBED) window.parent.postMessage(Object.assign({ arcade: type, game: GAME_ID }, extra || {}), '*'); } catch (e) {} }
@@ -3402,7 +3406,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   var RADIO = { feed: null, songs: [], mixes: [], idx: { dad: 0, mix: 0 }, w: null, ready: false, cur: null, curSt: null, playing: false };
   function radioStation() { return STATIONS[SET.radio] || STATIONS[0]; }
   function radioTakesOver() { return radioStation().id !== 'score'; }
-  function radioVol() { return SET.sound && SET.music !== false ? 62 : 0; }
+  function radioVol() { return SET.sound && SET.music !== false ? (window.VOA && VOA.duck ? 14 : 62) : 0; }
   function radioVolume() { try { if (RADIO.w && RADIO.ready) RADIO.w.setVolume(radioVol()); } catch (e) {} }
   function radioMay() { var id = radioStation().id; return (id === 'dad' || id === 'mix') && !(typeof INTRO !== 'undefined' && INTRO && INTRO.on) && !document.hidden; }
   function radioFeed() {
@@ -6824,18 +6828,35 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
      A mission is scored on one number (place, margin over the next car, drift points, near misses, jumps, smashes,
      escapes) against three marks: the first mark passes it, each mark is a star. Stars pay once, as you earn them.
      Save: SAVE.story = { done: { s1m1: stars 1-3, … } } in nd_save; the worker merges it (max per mission). */
+  /* 2026-10-28: p = portrait (ContentPad render, nano-banana-pro, YESTERDAYLAND lock, in the Arcade owner's Vault folder);
+     v = the Voice Lab voice behind the character's lines (see VO below). */
   var CAST = {
-    LOU: { n: 'Lou Castellano', r: "Lou's Garage, Sunset", c: '#ffc98c' },
-    VELVET: { n: 'Velvet', r: 'the night shift, on the radio', c: '#ff5f9e' },
-    RICKY: { n: 'Ricky Chrome', r: 'the Chrome Kings, Sunset', c: '#cfe3ff' },
-    NOVA: { n: 'Nova Kincaid', r: 'the freeway', c: '#7fb2ff' },
-    DUKE: { n: 'Duke Delgado', r: 'the desert', c: '#e8b06a' },
-    TINA: { n: 'Tina Starr', r: 'Manhattan', c: '#ffd84a' },
-    LOLA: { n: 'Lola Reyes', r: 'Ocean Drive', c: '#ff8ab0' },
-    MAX: { n: 'Max Montana', r: 'Ocean Drive', c: '#9be7c4' },
-    SLY: { n: 'Sly Vega', r: 'the Strip', c: '#b98cff' },
-    BRIGGS: { n: 'Capt. Ruth Briggs', r: 'Highway Patrol', c: '#ff5a6a' }
+    LOU: { n: 'Lou Castellano', r: "Lou's Garage, Sunset", c: '#ffc98c', p: 'c2264bb8-58ee-400b-8765-ed84894e60a9.png' },
+    VELVET: { n: 'Velvet', r: 'the night shift, on the radio', c: '#ff5f9e', p: 'dc6bc9b3-a212-4212-87ed-9fa1e66ee579.png' },
+    RICKY: { n: 'Ricky Chrome', r: 'the Chrome Kings, Sunset', c: '#cfe3ff', p: '6433276c-4944-41d0-b466-a786f144282b.png' },
+    NOVA: { n: 'Nova Kincaid', r: 'the freeway', c: '#7fb2ff', p: '6a6e1392-d1d9-40c2-87e8-a5983cbf24dc.png' },
+    DUKE: { n: 'Duke Delgado', r: 'the desert', c: '#e8b06a', p: '53553ef0-22b1-45ce-8e5d-4153f2908cf0.png' },
+    TINA: { n: 'Tina Starr', r: 'Manhattan', c: '#ffd84a', p: '03c4c733-f65c-4fdf-9fa2-a3165f15afc5.png' },
+    LOLA: { n: 'Lola Reyes', r: 'Ocean Drive', c: '#ff8ab0', p: 'e7e9ed36-29c8-48d6-a329-87929f459f3a.png' },
+    MAX: { n: 'Max Montana', r: 'Ocean Drive', c: '#9be7c4', p: '9d11f1ee-bfce-4db4-823e-76d31dc8ea43.png' },
+    SLY: { n: 'Sly Vega', r: 'the Strip', c: '#b98cff', p: '4fbf5085-1d95-4c4b-87b2-4e065c24ca22.png' },
+    BRIGGS: { n: 'Capt. Ruth Briggs', r: 'Highway Patrol', c: '#ff5a6a', p: 'fc2f6f2a-228f-4847-8bcc-15773da5c66c.png' }
   };
+  function castPortrait(k, w) { var c = CAST[k]; return c && c.p ? artUrl(ART + c.p, w || 256) : ''; }
+  /* Voiced lines (Voice Lab, ElevenLabs v3), keyed "WHO|line" → mp3 in the same Vault folder, served through /arcade/art.
+     A line with no entry just types out silently, so adding or editing dialogue never breaks anything. */
+  var VO = window.ND_VO || {};
+  var VOA = { a: null, pre: {}, duck: false };
+  function voKey(w, t) { return w + '|' + t; }
+  function voStop() { if (VOA.a) { try { VOA.a.pause(); VOA.a.src = ''; } catch (e) {} VOA.a = null; } if (VOA.duck) { VOA.duck = false; radioVolume(); } }
+  function voSay(w, t) {
+    voStop(); var f = VO[voKey(w, t)]; if (!f || !SET.sound) return;
+    var a = new Audio(artUrl(ART + f, 0)); a.volume = 0.95; VOA.a = a;
+    a.onended = function () { if (VOA.a === a) { VOA.a = null; if (VOA.duck) { VOA.duck = false; radioVolume(); } } };
+    VOA.duck = true; radioVolume();
+    var p = a.play(); if (p && p.catch) p.catch(function () { if (VOA.a === a) voStop(); });
+  }
+  function voPreload(lines) { (lines || []).forEach(function (L) { var f = VO[voKey(L[0], L[1])]; if (f && !VOA.pre[f]) { VOA.pre[f] = 1; try { var a = new Audio(); a.preload = 'auto'; a.src = artUrl(ART + f, 0); } catch (e) {} } }); }
   var GOAL = {   // what a mission is scored on; lo: lower is better
     place: { n: 'Finish', lo: true, f: function (v) { return v === 1 ? '1st' : v === 2 ? '2nd' : v === 3 ? '3rd' : v + 'th'; } },
     margin: { n: 'Win by', f: function (v) { return (v >= 0 ? '' : '−') + Math.abs(v).toFixed(1) + ' s'; } },
@@ -7043,7 +7064,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     $('scSub').textContent = ch.place + '  ·  Lou suggests: ' + ch.rec + '  ·  your car: ' + CAR[SAVE.car].name;
     $('scList').innerHTML = ch.missions.map(function (m, mi) {
       var open = stOpen(UI.sci, mi), st = stStars(m.id), who = m.boss ? CAST[m.boss].n : '';
-      return '<button class="tk sm' + (m.boss ? ' boss' : '') + '" type="button" data-smi="' + mi + '"' + (open ? '' : ' data-locked="1"') + ' data-still="' + esc(still) + '"><div class="in"><span class="ep2">' + (m.boss ? 'BOSS · ' + esc(who) : 'MISSION ' + (mi + 1)) + '</span><b>' + esc(m.name) + '</b><span class="br">' + esc(m.brief) + '</span><em><i class="stars">' + starStr(st) + '</i> ' + esc(stMarkText(m)) + '</em></div>' +
+      return '<button class="tk sm' + (m.boss ? ' boss' : '') + '" type="button" data-smi="' + mi + '"' + (open ? '' : ' data-locked="1"') + ' data-still="' + esc(still) + '"><div class="in">' + (m.boss && castPortrait(m.boss) ? '<img class="bp" alt="" src="' + castPortrait(m.boss, 128) + '">' : '') + '<span class="ep2">' + (m.boss ? 'BOSS · ' + esc(who) : 'MISSION ' + (mi + 1)) + '</span><b>' + esc(m.name) + '</b><span class="br">' + esc(m.brief) + '</span><em><i class="stars">' + starStr(st) + '</i> ' + esc(stMarkText(m)) + '</em></div>' +
         (open ? '' : '<div class="lock"><div><b>🔒</b>Finish ' + esc(ch.missions[mi - 1].name) + '</div></div>') + '</button>';
     }).join('');
   }
@@ -7054,14 +7075,17 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     if (!lines || !lines.length) { if (done) done(); return; }
     TALK.on = true; TALK.lines = lines; TALK.i = 0; TALK.done = done || null; try { if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); } catch (e) {}
     var el = $('talk'); el.hidden = false; el.style.backgroundImage = still ? 'url("' + artUrl(still, 1600) + '")' : '';
-    el.classList.toggle('over', !!RACE); talkLine();
+    el.classList.toggle('over', !!RACE); voPreload(lines); talkLine();
   }
   function talkLine() {
     var L = TALK.lines[TALK.i], who = CAST[L[0]] || { n: L[0], r: '', c: '#fff' };
     $('tkWho').textContent = who.n; $('tkRole').textContent = who.r; $('tkWho').style.color = who.c;
-    $('tkBadge').textContent = who.n.replace(/^Capt\. /, '').split(' ').map(function (w) { return w[0]; }).join('').slice(0, 2); $('tkBadge').style.borderColor = who.c; $('tkBadge').style.color = who.c;
+    var b = $('tkBadge'), pic = castPortrait(L[0], 256);
+    if (pic) { b.classList.add('pic'); b.innerHTML = '<img alt="" src="' + pic + '">'; }
+    else { b.classList.remove('pic'); b.textContent = who.n.replace(/^Capt\. /, '').split(' ').map(function (w) { return w[0]; }).join('').slice(0, 2); }
+    b.style.borderColor = who.c; b.style.color = who.c;
     $('tkText').textContent = ''; TALK.t0 = performance.now(); TALK.full = false; TALK.text = L[1];
-    $('tkNext').textContent = TALK.i < TALK.lines.length - 1 ? '▶' : '■'; sfx('move');
+    $('tkNext').textContent = TALK.i < TALK.lines.length - 1 ? '▶' : '■'; sfx('move'); voSay(L[0], L[1]);
   }
   function talkTick() {
     if (!TALK.on || TALK.full) return;
@@ -7074,7 +7098,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     if (++TALK.i < TALK.lines.length) return talkLine();
     talkEnd();
   }
-  function talkEnd() { if (!TALK.on) return; TALK.on = false; $('talk').hidden = true; var d = TALK.done; TALK.done = null; KEY = {}; if (d) d(); }
+  function talkEnd() { if (!TALK.on) return; TALK.on = false; voStop(); $('talk').hidden = true; var d = TALK.done; TALK.done = null; KEY = {}; if (d) d(); }
 
   /* starting a mission: the chapter intro the first time, the mission's own talk, then the race */
   function storyGo(ci, mi, skipTalk) {
@@ -7112,7 +7136,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   function storyTick(R, dt) {
     var st = R.story; if (!st) return;
     var M = st.M, live = R.state === 'run';
-    if (live && M.radio) M.radio.forEach(function (r, k) { if (!st.said[k] && R.t >= r[0]) { st.said[k] = 1; st.chat = r; st.chatT = 5; sfx('radio'); } });
+    if (live && M.radio) M.radio.forEach(function (r, k) { if (!st.said[k] && R.t >= r[0]) { st.said[k] = 1; st.chat = r; st.chatT = 5; sfx('radio'); voSay(r[1], r[2]); } });
     if (st.chatT > 0) st.chatT -= dt;
     if (M.kind === 'roam' && live && !R.done) {
       st.left -= dt;
