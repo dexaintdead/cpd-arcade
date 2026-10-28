@@ -54,7 +54,7 @@ canvas{display:block;width:100%;height:100%}
 <script>
 (function () {
 'use strict';
-var GAME_ID = 'midnight-mart', BUILD = '2026102802-mm';
+var GAME_ID = 'midnight-mart', BUILD = '2026102803-mm';
 var cv = document.getElementById('c'), cx = cv.getContext('2d');
 var W = 21, H = 23, T = 24, TOP = 48, BOT = 0;   // 21x23 tiles of 24px + a 48px HUD band
 cv.width = W * T; cv.height = H * T + TOP;
@@ -83,10 +83,10 @@ var SNACKS = [
 /* p = ContentPad portrait (nano-banana-pro, YESTERDAYLAND lock), served through the Arcade art route like Night Drive's cast. */
 var ART_HOST = 'https://share.contentpad.io/arcade/art/a2a988e8-fbbd-4510-8238-b1c311f61608/';
 var COPS = [
-  { id: 'rusty',  n: 'Rusty',  c: '#ff7a1a', ai: 'chase',  corner: [W - 2, 1],     bio: 'Comes straight at you',          p: '17ec14da-cd15-4a2a-8edf-a1fcb5f34372.png' },
-  { id: 'peaches',n: 'Peaches',c: '#ff5f9e', ai: 'ahead',  corner: [1, 1],         bio: 'Cuts you off up the aisle',      p: '3f164216-c8b1-4202-aa3e-d2e0ec781cb6.png' },
-  { id: 'bigsal', n: 'Big Sal',c: '#9be7c4', ai: 'patrol', corner: [W - 2, H - 2], bio: 'Hangs back until you\'re close', p: '13290ace-5586-4a67-be3c-d3a4ce84dfb7.png' },
-  { id: 'dizzy',  n: 'Dizzy',  c: '#7fb2ff', ai: 'random', corner: [1, H - 2],     bio: 'Wanders, which is worse',        p: '0a606787-79f0-4860-9976-073de6bd9eab.png' }
+  { id: 'rusty',  n: 'Rusty',  c: '#ff7a1a', ai: 'chase',  corner: [W - 2, 1],     bio: 'Chases',          p: '17ec14da-cd15-4a2a-8edf-a1fcb5f34372.png' },
+  { id: 'peaches',n: 'Peaches',c: '#ff5f9e', ai: 'ahead',  corner: [1, 1],         bio: 'Cuts you off',      p: '3f164216-c8b1-4202-aa3e-d2e0ec781cb6.png' },
+  { id: 'bigsal', n: 'Big Sal',c: '#9be7c4', ai: 'patrol', corner: [W - 2, H - 2], bio: 'Hangs back', p: '13290ace-5586-4a67-be3c-d3a4ce84dfb7.png' },
+  { id: 'dizzy',  n: 'Dizzy',  c: '#7fb2ff', ai: 'random', corner: [1, H - 2],     bio: 'Wanders',        p: '0a606787-79f0-4860-9976-073de6bd9eab.png' }
 ];
 var PORTRAIT = {};
 COPS.forEach(function (d) { var im = new Image(); im.crossOrigin = 'anonymous'; im.onload = function () { PORTRAIT[d.id] = im; }; im.src = ART_HOST + d.p + '?w=256'; });
