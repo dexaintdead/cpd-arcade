@@ -1,4 +1,4 @@
-/* ContentPad Arcade — the game catalog (build 2026100901-pp).
+/* ContentPad Arcade — the game catalog (build 2026102801-mm).
    House games live in this repo as <slug>.html at the top level and are listed here.
    Only status:'live' entries are shown. noBoard: party games with no global leaderboard (play.html hides the card). rating marks adult games (the game itself runs its own age gate).
    landing: the brand landing page that wraps the game, if it has one (listed under "Brand pages").
@@ -67,6 +67,25 @@ window.ARCADE_GAMES = [
     cover: 'https://arcade.contentpad.io/ohf/cover.jpg',
     accent: '#8fd16a',
     released: '2026-10-10',
+    controller: true, mobile: true,
+    status: 'live'
+  },
+  {
+    slug: 'midnight-mart',
+    file: 'midnight-mart.html',
+    title: 'YESTERDAYLAND: Midnight Mart',
+    badge: 'New · Original maze chase · 1986 · co-op',
+    tagline: 'The store closed an hour ago. Pick up every receipt before the four mall cops on the graveyard shift catch you. A slushie turns the tables.',
+    about: "An original maze chase set in the YESTERDAYLAND world. It's 1986, the Midnight Mart on Sunset just closed, and the night clerk has to clear every receipt off the floor while Rusty, Peaches, Big Sal and Dizzy, the four mall cops working the graveyard shift, hunt the aisles, each with their own habits: one comes straight at you, one cuts you off, one hangs back until you're close, one just wanders. Grab a slushie from the machine and for a few seconds you're the one doing the chasing. Three store layouts (Aisle One, The Freezer, Night Shift), nights that get faster, invented snacks on the floor for bonus points, an extra clerk every 15,000, and a second clerk for co-op on the same keyboard or two controllers.",
+    genre: 'Arcade',
+    tags: ['Arcade', 'Maze chase', 'YESTERDAYLAND', '1980s', 'Co-op', '2 players', 'High score', 'Controller', 'Touch'],
+    controls: [['← → ↑ ↓ / WASD / d-pad / left stick', 'Move the clerk'], ['Swipe or the on-screen pad', 'Move on a phone'], ['Enter / (A) / tap', 'Clock in, continue'], ['1 / 2 on the title', 'Solo, or co-op (arrows + WASD, or two controllers)'], ['P / Esc', 'Pause'], ['M', 'Mute']],
+    by: 'ContentPad Studios · YESTERDAYLAND',
+    made: 'The store front made in ContentPad Studio with the YESTERDAYLAND show bible; everything in the aisles is drawn and sounded by the game itself',
+    scoreLabel: 'High score',
+    cover: 'https://media.cpdblackbook.com/a2a988e8-fbbd-4510-8238-b1c311f61608/91390ed2-0c53-4e9f-bd57-a6d39fd27307.png',
+    accent: '#ffae5c',
+    released: '2026-10-28',
     controller: true, mobile: true,
     status: 'live'
   },

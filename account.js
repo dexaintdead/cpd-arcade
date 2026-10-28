@@ -59,6 +59,17 @@
         ls('arcade_sync_tj', JSON.stringify({ json: JSON.stringify(d.save || null), at: d.save_at || 0 }));
       }
     },
+    // Midnight Mart: high score, deepest night and shifts worked only ever go up.
+    'midnight-mart': {
+      read: function () { var s = lsj('mm_save') || {}; return { best: s.best || 0, night: s.night || 0, runs: s.runs || 0 }; },
+      empty: function (d) { return !d.best && !d.night; },
+      write: function (d) {
+        var cur = lsj('mm_save') || {};
+        cur.best = Math.max(cur.best || 0, d.best || 0); cur.night = Math.max(cur.night || 0, d.night || 0); cur.runs = Math.max(cur.runs || 0, d.runs || 0);
+        ls('mm_save', JSON.stringify(cur)); ls('arcade_best_midnight-mart', String(cur.best));
+        try { window.dispatchEvent(new Event('arcade:sync')); } catch (e) {}
+      }
+    },
     // High Flying (Slapwoods): best score, stages unlocked and medals only ever go up.
     'high-flying': {
       read: function () {

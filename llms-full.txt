@@ -74,6 +74,19 @@ Controls:
 
 Credits: The animals, seasons and Farm Maps are drawn from the Oak Hill Farm coloring book and brought to life in color in ContentPad Studio, with the barn, the Chicken Dome and the blue farm truck · theme "Chore Day at Oak Hill" made in ContentPad.
 
+## YESTERDAYLAND: Midnight Mart
+
+- Page: https://arcade.contentpad.io/games/midnight-mart
+- Play: https://arcade.contentpad.io/play.html?g=midnight-mart
+- Genre: Arcade (maze chase)
+- Players: 1 or 2 players (co-op)
+- Released: 2026-10-28
+- Made by: ContentPad Studios · YESTERDAYLAND
+
+The store closed an hour ago. Pick up every receipt before the four mall cops on the graveyard shift catch you. A slushie turns the tables.
+
+An original maze chase set in the YESTERDAYLAND world. It's 1986, the Midnight Mart on Sunset just closed, and the night clerk has to clear every receipt off the floor while Rusty, Peaches, Big Sal and Dizzy hunt the aisles, each with their own habits. Grab a slushie and for a few seconds you're the one doing the chasing. Three store layouts (Aisle One, The Freezer, Night Shift), nights that get faster, invented snacks for bonus points, an extra clerk every 15,000, and a second clerk for co-op on the same keyboard or two controllers. Original characters and invented products only.
+
 ## YESTERDAYLAND: Night Drive
 
 - Page: https://arcade.contentpad.io/games/night-drive
