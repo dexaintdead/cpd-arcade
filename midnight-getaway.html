@@ -55,7 +55,7 @@ canvas{display:block;width:100%;height:100%}
 <script>
 (function () {
 'use strict';
-var GAME_ID = 'midnight-getaway', BUILD = '2026102801-gw';
+var GAME_ID = 'midnight-getaway', BUILD = '2026102902-gw';
 var cv = document.getElementById('c'), cx = cv.getContext('2d');
 var DPR = Math.min(2, window.devicePixelRatio || 1), S = 640;
 cv.width = S * DPR; cv.height = S * DPR; cx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -480,11 +480,25 @@ function update(dt) {
   if (SIR) { var on = seen > 0 || (G.heat > 0 && near < 700); SIR.g.gain.setTargetAtTime(on ? clamp(0.05 - near / 20000, 0.012, 0.05) : 0, AC.currentTime, 0.15); if (on) { SIR.ph += dt; SIR.o.frequency.setTargetAtTime(Math.floor(SIR.ph * 2) % 2 ? 620 : 480, AC.currentTime, 0.02); } }
 }
 
+
+/* ── ContentPad artwork (top-down tiles, served through the worker with CORS) ── */
+var ART_HOST = 'https://share.contentpad.io/arcade/art/a2a988e8-fbbd-4510-8238-b1c311f61608/';
+var ART = { road: '45db5826-b2ed-4503-9a82-4e1e922f687a.png', walk: 'a8820305-2ea0-4a6f-b235-df6c41e5d86a.png', roof: '43ae682a-4eef-4b40-a879-28419c043f4e.png', lot: '86fbfb5e-1e59-456a-9270-41c8434e5485.png' };
+var PAT = {};
+function loadPat(key, tile, dark) {
+  var im = new Image(); im.crossOrigin = 'anonymous';
+  im.onload = function () { try { var c = document.createElement('canvas'); c.width = c.height = tile; var g = c.getContext('2d'); g.drawImage(im, 0, 0, tile, tile); if (dark) { g.fillStyle = 'rgba(8,10,20,' + dark + ')'; g.fillRect(0, 0, tile, tile); } PAT[key] = cx.createPattern(c, 'repeat'); } catch (e) { } };
+  im.src = ART_HOST + ART[key] + '?w=512';
+}
+var ART_STARTED = false;
+function artLoad() { if (ART_STARTED) return; ART_STARTED = true; loadPat('road', 256, 0.18); loadPat('walk', 128, 0.42); loadPat('roof', 192, 0.3); loadPat('lot', 256, 0.3); }
+
+artLoad();
 /* ── drawing ── */
 var VIEW = S;
 function drawCity(x0, y0, x1, y1) {
   // roads are the ground
-  cx.fillStyle = '#1b1d28'; cx.fillRect(x0, y0, x1 - x0, y1 - y0);
+  cx.fillStyle = PAT.road || '#1b1d28'; cx.fillRect(x0, y0, x1 - x0, y1 - y0);
   // lane marks
   cx.lineWidth = 2; cx.strokeStyle = 'rgba(255,214,100,.55)'; cx.setLineDash([14, 14]);
   var gi0 = Math.max(0, Math.floor((x0 - RW / 2) / P)), gi1 = Math.min(N, Math.ceil((x1 - RW / 2) / P)), gj0 = Math.max(0, Math.floor((y0 - RW / 2) / P)), gj1 = Math.min(N, Math.ceil((y1 - RW / 2) / P));
@@ -498,11 +512,11 @@ function drawCity(x0, y0, x1, y1) {
   for (var bi = 0; bi < BLOCKS.length; bi++) {
     var b = BLOCKS[bi]; if (b.x > x1 || b.x + b.w < x0 || b.y > y1 || b.y + b.h < y0) continue;
     // sidewalk
-    cx.fillStyle = '#3a3c48'; cx.fillRect(b.x - 10, b.y - 10, b.w + 20, b.h + 20);
-    if (b.lot) { cx.fillStyle = '#23242e'; cx.fillRect(b.x, b.y, b.w, b.h); cx.strokeStyle = 'rgba(255,255,255,.12)'; cx.lineWidth = 2; for (var q = 1; q < 5; q++) { cx.beginPath(); cx.moveTo(b.x + q * b.w / 5, b.y + 10); cx.lineTo(b.x + q * b.w / 5, b.y + b.h - 10); cx.stroke(); } continue; }
+    cx.fillStyle = PAT.walk || '#3a3c48'; cx.fillRect(b.x - 10, b.y - 10, b.w + 20, b.h + 20); if (PAT.walk) { cx.strokeStyle = 'rgba(0,0,0,.45)'; cx.lineWidth = 2; cx.strokeRect(b.x - 10, b.y - 10, b.w + 20, b.h + 20); }
+    if (b.lot) { cx.fillStyle = PAT.lot || '#23242e'; cx.fillRect(b.x, b.y, b.w, b.h); cx.strokeStyle = 'rgba(255,255,255,.12)'; cx.lineWidth = 2; for (var q = 1; q < 5; q++) { cx.beginPath(); cx.moveTo(b.x + q * b.w / 5, b.y + 10); cx.lineTo(b.x + q * b.w / 5, b.y + b.h - 10); cx.stroke(); } continue; }
     for (var k = 0; k < b.bits.length; k++) {
       var bt = b.bits[k];
-      cx.fillStyle = shade(bt.tint, bt.sh); cx.fillRect(bt.x, bt.y, bt.w, bt.h);
+      if (PAT.roof) { cx.fillStyle = PAT.roof; cx.fillRect(bt.x, bt.y, bt.w, bt.h); cx.globalAlpha = 0.55; } cx.fillStyle = shade(bt.tint, bt.sh); cx.fillRect(bt.x, bt.y, bt.w, bt.h); cx.globalAlpha = 1;
       cx.fillStyle = 'rgba(255,255,255,.07)'; cx.fillRect(bt.x, bt.y, bt.w, 3); cx.fillRect(bt.x, bt.y, 3, bt.h);
       cx.fillStyle = 'rgba(0,0,0,.28)'; cx.fillRect(bt.x, bt.y + bt.h - 4, bt.w, 4); cx.fillRect(bt.x + bt.w - 4, bt.y, 4, bt.h);
       if (bt.win) { cx.fillStyle = 'rgba(255,220,160,.16)'; for (var wy = bt.y + 12; wy < bt.y + bt.h - 10; wy += 16) for (var wx = bt.x + 10; wx < bt.x + bt.w - 8; wx += 14) if (((wx * 7 + wy * 13) % 11) > 3) cx.fillRect(wx, wy, 6, 8); }
