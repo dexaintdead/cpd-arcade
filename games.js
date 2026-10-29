@@ -71,6 +71,26 @@ window.ARCADE_GAMES = [
     status: 'live'
   },
   {
+    slug: 'midnight-getaway',
+    file: 'midnight-getaway.html',
+    title: 'YESTERDAYLAND: Midnight Getaway',
+    badge: 'New · Original top-down getaway driver · 1986',
+    tagline: "You're the wheel. Pick up the crew, reach the safehouse, lose the heat. Every job pays more and brings more cruisers.",
+    about: "An original top-down getaway driver set in the YESTERDAYLAND world. It's 1986 and you drive for a crew working the city grid: Marisol, Teddy, Lupe, Deacon, Frankie Two Hats and Nova. Each job sends you across the four districts (Sunset, Midtown, the Strip and Ocean Drive) to a pickup, then to a safehouse with the heat on. The police chase, ram and box you in; heat climbs the longer they see you and cools when you break line of sight. Drift with the e-brake to fill the nitro, slipstream the traffic for near misses, smash cones, cans, crates and hydrants for cash, and ram cruisers hard enough to wreck them for takedowns. Each delivery pays the job plus a fast bonus and a clean bonus, and repairs some of the damage. One car, one night: when you're wrecked or busted, the night's cash is your score. Keyboard, controller and touch.",
+    genre: 'Driving',
+    tags: ['Driving', 'Top-down', 'YESTERDAYLAND', '1980s', 'Police chase', 'Drifting', 'High score', 'Controller', 'Touch'],
+    controls: [['↑ / W / RT / (A)', 'Gas'], ['↓ / S / LT / (B)', 'Brake and reverse'], ['← → / A D / left stick', 'Steer (a car only turns while it rolls)'], ['Shift / Q / RB LB', 'E-brake: kick the tail out and drift; drifting refills the nitro'], ['Space / E / (X) (Y)', 'Nitro'], ['Enter / (A) / tap', 'Start, continue'], ['P / Esc / Start', 'Pause'], ['M', 'Mute'], ['Touch', 'Gas is automatic: drag the left pad to steer, Brake / Nitro / E-brake on the right']],
+    by: 'ContentPad Studios · YESTERDAYLAND',
+    made: 'Key art made in ContentPad Studio with the YESTERDAYLAND show bible; the city, cars, crew and sounds are drawn and synthesised by the game itself',
+    scoreLabel: 'Best night',
+    scorePrefix: '$',
+    cover: 'https://media.cpdblackbook.com/a2a988e8-fbbd-4510-8238-b1c311f61608/614d5455-0106-423d-84be-d76e5a1badb8.png',
+    accent: '#ffae5c',
+    released: '2026-10-28',
+    controller: true, mobile: true,
+    status: 'live'
+  },
+  {
     slug: 'midnight-mart',
     file: 'midnight-mart.html',
     title: 'YESTERDAYLAND: Midnight Mart',

@@ -59,6 +59,17 @@
         ls('arcade_sync_tj', JSON.stringify({ json: JSON.stringify(d.save || null), at: d.save_at || 0 }));
       }
     },
+    // Midnight Getaway: best night (cash), most jobs in a night and nights driven only ever go up.
+    'midnight-getaway': {
+      read: function () { var s = lsj('gw_save') || {}; return { best: s.best || 0, jobs: s.jobs || 0, runs: s.runs || 0 }; },
+      empty: function (d) { return !d.best && !d.jobs; },
+      write: function (d) {
+        var cur = lsj('gw_save') || {};
+        cur.best = Math.max(cur.best || 0, d.best || 0); cur.jobs = Math.max(cur.jobs || 0, d.jobs || 0); cur.runs = Math.max(cur.runs || 0, d.runs || 0);
+        ls('gw_save', JSON.stringify(cur)); ls('arcade_best_midnight-getaway', String(cur.best));
+        try { window.dispatchEvent(new Event('arcade:sync')); } catch (e) {}
+      }
+    },
     // Midnight Mart: high score, deepest night and shifts worked only ever go up.
     'midnight-mart': {
       read: function () { var s = lsj('mm_save') || {}; return { best: s.best || 0, night: s.night || 0, runs: s.runs || 0 }; },

@@ -74,6 +74,10 @@ Controls:
 
 Credits: The animals, seasons and Farm Maps are drawn from the Oak Hill Farm coloring book and brought to life in color in ContentPad Studio, with the barn, the Chicken Dome and the blue farm truck · theme "Chore Day at Oak Hill" made in ContentPad.
 
+## YESTERDAYLAND: Midnight Getaway
+https://arcade.contentpad.io/games/midnight-getaway
+An original top-down getaway driver, 1986. You drive for a crew across four districts: pick up, then reach the safehouse with the heat on. Police chase and ram; heat climbs while they can see you and cools when you break line of sight. E-brake drifts refill the nitro; near misses, smashed props and cruiser takedowns pay cash. Each delivery pays the job plus fast and clean bonuses and repairs the car. One car, one night: wrecked or busted ends it and the night's cash is the score. Boards: best night, most jobs. Keyboard, controller, touch. Free.
+
 ## YESTERDAYLAND: Midnight Mart
 
 - Page: https://arcade.contentpad.io/games/midnight-mart
