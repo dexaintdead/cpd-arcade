@@ -71,6 +71,25 @@ window.ARCADE_GAMES = [
     status: 'live'
   },
   {
+    slug: 'rooftop-buckets',
+    file: 'rooftop-buckets.html',
+    title: 'Rooftop Buckets',
+    badge: 'New · 3D arcade basketball · 2 players',
+    tagline: 'A hoop on a Manhattan roof at 11:40 PM. Sixty seconds, a moving rim, and a sweet spot on the release.',
+    about: "3D arcade basketball on a rooftop court in Manhattan at night, with the skyline lit behind the fence. Aim, hold to charge and let go on the white line: release in the sweet spot and it's a swish, early and it's short off the front rim, late and it's off the glass. A 60-second round pays 2 points a bucket and 3 in the last 20 seconds while the hoop slides side to side; three in a row and you're on fire for double points. Streak mode ends on the first miss (the hoop starts moving after five). 2 Players puts two hoops side by side in split screen, one keyboard (A/D + Space against the arrows + Enter) or two controllers. Everything on the roof, from the water tower to the chain-link, is built in code.",
+    genre: 'Sports',
+    tags: ['Sports', 'Basketball', '3D', 'NYC', '2 players', 'Split screen', 'High score', 'Controller', 'Touch'],
+    controls: [['← → / A D / left stick', 'Aim'], ['Space / W / (A) / RT', 'Hold to charge, release to shoot'], ['2 Players', 'P1: A/D + Space · P2: ← → + Enter · or one controller each'], ['P / Esc / Start', 'Pause'], ['M', 'Mute'], ['Touch', 'Drag the left pad to aim, hold SHOOT to charge, let go on the line']],
+    by: 'ContentPad Studios',
+    made: 'Key art made in ContentPad Studio; the court, skyline and ball are built in code',
+    scoreLabel: 'Best round',
+    cover: 'https://media.cpdblackbook.com/a2a988e8-fbbd-4510-8238-b1c311f61608/4a39838b-901c-41e4-979d-f39f32ab0d89.png',
+    accent: '#ff7a1a',
+    released: '2026-10-28',
+    controller: true, mobile: true,
+    status: 'live'
+  },
+  {
     slug: 'midnight-getaway',
     file: 'midnight-getaway.html',
     title: 'YESTERDAYLAND: Midnight Getaway',

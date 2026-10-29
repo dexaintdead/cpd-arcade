@@ -74,6 +74,10 @@ Controls:
 
 Credits: The animals, seasons and Farm Maps are drawn from the Oak Hill Farm coloring book and brought to life in color in ContentPad Studio, with the barn, the Chicken Dome and the blue farm truck · theme "Chore Day at Oak Hill" made in ContentPad.
 
+## Rooftop Buckets
+https://arcade.contentpad.io/games/rooftop-buckets
+3D arcade basketball (three.js) on a rooftop court in Manhattan at night. Aim and hold to charge; release on the white line for a swish, early is short off the rim, late is off the glass. 60-second round: 2 points a bucket, 3 in the last 20 seconds while the hoop slides; three in a row is on fire (double). Streak mode ends on a miss. 2 Players: split screen, two hoops, one keyboard or two controllers. Boards: best round, best streak. Keyboard, controller, touch. Free.
+
 ## YESTERDAYLAND: Midnight Getaway
 https://arcade.contentpad.io/games/midnight-getaway
 An original top-down getaway driver, 1986. You drive for a crew across four districts: pick up, then reach the safehouse with the heat on. Police chase and ram; heat climbs while they can see you and cools when you break line of sight. E-brake drifts refill the nitro; near misses, smashed props and cruiser takedowns pay cash. Each delivery pays the job plus fast and clean bonuses and repairs the car. One car, one night: wrecked or busted ends it and the night's cash is the score. Boards: best night, most jobs. Keyboard, controller, touch. Free.

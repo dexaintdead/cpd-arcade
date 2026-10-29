@@ -59,6 +59,17 @@
         ls('arcade_sync_tj', JSON.stringify({ json: JSON.stringify(d.save || null), at: d.save_at || 0 }));
       }
     },
+    // Rooftop Buckets: best 60-second round, best streak and games played only ever go up.
+    'rooftop-buckets': {
+      read: function () { var s = lsj('rb_save') || {}; return { best: s.best || 0, streak: s.streak || 0, games: s.games || 0 }; },
+      empty: function (d) { return !d.best && !d.streak; },
+      write: function (d) {
+        var cur = lsj('rb_save') || {};
+        cur.best = Math.max(cur.best || 0, d.best || 0); cur.streak = Math.max(cur.streak || 0, d.streak || 0); cur.games = Math.max(cur.games || 0, d.games || 0);
+        ls('rb_save', JSON.stringify(cur)); ls('arcade_best_rooftop-buckets', String(cur.best));
+        try { window.dispatchEvent(new Event('arcade:sync')); } catch (e) {}
+      }
+    },
     // Midnight Getaway: best night (cash), most jobs in a night and nights driven only ever go up.
     'midnight-getaway': {
       read: function () { var s = lsj('gw_save') || {}; return { best: s.best || 0, jobs: s.jobs || 0, runs: s.runs || 0 }; },
