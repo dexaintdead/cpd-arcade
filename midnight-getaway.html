@@ -55,7 +55,7 @@ canvas{display:block;width:100%;height:100%}
 <script>
 (function () {
 'use strict';
-var GAME_ID = 'midnight-getaway', BUILD = '2026102902-gw';
+var GAME_ID = 'midnight-getaway', BUILD = '2026102903-gw';
 var cv = document.getElementById('c'), cx = cv.getContext('2d');
 var DPR = Math.min(2, window.devicePixelRatio || 1), S = 640;
 cv.width = S * DPR; cv.height = S * DPR; cx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -160,10 +160,11 @@ function nodeXY(i, j) { return [i * P + RW / 2, j * P + RW / 2]; }
 
 /* ── cars ── */
 function newCar(kind, x, y, th) {
+  var spr = kind === 'cop' ? 1 : kind === 'traffic' ? pick([2, 3, 4]) : 0;
   var def = kind === 'cop' ? { top: 330, acc: 240, grip: 7.5, turn: 3.2, L: 30, W: 15, col: '#101014', hp: 4 }
     : kind === 'traffic' ? { top: rnd(70, 110), acc: 120, grip: 9, turn: 3, L: 30, W: 15, col: pick(['#6e1424', '#24407a', '#cdb48a', '#2f4a3a', '#8a8a90', '#e9e4d8', '#7a5a2a', '#ffd84a', '#5a6a7a']), hp: 99 }
     : { top: 360, acc: 260, grip: 8.5, turn: 3.6, L: 32, W: 16, col: '#ff6a1a', hp: 100 };
-  return { kind: kind, def: def, x: x, y: y, th: th || 0, vx: 0, vy: 0, v: 0, inp: { thr: 0, brk: 0, steer: 0, nitro: false, drift: false }, spin: 0, drift: 0, tank: 1, boost: false, dmg: 0, hp: def.hp, wrecked: false, wT: 0, hitCd: 0, flash: 0, ai: null, lane: 0, kd: 0 };
+  return { spr: spr, kind: kind, def: def, x: x, y: y, th: th || 0, vx: 0, vy: 0, v: 0, inp: { thr: 0, brk: 0, steer: 0, nitro: false, drift: false }, spin: 0, drift: 0, tank: 1, boost: false, dmg: 0, hp: def.hp, wrecked: false, wT: 0, hitCd: 0, flash: 0, ai: null, lane: 0, kd: 0 };
 }
 // top-down car model: velocity is a vector; the tyres pull it toward the heading (grip), the e-brake lets it slide.
 // A car turns only as fast as it rolls (no turning on the spot).
@@ -483,15 +484,37 @@ function update(dt) {
 
 /* ── ContentPad artwork (top-down tiles, served through the worker with CORS) ── */
 var ART_HOST = 'https://share.contentpad.io/arcade/art/a2a988e8-fbbd-4510-8238-b1c311f61608/';
-var ART = { road: '45db5826-b2ed-4503-9a82-4e1e922f687a.png', walk: 'a8820305-2ea0-4a6f-b235-df6c41e5d86a.png', roof: '43ae682a-4eef-4b40-a879-28419c043f4e.png', lot: '86fbfb5e-1e59-456a-9270-41c8434e5485.png' };
+var ART = { road: '45db5826-b2ed-4503-9a82-4e1e922f687a.png', walk: 'a8820305-2ea0-4a6f-b235-df6c41e5d86a.png', roof: '43ae682a-4eef-4b40-a879-28419c043f4e.png', lot: '86fbfb5e-1e59-456a-9270-41c8434e5485.png', cars: 'ddf1f3e8-d6e7-4af7-b12a-2cd99a8f34bf.png' };
 var PAT = {};
 function loadPat(key, tile, dark) {
   var im = new Image(); im.crossOrigin = 'anonymous';
   im.onload = function () { try { var c = document.createElement('canvas'); c.width = c.height = tile; var g = c.getContext('2d'); g.drawImage(im, 0, 0, tile, tile); if (dark) { g.fillStyle = 'rgba(8,10,20,' + dark + ')'; g.fillRect(0, 0, tile, tile); } PAT[key] = cx.createPattern(c, 'repeat'); } catch (e) { } };
   im.src = ART_HOST + ART[key] + '?w=512';
 }
+
+/* car sprites: one ContentPad sheet (five cars nose-up on green), keyed and auto-sliced */
+var SPR = [];
+function loadCars() {
+  var im = new Image(); im.crossOrigin = 'anonymous';
+  im.onload = function () {
+    try {
+      var W = im.width, H = im.height, c = document.createElement('canvas'); c.width = W; c.height = H; var g = c.getContext('2d'); g.drawImage(im, 0, 0);
+      var id = g.getImageData(0, 0, W, H), px = id.data, cols = new Uint8Array(W), rows = new Uint8Array(H);
+      for (var i = 0; i < px.length; i += 4) { var r = px[i], gg = px[i + 1], b = px[i + 2]; if (gg > r + 40 && gg > b + 40) px[i + 3] = 0; else if (px[i + 3] > 0) { var q = i >> 2; cols[q % W] = 1; rows[(q / W) | 0] = 1; } }
+      g.putImageData(id, 0, 0);
+      var segs = [], on = false, st = 0; for (var x = 0; x < W; x++) { if (cols[x] && !on) { on = true; st = x; } if (!cols[x] && on) { on = false; if (x - st > W * 0.04) segs.push([st, x]); } }
+      if (on && W - st > W * 0.04) segs.push([st, W]);
+      if (segs.length < 5) return;
+      var out = [];
+      for (var k = 0; k < 5; k++) { var sg = segs[k], y0 = H, y1 = 0; for (var y = 0; y < H; y++) { for (var xx = sg[0]; xx < sg[1]; xx += 2) { if (px[(y * W + xx) * 4 + 3] > 8) { if (y < y0) y0 = y; if (y > y1) y1 = y; break; } } }
+        var sw = sg[1] - sg[0], sh = y1 - y0 + 1, cc = document.createElement('canvas'); cc.width = sw; cc.height = sh; cc.getContext('2d').drawImage(c, sg[0], y0, sw, sh, 0, 0, sw, sh); out.push(cc); }
+      SPR = out;
+    } catch (e) { }
+  };
+  im.src = ART_HOST + ART.cars + '?w=1024';
+}
 var ART_STARTED = false;
-function artLoad() { if (ART_STARTED) return; ART_STARTED = true; loadPat('road', 256, 0.18); loadPat('walk', 128, 0.42); loadPat('roof', 192, 0.3); loadPat('lot', 256, 0.3); }
+function artLoad() { if (ART_STARTED) return; ART_STARTED = true; loadPat('road', 256, 0.18); loadPat('walk', 128, 0.42); loadPat('roof', 192, 0.3); loadPat('lot', 256, 0.3); loadCars(); }
 
 artLoad();
 /* ── drawing ── */
@@ -541,11 +564,16 @@ function drawCar(c, t) {
   // shadow
   cx.fillStyle = 'rgba(0,0,0,.35)'; cx.fillRect(-d.L / 2 + 2, -d.W / 2 + 3, d.L, d.W);
   // body
-  cx.fillStyle = c.wrecked ? '#3a3a40' : (c.flash > 0 && Math.floor(c.flash * 30) % 2 ? '#fff' : d.col);
-  rr(-d.L / 2, -d.W / 2, d.L, d.W, 4); cx.fill();
-  if (c.kind === 'cop') { cx.fillStyle = c.wrecked ? '#555' : '#f2f0ea'; cx.fillRect(-d.L * 0.12, -d.W / 2, d.L * 0.5, d.W); cx.fillStyle = '#101014'; cx.fillRect(-d.L * 0.02, -d.W * 0.36, d.L * 0.3, d.W * 0.72); }
-  // glass
-  cx.fillStyle = 'rgba(120,160,220,.55)'; cx.fillRect(d.L * 0.08, -d.W * 0.38, d.L * 0.22, d.W * 0.76); cx.fillRect(-d.L * 0.36, -d.W * 0.38, d.L * 0.14, d.W * 0.76);
+  var sp = SPR[c.spr];
+  if (sp) {
+    var sl = d.L * 1.12, swd = sl * sp.width / sp.height; cx.save(); cx.rotate(Math.PI / 2); cx.drawImage(sp, -swd / 2, -sl / 2, swd, sl); cx.restore();
+    if (c.wrecked || (c.flash > 0 && Math.floor(c.flash * 30) % 2)) { cx.fillStyle = c.wrecked ? 'rgba(40,40,46,.7)' : 'rgba(255,255,255,.7)'; rr(-d.L / 2, -d.W / 2, d.L, d.W, 4); cx.fill(); }
+  } else {
+    cx.fillStyle = c.wrecked ? '#3a3a40' : (c.flash > 0 && Math.floor(c.flash * 30) % 2 ? '#fff' : d.col);
+    rr(-d.L / 2, -d.W / 2, d.L, d.W, 4); cx.fill();
+    if (c.kind === 'cop') { cx.fillStyle = c.wrecked ? '#555' : '#f2f0ea'; cx.fillRect(-d.L * 0.12, -d.W / 2, d.L * 0.5, d.W); cx.fillStyle = '#101014'; cx.fillRect(-d.L * 0.02, -d.W * 0.36, d.L * 0.3, d.W * 0.72); }
+    cx.fillStyle = 'rgba(120,160,220,.55)'; cx.fillRect(d.L * 0.08, -d.W * 0.38, d.L * 0.22, d.W * 0.76); cx.fillRect(-d.L * 0.36, -d.W * 0.38, d.L * 0.14, d.W * 0.76);
+  }
   // lights
   var braking = c.inp && c.inp.brk > 0.1; cx.fillStyle = braking ? '#ff2030' : '#8a1020'; cx.fillRect(-d.L / 2, -d.W / 2 + 1, 3, 4); cx.fillRect(-d.L / 2, d.W / 2 - 5, 3, 4);
   cx.fillStyle = '#fff2c8'; cx.fillRect(d.L / 2 - 3, -d.W / 2 + 1, 3, 4); cx.fillRect(d.L / 2 - 3, d.W / 2 - 5, 3, 4);
@@ -649,7 +677,7 @@ function frame(now) {
 }
 requestAnimationFrame(frame);
 // test hooks (automated checks only)
-window.__gw = { grid: { N: N, P: P, RW: RW }, get G() { return G; }, newGame: newGame, step: function (sec) { for (var i = 0; i < Math.round(sec * 60); i++) update(1 / 60); }, render: function () { render(performance.now() / 1000); }, confirm: confirm, build: BUILD, save: function () { return SAVE; }, BLOCKS: function () { return BLOCKS; }, PROPS: function () { return PROPS; }, WORLD: WORLD, newCar: newCar, stepCar: stepCar };
+window.__gw = { get SPR() { return SPR; }, get PAT() { return PAT; }, grid: { N: N, P: P, RW: RW }, get G() { return G; }, newGame: newGame, step: function (sec) { for (var i = 0; i < Math.round(sec * 60); i++) update(1 / 60); }, render: function () { render(performance.now() / 1000); }, confirm: confirm, build: BUILD, save: function () { return SAVE; }, BLOCKS: function () { return BLOCKS; }, PROPS: function () { return PROPS; }, WORLD: WORLD, newCar: newCar, stepCar: stepCar };
 })();
 </script>
 </body>
