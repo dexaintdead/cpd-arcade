@@ -74,6 +74,10 @@ Controls:
 
 Credits: The animals, seasons and Farm Maps are drawn from the Oak Hill Farm coloring book and brought to life in color in ContentPad Studio, with the barn, the Chicken Dome and the blue farm truck · theme "Chore Day at Oak Hill" made in ContentPad.
 
+## Hudson Par 3
+https://arcade.contentpad.io/games/hudson-par3
+3D golf (three.js): nine original par-3 holes on floodlit piers over the Hudson at night, Manhattan across the water. Three-click swing (start, power, accuracy), clubs by distance, putter on the green. Wind, bounce and roll by surface, sloped greens, bunkers, water and OOB with penalty drops. Score against par; lowest 9-hole round is the record, aces counted. 1 to 4 players hot-seat. ContentPad-made grass, green, sand, timber and skyline panorama are texture-mapped onto the course. Keyboard, controller, touch. Free.
+
 ## Rooftop Buckets
 https://arcade.contentpad.io/games/rooftop-buckets
 3D arcade basketball (three.js) on a rooftop court in Manhattan at night. Aim and hold to charge; release on the white line for a swish, early is short off the rim, late is off the glass. 60-second round: 2 points a bucket, 3 in the last 20 seconds while the hoop slides; three in a row is on fire (double). Streak mode ends on a miss. 2 Players: split screen, two hoops, one keyboard or two controllers. Boards: best round, best streak. Keyboard, controller, touch. Free.

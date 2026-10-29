@@ -59,6 +59,17 @@
         ls('arcade_sync_tj', JSON.stringify({ json: JSON.stringify(d.save || null), at: d.save_at || 0 }));
       }
     },
+    // Hudson Par 3: the best (lowest) 9-hole round, aces and rounds played. Best only comes down; the rest only go up.
+    'hudson-par3': {
+      read: function () { var s = lsj('hp_save') || {}; return { best: s.best || 0, aces: s.aces || 0, rounds: s.rounds || 0 }; },
+      empty: function (d) { return !d.best && !d.rounds; },
+      write: function (d) {
+        var cur = lsj('hp_save') || {};
+        cur.best = cur.best && d.best ? Math.min(cur.best, d.best) : (cur.best || d.best || 0); cur.aces = Math.max(cur.aces || 0, d.aces || 0); cur.rounds = Math.max(cur.rounds || 0, d.rounds || 0);
+        ls('hp_save', JSON.stringify(cur)); ls('arcade_best_hudson-par3', String(cur.best));
+        try { window.dispatchEvent(new Event('arcade:sync')); } catch (e) {}
+      }
+    },
     // Rooftop Buckets: best 60-second round, best streak and games played only ever go up.
     'rooftop-buckets': {
       read: function () { var s = lsj('rb_save') || {}; return { best: s.best || 0, streak: s.streak || 0, games: s.games || 0 }; },

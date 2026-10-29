@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script src="/gate.js?v=1" data-game="hudson-par3"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- Hudson Par 3 — ContentPad Arcade (build 2026102801-hp)
+     Nine original par-3 holes on floodlit piers over the Hudson at night, in 3D. Three-click swing (power, then
+     accuracy), real flight with wind, bounce and roll by surface, sloped greens, sand, water (penalty, drop back),
+     out of bounds. Clubs picked by distance (change them yourself), the putter on the green. 1–4 players hot-seat.
+     Score against par; the lowest 9-hole round is the record. Keyboard, controller and touch. All built in code.
+     Posts {arcade:'start'|'over'}; save in localStorage (hp_save), cloud via account.js. -->
+<title>Hudson Par 3 · ContentPad Arcade</title>
+<meta name="description" content="3D night golf on the Hudson piers: nine original par-3 holes, a three-click swing, wind, slopes, sand and water. 1 to 4 players. Keyboard, controller and touch.">
+<meta name="theme-color" content="#0a0d18">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@500;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0a0d18;--grn:#5fe08a;--cream:#ffe9c4;--cyan:#22d3ee;--gold:#c9a84c;--red:#ff5a6a;--hud:'JetBrains Mono',monospace;--ui:'Syne',sans-serif;--d:'Bebas Neue',sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;background:#05070f;color:#fff;font-family:var(--ui);overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none}
+#gl{position:fixed;inset:0;width:100%;height:100%;display:block}
+#vig{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 40%,transparent 55%,rgba(0,0,0,.5) 100%);z-index:2}
+#ui{position:fixed;inset:0;z-index:5;pointer-events:none;font-family:var(--hud);text-shadow:0 2px 0 rgba(0,0,0,.6),0 0 12px rgba(0,0,0,.5)}
+#tl{position:absolute;left:max(14px,env(safe-area-inset-left));top:max(12px,env(safe-area-inset-top))}
+#tl b{display:block;font:400 clamp(22px,3.4vw,34px)/1 var(--d);letter-spacing:.06em;color:#fff}
+#tl small{display:block;font:700 12px var(--hud);letter-spacing:.14em;color:var(--cream);margin-top:4px}
+#tr{position:absolute;right:max(14px,env(safe-area-inset-right));top:calc(max(12px,env(safe-area-inset-top)) + 44px);text-align:right}
+#tr b{display:block;font:700 clamp(18px,2.6vw,26px)/1.2 var(--hud);color:#fff}
+#tr small{display:block;font:700 11px var(--hud);letter-spacing:.14em;color:var(--cream);margin-top:2px}
+#wind{display:inline-block;transform-origin:50% 50%;color:var(--cyan)}
+#club{position:absolute;left:50%;bottom:max(126px,calc(env(safe-area-inset-bottom) + 126px));transform:translateX(-50%);text-align:center;font:700 13px var(--hud);letter-spacing:.16em;color:var(--cream)}
+#club b{display:block;font:400 clamp(22px,3.2vw,30px)/1 var(--d);letter-spacing:.08em;color:#fff}
+#meter{position:absolute;left:50%;bottom:max(74px,calc(env(safe-area-inset-bottom) + 74px));transform:translateX(-50%);width:min(320px,60vw);height:16px;border-radius:9px;background:rgba(255,255,255,.14);border:1px solid rgba(255,233,196,.35);overflow:visible}
+#meter i{position:absolute;inset:0 auto 0 0;background:linear-gradient(90deg,#22d3ee,#5fe08a,#ffe9c4,#ff5a6a);width:0;border-radius:9px}
+#meter u{position:absolute;top:-4px;bottom:-4px;width:3px;background:#fff;left:0}
+#meter em{position:absolute;top:-4px;bottom:-4px;width:3px;background:var(--gold);left:0;display:none}
+#meter .tick{position:absolute;top:-4px;bottom:-4px;width:2px;background:rgba(255,255,255,.5)}
+#mhint{position:absolute;left:50%;bottom:max(46px,calc(env(safe-area-inset-bottom) + 46px));transform:translateX(-50%);font:700 11px var(--hud);letter-spacing:.18em;color:#cfd8ea;white-space:nowrap}
+#msg{position:absolute;left:50%;top:34%;transform:translateX(-50%);text-align:center;font:400 clamp(34px,7vw,80px)/1 var(--d);letter-spacing:.06em;color:var(--cream);text-shadow:0 0 24px rgba(95,224,138,.5),0 3px 0 #000;opacity:0;transition:opacity .2s;white-space:nowrap}
+#msg.on{opacity:1}#msg small{display:block;font:700 13px var(--hud);letter-spacing:.2em;color:var(--cream);margin-top:8px}
+#card{position:absolute;left:50%;top:calc(max(12px,env(safe-area-inset-top)) + 54px);transform:translateX(-50%);font:700 12px var(--hud);letter-spacing:.14em;color:var(--cream);text-align:center;white-space:nowrap}
+#card b{display:block;font:400 clamp(20px,3vw,28px)/1 var(--d);letter-spacing:.08em;color:#fff}
+#menu{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(5,7,15,.55);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);overflow:auto}
+.scr{text-align:center;max-width:760px;width:100%}
+.logo{font:400 clamp(58px,13vw,140px)/.95 var(--d);color:#fff;letter-spacing:.04em;text-shadow:0 0 30px rgba(34,211,238,.45),0 4px 0 #000}
+.logo span{color:var(--grn);text-shadow:0 0 30px rgba(95,224,138,.6),0 4px 0 #000}
+.sub{font:400 clamp(11px,1.4vw,13px) var(--hud);letter-spacing:.34em;color:var(--cream);margin:10px 0 24px}
+.menu{display:grid;gap:9px;max-width:400px;margin:0 auto}
+.mi{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 18px;border-radius:10px;border:1px solid rgba(255,233,196,.25);background:rgba(8,10,20,.72);font:700 13px var(--ui);letter-spacing:.14em;text-transform:uppercase;color:#fff;cursor:pointer;outline:none;text-align:left}
+.mi small{font:600 11px var(--ui);letter-spacing:.02em;text-transform:none;color:var(--cream);opacity:.8}
+.mi:hover,.mi.sel,.mi:focus-visible{border-color:var(--grn);background:linear-gradient(90deg,rgba(95,224,138,.25),rgba(34,211,238,.14));box-shadow:0 0 22px rgba(95,224,138,.3)}
+.hint{font:500 12px var(--ui);color:#cfd8ea;margin-top:18px;line-height:1.6}
+table.sc{margin:14px auto 0;border-collapse:collapse;font:700 12px var(--hud);color:#fff}
+table.sc td,table.sc th{padding:4px 7px;border-bottom:1px solid rgba(255,255,255,.12);text-align:center}
+table.sc th{color:var(--cream);font-weight:700;letter-spacing:.08em}
+table.sc td.n{text-align:left;color:var(--cream)}
+td.u{color:var(--red)}td.b{color:var(--grn)}td.e{color:var(--gold)}
+#touch{position:fixed;inset:auto 0 0 0;height:130px;z-index:6;display:none;pointer-events:none}
+@media (pointer:coarse){#touch{display:block}#meter{bottom:calc(max(74px,env(safe-area-inset-bottom) + 74px) + 90px)}#mhint{bottom:calc(max(46px,env(safe-area-inset-bottom) + 46px) + 90px)}#club{bottom:calc(max(126px,env(safe-area-inset-bottom) + 126px) + 90px)}}
+#tAim{position:absolute;left:12px;bottom:14px;width:150px;height:70px;border-radius:40px;border:1px solid rgba(255,233,196,.3);background:rgba(10,13,24,.55);pointer-events:auto}
+#tKnob{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(95,224,138,.3);border:1px solid rgba(95,224,138,.8)}
+#tSwing{position:absolute;right:14px;bottom:14px;width:92px;height:92px;border-radius:50%;border:2px solid rgba(95,224,138,.7);background:rgba(10,13,24,.75);color:var(--grn);font:700 13px var(--hud);letter-spacing:.08em;pointer-events:auto}
+#tClub{position:absolute;right:120px;bottom:30px;width:64px;height:60px;border-radius:14px;border:1px solid rgba(255,233,196,.4);background:rgba(10,13,24,.75);color:var(--cream);font:700 11px var(--hud);pointer-events:auto}
+.tbtn{position:fixed;top:max(10px,env(safe-area-inset-top));z-index:7;height:34px;padding:0 11px;border-radius:9px;border:1px solid rgba(255,233,196,.25);background:rgba(10,13,24,.7);color:var(--cream);font:700 12px var(--hud);cursor:pointer}
+#mute{right:max(10px,env(safe-area-inset-right))}#pauseBtn{right:calc(max(10px,env(safe-area-inset-right)) + 58px)}#camBtn{right:calc(max(10px,env(safe-area-inset-right)) + 116px)}
+@media (max-width:640px){#tr{top:96px}#card{left:14px;transform:none;text-align:left;top:calc(max(12px,env(safe-area-inset-top)) + 50px)}}
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas><div id="vig"></div>
+<div id="ui">
+  <div id="tl" hidden><b id="holeT">HOLE 1</b><small id="holeS">PAR 3 · 142 YDS</small></div>
+  <div id="card" hidden><b id="whoT">PLAYER 1</b><span id="whoS">STROKE 1 · EVEN</span></div>
+  <div id="tr" hidden><b id="distT">142 yds</b><small>TO THE PIN · WIND <span id="windT">4</span> <span id="wind">➤</span></small></div>
+  <div id="club" hidden><b id="clubT">7 IRON</b>140 YDS · ↑↓ CHANGE</div>
+  <div id="meter" hidden><i></i><u></u><em></em></div>
+  <div id="mhint" hidden></div>
+  <div id="msg"></div>
+</div>
+<button class="tbtn" id="camBtn" hidden>CAM</button><button class="tbtn" id="pauseBtn" hidden>II</button><button class="tbtn" id="mute">♪</button>
+<div id="touch"><div id="tAim"><div id="tKnob"></div></div><button id="tClub">CLUB</button><button id="tSwing">SWING</button></div>
+<div id="menu">
+  <div class="scr" id="sTitle">
+    <div class="logo">HUDSON <span>PAR 3</span></div>
+    <div class="sub">NINE HOLES ON THE PIERS · NIGHT · NEW YORK</div>
+    <div class="menu">
+      <button class="mi" data-go="p1">Solo round <small>9 holes · beat your best</small></button>
+      <button class="mi" data-go="p2">2 Players <small>hot-seat · same keyboard or two pads</small></button>
+      <button class="mi" data-go="p3">3 Players</button>
+      <button class="mi" data-go="p4">4 Players</button>
+      <button class="mi ghost" data-go="exit" id="mExit" hidden>All games</button>
+    </div>
+    <div class="hint" id="hint"></div>
+    <div class="hint" id="best"></div>
+  </div>
+  <div class="scr" id="sOver" hidden>
+    <div class="logo" id="oBig">ROUND</div>
+    <div id="oRes"></div>
+    <div class="menu" style="margin-top:18px"><button class="mi" data-go="again">Play again</button><button class="mi" data-go="title">Menu</button></div>
+  </div>
+  <div class="scr" id="sPause" hidden>
+    <div class="logo">PAUSED</div>
+    <div id="pRes"></div>
+    <div class="menu"><button class="mi" data-go="resume">Resume</button><button class="mi" data-go="title">Quit to menu</button></div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="gamepad.js?v=1"></script>
+<script>
+(function () {
+'use strict';
+var GAME_ID = 'hudson-par3', BUILD = '2026102801-hp';
+var $ = function (id) { return document.getElementById(id); };
+var TOUCH = ('ontouchstart' in window) && matchMedia('(pointer:coarse)').matches, EMBED = window.top !== window;
+function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+function rnd(a, b) { return a + Math.random() * (b - a); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+function ls(k, v) { try { if (v === undefined) return localStorage.getItem(k); if (v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) { return null; } }
+function lsj(k) { try { return JSON.parse(ls(k) || 'null'); } catch (e) { return null; } }
+var SET = lsj('hp_settings') || { sound: true, cam: 0 };
+var SAVE = lsj('hp_save') || { best: 0, aces: 0, rounds: 0, at: 0 };
+function persist() { SAVE.at = Date.now(); ls('hp_save', JSON.stringify(SAVE)); ls('arcade_best_' + GAME_ID, String(SAVE.best || 0)); try { window.dispatchEvent(new Event('arcade:sync')); } catch (e) {} }
+function post(type, extra) { try { if (window.parent !== window) window.parent.postMessage(Object.assign({ arcade: type, game: GAME_ID }, extra || {}), '*'); } catch (e) {} }
+var YD = 1.0936;
+/* ── ContentPad art (made in ContentPad Studio), served with CORS for WebGL through the Arcade worker ── */
+var ART_HOST = 'https://share.contentpad.io/arcade/art/a2a988e8-fbbd-4510-8238-b1c311f61608/';
+var ART = { pano: 'fb024b67-b937-4df0-90e3-bb39af87150a.png', grass: '3ab93a07-e908-403f-be24-d64384aa6514.png', green: 'b4932863-852c-40e8-87de-23a1cecb2d17.png', sand: '8882239d-63cf-42d4-ad64-a5faca02aeca.png', timber: '4e8eed0a-a644-4338-8906-9373a40fdce3.png', brick: '3b843fbb-1fc7-41db-a97b-ef861ec43fc7.png' };
+var IMG = {};
+function loadArt(key, w, cb) { var im = new Image(); im.crossOrigin = 'anonymous'; im.onload = function () { IMG[key] = im; if (cb) cb(im); }; im.onerror = function () { if (cb) cb(null); }; im.src = ART_HOST + ART[key] + '?w=' + (w || 1024); }
+function artTex(key, w, rep) { var t = new THREE.Texture(); t.encoding = THREE.sRGBEncoding; t.wrapS = t.wrapT = THREE.MirroredRepeatWrapping; t.anisotropy = 8; if (rep) t.repeat.set(rep[0], rep[1]); loadArt(key, w, function (im) { if (!im) return; t.image = im; t.needsUpdate = true; }); return t; }
+
+/* ── audio ── */
+var AC = null, master = null;
+function audio() { if (AC) return; try { AC = new (window.AudioContext || window.webkitAudioContext)(); master = AC.createGain(); master.gain.value = SET.sound ? 0.7 : 0; master.connect(AC.destination); } catch (e) { AC = null; } }
+function tone(f, t, type, v, slide) { if (!AC) return; var o = AC.createOscillator(), g = AC.createGain(); o.type = type || 'square'; o.frequency.value = f; if (slide) o.frequency.exponentialRampToValueAtTime(slide, AC.currentTime + t); g.gain.value = v || 0.1; g.gain.exponentialRampToValueAtTime(0.0001, AC.currentTime + t); o.connect(g); g.connect(master); o.start(); o.stop(AC.currentTime + t + 0.02); }
+function noise(t, v, f) { if (!AC) return; var n = AC.createBufferSource(), buf = AC.createBuffer(1, Math.ceil(AC.sampleRate * t), AC.sampleRate), d = buf.getChannelData(0); for (var i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length); n.buffer = buf; var fl = AC.createBiquadFilter(); fl.type = 'bandpass'; fl.frequency.value = f || 900; var g = AC.createGain(); g.gain.value = v || 0.3; n.connect(fl); fl.connect(g); g.connect(master); n.start(); }
+function sfx(n, k) {
+  if (!AC) return;
+  if (n === 'hit') { noise(0.08, clamp(0.15 + (k || 0) * 0.3, 0.1, 0.45), 2500); tone(900, 0.05, 'square', 0.05, 300); }
+  else if (n === 'putt') { tone(500, 0.05, 'triangle', 0.08, 300); }
+  else if (n === 'bounce') { tone(220, 0.07, 'sine', clamp(k || 0.1, 0.03, 0.2), 110); }
+  else if (n === 'cup') { tone(700, 0.08, 'triangle', 0.1, 1400); setTimeout(function () { tone(300, 0.12, 'sine', 0.12, 150); }, 70); }
+  else if (n === 'splash') { noise(0.5, 0.3, 500); tone(160, 0.4, 'sine', 0.08, 60); }
+  else if (n === 'sand') { noise(0.25, 0.2, 1200); }
+  else if (n === 'good') { [523, 659, 784].forEach(function (f, i) { setTimeout(function () { tone(f, 0.16, 'square', 0.08); }, i * 90); }); }
+  else if (n === 'great') { [523, 659, 784, 1047, 1318].forEach(function (f, i) { setTimeout(function () { tone(f, 0.18, 'square', 0.09); }, i * 80); }); }
+  else if (n === 'bad') { tone(300, 0.25, 'triangle', 0.07, 150); }
+  else if (n === 'tick') { tone(1000, 0.05, 'square', 0.05); }
+  else if (n === 'start') { [392, 523, 659, 784].forEach(function (f, i) { setTimeout(function () { tone(f, 0.16, 'square', 0.09); }, i * 110); }); }
+}
+function setSound(on) { SET.sound = on; saveSet(); if (master) master.gain.setTargetAtTime(on ? 0.7 : 0, AC.currentTime, 0.05); $('mute').textContent = on ? '♪' : '✕'; }
+function saveSet() { ls('hp_settings', JSON.stringify(SET)); }
+$('mute').textContent = SET.sound ? '♪' : '✕'; $('mute').addEventListener('click', function () { audio(); setSound(!SET.sound); });
+
+/* ── the course: nine par-3 holes, each a pier over the river. Each hole: tee, pin, pier shape (rect), green (circle +
+   slope), bunkers, water pools, mounds. Lengths in metres; x across, z along the hole (tee at z = 0, pin at z = L). ── */
+var HOLES = [
+  { n: 1, name: 'The Loading Dock', L: 118, w: 34, green: [0, 118, 9, 0.02, 0.6], bunkers: [[-9, 110, 4]], water: [], mounds: [[8, 60, 10, 0.8]] },
+  { n: 2, name: 'Pier 44', L: 140, w: 30, green: [4, 140, 8.5, -0.025, 2.2], bunkers: [[-6, 134, 3.5], [11, 141, 3.2]], water: [[-30, 70, 60, 20]], mounds: [[-6, 100, 12, 1.0]] },
+  { n: 3, name: 'Ferry Slip', L: 96, w: 26, green: [-3, 96, 8, 0.03, 1.0], bunkers: [[5, 92, 3.5]], water: [[-40, 30, 30, 50]], mounds: [] },
+  { n: 4, name: 'Water Taxi', L: 152, w: 36, green: [0, 152, 10, 0.02, 3.5], bunkers: [[-10, 148, 4], [9, 146, 3.5]], water: [[-18, 95, 36, 18]], mounds: [[12, 50, 10, 0.9], [-12, 125, 9, 0.7]] },
+  { n: 5, name: 'The Narrows', L: 128, w: 24, green: [2, 128, 7.5, -0.03, 0.4], bunkers: [[-7, 122, 3.2]], water: [[12, 40, 30, 70], [-42, 40, 30, 70]], mounds: [[0, 85, 8, 0.6]] },
+  { n: 6, name: 'Chelsea Lights', L: 165, w: 40, green: [-5, 165, 10.5, 0.015, 4.5], bunkers: [[6, 160, 4.5], [-15, 158, 3.5]], water: [], mounds: [[10, 110, 14, 1.3], [-14, 70, 10, 0.8]] },
+  { n: 7, name: 'Dry Dock', L: 108, w: 30, green: [0, 108, 8, 0.0, 2.0], bunkers: [[-5, 100, 3], [6, 101, 3], [0, 116, 4]], water: [], mounds: [[0, 60, 9, 1.1]] },
+  { n: 8, name: 'The Causeway', L: 178, w: 28, green: [3, 178, 9.5, -0.02, 1.2], bunkers: [[-8, 173, 4]], water: [[-50, 60, 36, 90], [14, 60, 36, 90]], mounds: [[-4, 130, 10, 0.9]] },
+  { n: 9, name: 'Island Green', L: 134, w: 36, green: [0, 134, 9, 0.025, 5.2], bunkers: [[9, 128, 3.5]], water: [[-26, 104, 52, 20], [-26, 124, 14, 24], [12, 124, 14, 24]], mounds: [[0, 70, 11, 0.9]] }
+];
+// surface at (x, z): 'tee' 'fairway' 'rough' 'green' 'sand' 'water' 'out'; height y(x, z)
+var H = null;
+function inPier(x, z) { return Math.abs(x) <= H.w / 2 + 6 && z >= -14 && z <= H.L + 40; }
+function heightAt(x, z) {
+  var h = 0, g = H.green, dg = Math.hypot(x - g[0], z - g[1]);
+  // gentle random-ish undulation
+  h += Math.sin(x * 0.21 + z * 0.07) * 0.14 + Math.sin(z * 0.17 - x * 0.05) * 0.1;
+  H.mounds.forEach(function (m) { var d = Math.hypot(x - m[0], z - m[1]); if (d < m[2]) h += m[3] * (1 + Math.cos(d / m[2] * Math.PI)) * 0.5; });
+  // the green sits on a plateau with a tilt (g[3] per metre, direction g[4] radians)
+  var pl = clamp(1 - Math.max(0, dg - g[2] + 2) / 4, 0, 1); h += pl * (0.35 + g[3] * ((x - g[0]) * Math.cos(g[4]) + (z - g[1]) * Math.sin(g[4])));
+  H.bunkers.forEach(function (b) { var d = Math.hypot(x - b[0], z - b[1]); if (d < b[2]) h -= 0.3 * (1 + Math.cos(d / b[2] * Math.PI)) * 0.5; });
+  // water pools are dug out
+  H.water.forEach(function (w) { if (x > w[0] && x < w[0] + w[2] && z > w[1] && z < w[1] + w[3]) h = Math.min(h, -0.45); });
+  return h;
+}
+function surfaceAt(x, z) {
+  if (!inPier(x, z)) return 'out';
+  for (var i = 0; i < H.water.length; i++) { var w = H.water[i]; if (x > w[0] && x < w[0] + w[2] && z > w[1] && z < w[1] + w[3]) return 'water'; }
+  for (i = 0; i < H.bunkers.length; i++) { var b = H.bunkers[i]; if (Math.hypot(x - b[0], z - b[1]) < b[2]) return 'sand'; }
+  var g = H.green; if (Math.hypot(x - g[0], z - g[1]) < g[2]) return 'green';
+  if (z < 6 && Math.abs(x) < 4) return 'tee';
+  if (Math.abs(x) < H.w / 2 - 5 && z < H.L + 18) return 'fairway';
+  return 'rough';
+}
+var FR = { tee: 0.35, fairway: 0.38, rough: 0.8, green: 0.28, sand: 2.2, water: 9, out: 9 }, BOUNCE = { tee: 0.3, fairway: 0.3, rough: 0.22, green: 0.26, sand: 0.05, water: 0, out: 0.3 };
+
+/* ── scene ── */
+var renderer = new THREE.WebGLRenderer({ canvas: $('gl'), antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1)); renderer.outputEncoding = THREE.sRGBEncoding; renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+var scene = new THREE.Scene(); scene.background = new THREE.Color(0x070a16); scene.fog = new THREE.Fog(0x070a16, 120, 420);
+var cam = new THREE.PerspectiveCamera(50, 1, 0.1, 800);
+scene.add(new THREE.HemisphereLight(0x4a5a90, 0x101410, 0.55));
+var key = new THREE.DirectionalLight(0xfff2dc, 1.0); key.position.set(-30, 60, -20); key.castShadow = true; key.shadow.mapSize.set(2048, 2048); key.shadow.camera.left = -60; key.shadow.camera.right = 60; key.shadow.camera.top = 120; key.shadow.camera.bottom = -40; key.shadow.camera.far = 300; key.shadow.bias = -0.0005; scene.add(key);
+function mat(c, o) { return new THREE.MeshStandardMaterial(Object.assign({ color: c, roughness: 0.9, metalness: 0.02 }, o || {})); }
+var W = { water: null, pano: null };
+// river + skyline + stars, built once
+(function world() {
+  var water = new THREE.Mesh(new THREE.PlaneGeometry(1600, 1600, 1, 1), new THREE.MeshStandardMaterial({ color: 0x0c1a2e, roughness: 0.25, metalness: 0.6 })); water.rotation.x = -Math.PI / 2; water.position.y = -0.6; scene.add(water); W.water = water;
+  var winC = document.createElement('canvas'); winC.width = 64; winC.height = 128; var wx = winC.getContext('2d'); wx.fillStyle = '#0a0c16'; wx.fillRect(0, 0, 64, 128);
+  for (var y = 4; y < 128; y += 8) for (var x = 4; x < 64; x += 8) if (Math.random() < 0.42) { wx.fillStyle = Math.random() < 0.7 ? 'rgba(255,220,160,.9)' : 'rgba(170,200,255,.85)'; wx.fillRect(x, y, 4, 5); }
+  var wt = new THREE.CanvasTexture(winC); wt.wrapS = wt.wrapT = THREE.RepeatWrapping;
+  // Manhattan on the east side (+x), Jersey far on the west (-x)
+  for (var i = 0; i < 90; i++) {
+    var east = i < 60, xx = east ? rnd(120, 260) : rnd(-420, -300), zz = rnd(-200, 500), w = rnd(10, 26), h = east ? rnd(20, 110) : rnd(12, 50), d = rnd(10, 26);
+    var t = wt.clone(); t.needsUpdate = true; t.repeat.set(Math.max(1, Math.round(w / 8)), Math.max(2, Math.round(h / 12)));
+    var m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ map: t, emissive: 0xffffff, emissiveMap: t, emissiveIntensity: 0.5, roughness: 0.9 })); m.position.set(xx, h / 2 - 1, zz); scene.add(m);
+  }
+  var sg = new THREE.BufferGeometry(), sp = []; for (var k = 0; k < 600; k++) { var th = rnd(0, 6.28), ph = rnd(0.08, 1.3); sp.push(Math.cos(th) * Math.cos(ph) * 700, Math.sin(ph) * 700, Math.sin(th) * Math.cos(ph) * 700); }
+  sg.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3)); scene.add(new THREE.Points(sg, new THREE.PointsMaterial({ color: 0xffffff, size: 2, sizeAttenuation: true, transparent: true, opacity: 0.7 })));
+  var moon = new THREE.Mesh(new THREE.SphereGeometry(12, 16, 16), new THREE.MeshBasicMaterial({ color: 0xfff4d8 })); moon.position.set(-300, 220, 300); scene.add(moon);
+  // the skyline panorama (ContentPad) wrapped round everything on a cylinder, beyond the fog
+  loadArt('pano', 2560, function (im) { if (!im) return; var t = new THREE.Texture(im); t.encoding = THREE.sRGBEncoding; t.needsUpdate = true; t.wrapS = THREE.RepeatWrapping; t.repeat.set(2, 1);
+    var cyl = new THREE.Mesh(new THREE.CylinderGeometry(600, 600, 240, 64, 1, true), new THREE.MeshBasicMaterial({ map: t, side: THREE.BackSide, fog: false })); cyl.position.y = 70; cyl.rotation.y = Math.PI / 2; scene.add(cyl); W.pano = cyl; });
+})();
+var HG = null;   // the hole's meshes, rebuilt per hole
+function buildHole(def) {
+  if (HG) { scene.remove(HG); HG.traverse(function (o) { if (o.geometry) o.geometry.dispose(); }); }
+  H = def; HG = new THREE.Group(); scene.add(HG);
+  var x0 = -H.w / 2 - 6, x1 = H.w / 2 + 6, z0 = -14, z1 = H.L + 40, nx = Math.round((x1 - x0) / 1.0), nz = Math.round((z1 - z0) / 1.0);
+  var geo = new THREE.PlaneGeometry(x1 - x0, z1 - z0, nx, nz); geo.rotateX(-Math.PI / 2);
+  var pos = geo.attributes.position, cols = [];
+  var C0 = { tee: [0.14, 0.36, 0.17], fairway: [0.13, 0.34, 0.16], rough: [0.09, 0.22, 0.1], green: [0.2, 0.5, 0.24], sand: [0.62, 0.56, 0.4], water: [0.04, 0.09, 0.16], out: [0.09, 0.22, 0.1] }, C = {};
+  Object.keys(C0).forEach(function (k) { var cc = new THREE.Color(C0[k][0], C0[k][1], C0[k][2]).convertSRGBToLinear(); C[k] = [cc.r, cc.g, cc.b]; });
+  for (var i = 0; i < pos.count; i++) {
+    var x = pos.getX(i) + (x0 + x1) / 2, z = pos.getZ(i) + (z0 + z1) / 2, s = surfaceAt(x, z), c = C[s], y = heightAt(x, z);
+    pos.setY(i, y); var v = 0.92 + Math.sin(x * 1.7 + z * 2.3) * 0.05 + ((i * 7) % 5) * 0.012; if (s === 'fairway' && Math.floor(z / 6) % 2) v *= 0.93;
+    cols.push(c[0] * v, c[1] * v, c[2] * v);
+  }
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3)); geo.computeVertexNormals();
+  var gmat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95 });
+  // ContentPad tiles: paint the hole's surfaces into one texture (grass / green / sand by zone, ~5 px per metre)
+  if (IMG.grass && IMG.green && IMG.sand) {
+    var PX = 5, cw = Math.ceil((x1 - x0) * PX), ch = Math.ceil((z1 - z0) * PX), c = document.createElement('canvas'); c.width = cw; c.height = ch; var x2 = c.getContext('2d');
+    var pat = { grass: x2.createPattern(IMG.grass, 'repeat'), green: x2.createPattern(IMG.green, 'repeat'), sand: x2.createPattern(IMG.sand, 'repeat') };
+    x2.save(); x2.scale(0.15, 0.15); x2.fillStyle = pat.grass; x2.fillRect(0, 0, cw / 0.15, ch / 0.15); x2.restore();
+    // rough is the same grass, darker; the fairway keeps mowing stripes
+    for (var zz = z0; zz < z1; zz += 1) for (var xx = x0; xx < x1; xx += 1) { var sf = surfaceAt(xx + 0.5, zz + 0.5); if (sf === 'rough' || sf === 'out') { x2.fillStyle = 'rgba(0,10,0,.35)'; x2.fillRect((xx - x0) * PX, (zz - z0) * PX, PX, PX); } else if (sf === 'fairway' && Math.floor(zz / 6) % 2) { x2.fillStyle = 'rgba(0,0,0,.08)'; x2.fillRect((xx - x0) * PX, (zz - z0) * PX, PX, PX); } }
+    var gq = H.green; x2.save(); x2.scale(0.12, 0.12); x2.fillStyle = pat.green; x2.beginPath(); x2.arc((gq[0] - x0) * PX / 0.12, (gq[1] - z0) * PX / 0.12, gq[2] * PX / 0.12, 0, 7); x2.fill(); x2.restore();
+    x2.save(); x2.scale(0.1, 0.1); x2.fillStyle = pat.sand; H.bunkers.forEach(function (b) { x2.beginPath(); x2.arc((b[0] - x0) * PX / 0.1, (b[1] - z0) * PX / 0.1, b[2] * PX / 0.1, 0, 7); x2.fill(); }); x2.restore();
+    x2.fillStyle = '#0a1628'; H.water.forEach(function (w) { x2.fillRect((w[0] - x0) * PX, (w[1] - z0) * PX, w[2] * PX, w[3] * PX); });
+    // tee box
+    x2.fillStyle = 'rgba(255,255,255,.08)'; x2.fillRect((-4 - x0) * PX, (-1 - z0) * PX, 8 * PX, 7 * PX);
+    var gt = new THREE.CanvasTexture(c); gt.encoding = THREE.sRGBEncoding; gt.anisotropy = 8; gt.flipY = false; gt.wrapS = gt.wrapT = THREE.ClampToEdgeWrapping;
+    gmat = new THREE.MeshStandardMaterial({ map: gt, roughness: 0.95 });
+    // the plane's uv runs x left→right, z top→bottom after rotateX(-90°): v is flipped, so flipY=false with v = 1 - row
+    var uv = geo.attributes.uv; for (var ui = 0; ui < uv.count; ui++) uv.setY(ui, 1 - uv.getY(ui));
+  }
+  var ground = new THREE.Mesh(geo, gmat); ground.position.set((x0 + x1) / 2, 0, (z0 + z1) / 2); ground.receiveShadow = true; ground.castShadow = true; HG.add(ground); HG.ground = ground;
+  // the pier's timber edge and piles
+  var edge = new THREE.Mesh(new THREE.BoxGeometry(x1 - x0 + 1, 1.2, z1 - z0 + 1), IMG.timber ? new THREE.MeshStandardMaterial({ map: artTex('timber', 1024, [8, 24]), roughness: 0.9 }) : mat(0x4a3a2a)); edge.position.set((x0 + x1) / 2, -0.9, (z0 + z1) / 2); HG.add(edge);
+  for (var p = z0; p <= z1; p += 8) [x0 - 0.2, x1 + 0.2].forEach(function (px) { var pile = new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.4, 3, 8), mat(0x3a2c20)); pile.position.set(px, -1.6, p); HG.add(pile); });
+  // the pin: cup, pole, flag; floodlights; a pier shed on the far side
+  var g = H.green; var cupY = heightAt(g[0], g[1]);
+  var cup = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 0.12, 16), new THREE.MeshBasicMaterial({ color: 0x050607 })); cup.position.set(g[0], cupY - 0.05, g[1]); HG.add(cup);
+  var pole = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 2.2, 6), mat(0xf2f2f2, { metalness: 0.4 })); pole.position.set(g[0], cupY + 1.1, g[1]); HG.add(pole);
+  var flag = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.42), new THREE.MeshBasicMaterial({ color: 0xff3b1f, side: THREE.DoubleSide })); flag.position.set(g[0] + 0.36, cupY + 2.0, g[1]); HG.add(flag); HG.flag = flag;
+  [[x0 + 2, 18], [x1 - 2, H.L * 0.55], [x0 + 2, H.L - 10], [x1 - 2, H.L + 14]].forEach(function (p) {
+    var post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.16, 9, 8), mat(0x3a3d44, { metalness: 0.5 })); post.position.set(p[0], 4.5, p[1]); HG.add(post);
+    var head = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.3, 0.6), new THREE.MeshBasicMaterial({ color: 0xfff6e0 })); head.position.set(p[0] + (p[0] < 0 ? 0.5 : -0.5), 9, p[1]); HG.add(head);
+    var sl = new THREE.SpotLight(0xfff0d0, 0.5, 80, 0.75, 0.6, 1); sl.position.set(p[0], 9, p[1]); sl.target.position.set(p[0] + (p[0] < 0 ? 12 : -12), 0, p[1]); HG.add(sl); HG.add(sl.target);
+  });
+  var shed = new THREE.Mesh(new THREE.BoxGeometry(14, 5, 8), IMG.brick ? new THREE.MeshStandardMaterial({ map: artTex('brick', 1024, [4, 1.5]), roughness: 0.9 }) : mat(0x6a5a4a)); shed.position.set(0, 2.5, H.L + 46); HG.add(shed);
+  // tee markers
+  [[-1.6, 0], [1.6, 0]].forEach(function (p) { var tm = new THREE.Mesh(new THREE.SphereGeometry(0.07, 10, 8), new THREE.MeshBasicMaterial({ color: 0x22d3ee })); tm.position.set(p[0], heightAt(p[0], p[1]) + 0.12, p[1]); HG.add(tm); });
+  $('holeT').textContent = 'HOLE ' + H.n; $('holeS').textContent = H.name.toUpperCase() + ' · PAR 3 · ' + Math.round(H.L * YD) + ' YDS';
+}
+var ball = new THREE.Mesh(new THREE.SphereGeometry(0.0427, 18, 14), new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.5 })); ball.castShadow = true; scene.add(ball);
+var aimLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), new THREE.LineDashedMaterial({ color: 0x5fe08a, dashSize: 1, gapSize: 0.6, transparent: true, opacity: 0.8 })); scene.add(aimLine);
+var trail = new THREE.Line(new THREE.BufferGeometry(), new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.35 })); scene.add(trail);
+
+/* ── clubs ── */
+var CLUBS = [{ n: 'DRIVER', d: 215, ang: 0.22 }, { n: '3 WOOD', d: 195, ang: 0.26 }, { n: '5 IRON', d: 165, ang: 0.32 }, { n: '7 IRON', d: 140, ang: 0.38 }, { n: '9 IRON', d: 115, ang: 0.45 }, { n: 'WEDGE', d: 85, ang: 0.55 }, { n: 'LOB', d: 55, ang: 0.7 }, { n: 'PUTTER', d: 22, ang: 0 }];
+function autoClub(dist, onGreen) { if (onGreen) return 7; for (var i = 0; i < 7; i++) if (CLUBS[i].d * 0.98 <= dist + 4 && CLUBS[i].d >= dist * 0.95) return i; for (i = 6; i >= 0; i--) if (CLUBS[i].d >= dist) return i; return 0; }
+
+/* ── game ── */
+var G = null, KEY = {}, TCH = { aim: 0, press: 0, club: 0, active: false }, PADPREV = [];
+function newGame(np) {
+  audio(); if (G && G.overTimer) clearTimeout(G.overTimer);
+  G = { np: np, players: [], hole: 0, cur: 0, state: 'ready', t: 0, msgT: 0, wind: [0, 0], swing: null, phase: 'aim', ballSt: null, shotT: 0, overTimer: null };
+  for (var i = 0; i < np; i++) G.players.push({ i: i, name: np > 1 ? 'PLAYER ' + (i + 1) : 'YOU', scores: [], strokes: 0, x: 0, z: 0, y: 0, vx: 0, vy: 0, vz: 0, done: false, lastSafe: null, inAir: false, lie: 'tee', club: 3 });
+  startHole(0);
+  $('tl').hidden = $('card').hidden = $('tr').hidden = $('club').hidden = $('meter').hidden = $('mhint').hidden = $('pauseBtn').hidden = $('camBtn').hidden = false;
+  $('menu').hidden = true; SAVE.rounds++; persist(); sfx('start'); post('start');
+}
+function endGame() { if (!G) return; ['tl', 'card', 'tr', 'club', 'meter', 'mhint', 'pauseBtn', 'camBtn'].forEach(function (id) { $(id).hidden = true; }); G = null; }
+function startHole(i) {
+  G.hole = i; buildHole(HOLES[i]); G.wind = [rnd(-1, 1), rnd(-1, 1)]; var wl = rnd(0.5, 5.5); var wn = Math.hypot(G.wind[0], G.wind[1]) || 1; G.wind = [G.wind[0] / wn * wl, G.wind[1] / wn * wl];
+  G.players.forEach(function (p, k) { p.x = (k - (G.np - 1) / 2) * 0.9; p.z = 0.6; p.y = heightAt(p.x, p.z); p.vx = p.vy = p.vz = 0; p.strokes = 0; p.done = false; p.inAir = false; p.lie = 'tee'; p.lastSafe = [p.x, p.z]; });
+  G.cur = 0; G.phase = 'aim'; G.swing = null; G.state = 'ready'; G.t = 0;
+  var p = G.players[0]; p.club = autoClub(distToPin(p), false); G.aim = Math.atan2(H.green[0] - p.x, H.green[1] - p.z); G.camMode = SET.cam || 0; placeBall(p); snapCam(p);
+  message('HOLE ' + H.n, H.name.toUpperCase() + ' · PAR 3 · ' + Math.round(H.L * YD) + ' YDS', 2.4);
+  G.readyT = 1.2;
+}
+function distToPin(p) { return Math.hypot(H.green[0] - p.x, H.green[1] - p.z); }
+function placeBall(p) { ball.position.set(p.x, p.y + 0.0427, p.z); ball.visible = true; }
+function message(a, b, t) { $('msg').innerHTML = a + (b ? '<small>' + b + '</small>' : ''); $('msg').classList.add('on'); G.msgT = t || 1.2; }
+function scoreName(d) { return d <= -2 ? 'EAGLE' : d === -1 ? 'BIRDIE' : d === 0 ? 'PAR' : d === 1 ? 'BOGEY' : d === 2 ? 'DOUBLE' : '+' + d; }
+function totalRel(p) { return p.scores.reduce(function (a, s) { return a + (s - 3); }, 0); }
+function relStr(n) { return n === 0 ? 'EVEN' : n > 0 ? '+' + n : String(n); }
+
+/* the three-click swing: press 1 starts the meter, press 2 locks power, press 3 locks accuracy on the way back */
+function swingPress() {
+  var p = G.players[G.cur]; if (G.state !== 'play' || p.inAir || G.phase !== 'aim' && G.phase !== 'swing') return;
+  if (G.phase === 'aim') { G.phase = 'swing'; G.swing = { t: 0, up: true, pow: 0, acc: null, v: 0 }; $('meter').querySelector('em').style.display = 'none'; return; }
+  var S = G.swing;
+  if (S.pow === 0) { S.pow = S.v; S.up = false; $('meter').querySelector('em').style.display = 'block'; $('meter').querySelector('em').style.left = (S.pow * 100) + '%'; sfx('tick'); return; }
+  // accuracy: distance from zero on the way back (0 = pure, ±0.15 = full hook or slice)
+  S.acc = S.v; strike(p, S.pow, S.acc);
+}
+function strike(p, pow, acc) {
+  var club = CLUBS[p.club], onGreen = p.club === 7, err = clamp(acc, -0.3, 0.3) * (onGreen ? 0.5 : 1);
+  var lieK = p.lie === 'rough' ? 0.86 : p.lie === 'sand' ? 0.72 : 1;
+  var dir = G.aim + err * 0.55, D = club.d * pow * lieK;
+  if (onGreen) {
+    var sp = 0.9 + pow * 13.5; p.vx = Math.sin(dir) * sp; p.vz = Math.cos(dir) * sp; p.vy = 0; p.inAir = false; p.rolling = true; sfx('putt');
+  } else {
+    // speed for the carry D at launch angle ang, then wind and spin: a slice/hook curves it in the air
+    var ang = club.ang, g = 9.81, v = Math.sqrt(D * g / Math.sin(2 * ang)) * 0.985;
+    p.vx = Math.sin(dir) * Math.cos(ang) * v; p.vz = Math.cos(dir) * Math.cos(ang) * v; p.vy = Math.sin(ang) * v; p.inAir = true; p.curve = err * 2.2; p.loft = ang; p.bounced = false; p.y += 0.02; sfx('hit', pow);
+  }
+  p.strokes++; G.phase = 'fly'; G.swing = null; G.shotT = 0; G.trail = [];
+  $('whoS').textContent = 'STROKE ' + p.strokes + ' · ' + relStr(totalRel(p));
+}
+function stepBall(p, dt) {
+  var g = 9.81, s;
+  if (p.inAir) {
+    p.vy -= g * dt; p.vx += (G.wind[0] * 0.08 - p.vx * 0.012) * dt; p.vz += (G.wind[1] * 0.08 - p.vz * 0.012) * dt;
+    // sidespin curves the shot
+    var hs = Math.hypot(p.vx, p.vz) || 1, nx = p.vz / hs, nz = -p.vx / hs; p.vx += nx * (p.curve || 0) * dt; p.vz += nz * (p.curve || 0) * dt;
+    p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt;
+    var gy = groundY(p.x, p.z);
+    if (p.y <= gy) {
+      s = surfaceAt(p.x, p.z); p.y = gy;
+      if (s === 'water') { splash(p); return; }
+      if (s === 'out') { oob(p); return; }
+      var n = normalAt(p.x, p.z), vn = p.vx * n[0] + p.vy * n[1] + p.vz * n[2], rest = BOUNCE[s];
+      if (vn < 0) { p.vx -= n[0] * vn * (1 + rest); p.vy -= n[1] * vn * (1 + rest); p.vz -= n[2] * vn * (1 + rest); var grab = p.bounced ? 0.5 : Math.max(0.1, 0.45 - (p.loft || 0) * 0.6) * (s === 'rough' ? 0.8 : 1); p.vx *= grab; p.vz *= grab; p.bounced = true; }
+      if (s === 'sand') { p.vx *= 0.3; p.vz *= 0.3; sfx('sand'); } else sfx('bounce', Math.abs(vn) / 30);
+      p.curve = 0;
+      if (Math.abs(p.vy) < 1.2 || s === 'sand') { p.vy = 0; p.inAir = false; p.rolling = true; }
+    }
+  } else if (p.rolling) {
+    s = surfaceAt(p.x, p.z);
+    if (s === 'water') { splash(p); return; } if (s === 'out') { oob(p); return; }
+    var n2 = normalAt(p.x, p.z), sp = Math.hypot(p.vx, p.vz);
+    // gravity along the slope, rolling friction by surface
+    p.vx += -n2[0] * g * dt * 1.6; p.vz += -n2[2] * g * dt * 1.6;
+    var fr = FR[s] * 4 * dt, sp2 = Math.hypot(p.vx, p.vz);
+    if (sp2 > 0) { var k = Math.max(0, sp2 - fr) / sp2; p.vx *= k; p.vz *= k; }
+    p.x += p.vx * dt; p.z += p.vz * dt; p.y = groundY(p.x, p.z);
+    // the cup: close and slow enough drops; fast lips out
+    var dc = Math.hypot(p.x - H.green[0], p.z - H.green[1]);
+    if (dc < 0.11 && sp2 < 2.6) { holed(p); return; }
+    if (dc < 0.13 && sp2 >= 2.6 && !p.lipped) { p.lipped = true; var ax = (p.x - H.green[0]) / dc, az = (p.z - H.green[1]) / dc; p.vx = ax * sp2 * 0.6; p.vz = az * sp2 * 0.6; }
+    if (sp2 < 0.08 && Math.hypot(n2[0], n2[2]) < 0.06) { p.vx = p.vz = 0; p.rolling = false; p.lipped = false; settle(p, s); }
+    if (Math.hypot(n2[0], n2[2]) >= 0.06 && sp2 < 0.02) { p.vx = p.vz = 0; p.rolling = false; p.lipped = false; settle(p, s); }
+  }
+  ball.position.set(p.x, p.y + 0.0427, p.z);
+  if (G.trail && G.shotT % 0.1 < dt) { G.trail.push(new THREE.Vector3(p.x, p.y + 0.05, p.z)); if (G.trail.length > 200) G.trail.shift(); trail.geometry.setFromPoints(G.trail); }
+}
+function groundY(x, z) { return heightAt(x, z); }
+function normalAt(x, z) { var e = 0.3, hx = heightAt(x + e, z) - heightAt(x - e, z), hz = heightAt(x, z + e) - heightAt(x, z - e); var n = new THREE.Vector3(-hx / (2 * e), 1, -hz / (2 * e)).normalize(); return [n.x, n.y, n.z]; }
+function splash(p) { sfx('splash'); p.inAir = p.rolling = false; p.strokes++; message('WATER', 'penalty stroke · drop back', 1.6); G.phase = 'settle'; G.settleT = 1.4; p.pending = 'drop'; }
+function oob(p) { sfx('bad'); p.inAir = p.rolling = false; p.strokes++; message('OUT OF BOUNDS', 'penalty stroke · replay', 1.6); G.phase = 'settle'; G.settleT = 1.4; p.pending = 'drop'; }
+function holed(p) {
+  p.inAir = p.rolling = false; p.vx = p.vz = 0; p.done = true; ball.visible = false; sfx('cup');
+  p.scores[G.hole] = p.strokes; var d = p.strokes - 3;
+  if (p.strokes === 1) { SAVE.aces++; message('HOLE IN ONE', 'hole ' + H.n + ' · ' + H.name, 3); sfx('great'); }
+  else { message(scoreName(d), p.strokes + ' stroke' + (p.strokes === 1 ? '' : 's') + ' · ' + relStr(totalRel(p)), 2.2); sfx(d <= 0 ? 'good' : 'bad'); }
+  G.phase = 'settle'; G.settleT = 2.4; p.pending = 'next';
+}
+function settle(p, s) {
+  var dp = distToPin(p); p.lie = s; p.lastSafe = [p.x, p.z];
+  if (s === 'green' && !G.wasGreen) { }
+  G.phase = 'settle'; G.settleT = 0.9; p.pending = 'next';
+  var txt = s === 'green' ? 'ON THE GREEN' : s === 'sand' ? 'IN THE SAND' : s === 'rough' ? 'IN THE ROUGH' : 'FAIRWAY'; message(txt, Math.round(dp * YD) + ' yds to the pin', 1.1);
+}
+// after a shot settles: next player (hot-seat), or the next hole when everyone's in
+function nextTurn() {
+  var p = G.players[G.cur];
+  if (p.pending === 'drop') { var ls2 = p.lastSafe || [0, 0.6]; p.x = ls2[0]; p.z = ls2[1]; p.y = heightAt(p.x, p.z); p.vx = p.vz = p.vy = 0; p.lie = surfaceAt(p.x, p.z); if (p.strokes >= 8) { p.scores[G.hole] = p.strokes; p.done = true; message('PICK UP', 'max 8 on the hole', 1.6); } }
+  p.pending = null;
+  if (G.players.every(function (q) { return q.done; })) { if (G.hole + 1 < HOLES.length) { G.hole++; startHole(G.hole); } else finishRound(); return; }
+  // the player furthest from the pin plays next
+  var best = -1, bd = -1; G.players.forEach(function (q, k) { if (q.done) return; var d = distToPin(q); if (d > bd) { bd = d; best = k; } });
+  G.cur = best; var q = G.players[G.cur]; q.club = autoClub(distToPin(q), q.lie === 'green'); G.aim = Math.atan2(H.green[0] - q.x, H.green[1] - q.z); G.phase = 'aim'; G.swing = null; placeBall(q); snapCam(q); trail.geometry.setFromPoints([]);
+  if (G.np > 1) message(q.name, 'stroke ' + (q.strokes + 1) + ' · ' + Math.round(distToPin(q) * YD) + ' yds', 1.1);
+}
+function finishRound() {
+  var p0 = G.players[0], tot = p0.scores.reduce(function (a, b) { return a + b; }, 0);
+  if (G.np === 1 && (!SAVE.best || tot < SAVE.best)) SAVE.best = tot;
+  persist(); post('over', { score: SAVE.best, total: tot, players: G.np });
+  var rows = '<table class="sc"><tr><th></th>' + HOLES.map(function (h) { return '<th>' + h.n + '</th>'; }).join('') + '<th>TOT</th><th>PAR</th></tr>' + G.players.map(function (p) { var t = p.scores.reduce(function (a, b) { return a + b; }, 0); return '<tr><td class="n">' + p.name + '</td>' + p.scores.map(function (s) { return '<td class="' + (s < 3 ? 'b' : s === 3 ? 'e' : 'u') + '">' + s + '</td>'; }).join('') + '<td><b>' + t + '</b></td><td>' + relStr(t - 27) + '</td></tr>'; }).join('') + '</table>';
+  var win = G.np > 1 ? G.players.slice().sort(function (a, b) { return a.scores.reduce(function (x, y) { return x + y; }, 0) - b.scores.reduce(function (x, y) { return x + y; }, 0); })[0] : null;
+  $('oBig').textContent = win ? win.name + ' WINS' : tot <= SAVE.best ? 'BEST ROUND ' + tot : 'ROUND ' + tot;
+  $('oRes').innerHTML = rows + '<div class="hint">' + (G.np === 1 ? 'best ' + SAVE.best + ' · aces ' + SAVE.aces : 'lowest total wins') + '</div>';
+  G.state = 'over'; $('sTitle').hidden = $('sPause').hidden = true; $('sOver').hidden = false; $('menu').hidden = false; focusFirst();
+}
+
+/* ── camera ── */
+var CAMP = { x: 0, y: 0, z: 0, tx: 0, ty: 0, tz: 0 };
+function snapCam(p) { var v = camWant(p, true); CAMP.x = v[0]; CAMP.y = v[1]; CAMP.z = v[2]; CAMP.tx = v[3]; CAMP.ty = v[4]; CAMP.tz = v[5]; }
+function camWant(p, aiming) {
+  var a = G.aim, ox = Math.sin(a), oz = Math.cos(a), d = distToPin(p);
+  if (G.camMode === 1 && aiming) { return [p.x - ox * 18, p.y + 22, p.z - oz * 18, p.x + ox * d * 0.5, 0, p.z + oz * d * 0.5]; }   // high view
+  if (p.inAir || p.rolling) { var back = p.inAir ? 9 : 6; var vx = p.vx, vz = p.vz, hs = Math.hypot(vx, vz) || 1; return [p.x - (vx / hs) * back, p.y + (p.inAir ? 5 : 3), p.z - (vz / hs) * back, p.x, p.y + 0.5, p.z]; }
+  var back = p.lie === 'green' ? 3.2 : 7.5, up = p.lie === 'green' ? 1.6 : 3.4;
+  return [p.x - ox * back, p.y + up, p.z - oz * back, p.x + ox * 24, p.y + 0.2, p.z + oz * 24];
+}
+function updateCam(dt) {
+  var p = G.players[G.cur], v = camWant(p, G.phase === 'aim' || G.phase === 'swing'), k = Math.min(1, dt * (p.inAir ? 3.5 : 5));
+  CAMP.x = lerp(CAMP.x, v[0], k); CAMP.y = lerp(CAMP.y, v[1], k); CAMP.z = lerp(CAMP.z, v[2], k); CAMP.tx = lerp(CAMP.tx, v[3], k); CAMP.ty = lerp(CAMP.ty, v[4], k); CAMP.tz = lerp(CAMP.tz, v[5], k);
+  cam.position.set(CAMP.x, Math.max(CAMP.y, groundY(CAMP.x, CAMP.z) + 1.2), CAMP.z); cam.lookAt(CAMP.tx, CAMP.ty, CAMP.tz);
+}
+
+/* ── input ── */
+function padRead(i) { var list = window.ArcadePad ? ArcadePad.pads() : [], gp = list[i]; return gp ? ArcadePad.read(gp) : null; }
+function pollInputs(dt) {
+  var p = G.players[G.cur], aim = 0, clubD = 0, press = false;
+  if (window.__hpInput) { var o = window.__hpInput(G); aim = o.aim || 0; press = !!o.press; }
+  else {
+    aim = (KEY.ArrowRight || KEY.KeyD ? 1 : 0) - (KEY.ArrowLeft || KEY.KeyA ? 1 : 0);
+    var r = padRead(G.np > 1 ? Math.min(G.cur, 1) : 0) || padRead(0); if (r && Math.abs(r.lx) > 0.12) aim = r.lx;
+    if (TOUCH && TCH.active) aim = TCH.aim || aim;
+  }
+  if ((G.phase === 'aim' || G.phase === 'swing') && aim) G.aim += aim * (p.lie === 'green' ? 0.35 : 0.5) * dt;
+}
+function pressEdge() { var p = G.players[G.cur]; if (!p) return; swingPress(); }
+function clubChange(d) { var p = G.players[G.cur]; if (G.phase !== 'aim') return; p.club = clamp(p.club + d, 0, 7); if (p.lie === 'green') p.club = 7; sfx('tick'); }
+window.addEventListener('keydown', function (e) { var c = e.code || e.key; if (/^(Arrow|Space|Tab$|Backspace)/.test(c) || ($('menu').hidden && /^(Key|Enter)/.test(c))) e.preventDefault(); onKey(c, e.repeat); });
+window.addEventListener('keyup', function (e) { KEY[e.code || e.key] = false; });
+window.addEventListener('message', function (e) { var d = e.data || {}; if (e.source !== window.parent || d.arcade !== 'key') return; var c = d.code || d.key; if (d.type === 'keydown') onKey(c, !!d.repeat); else KEY[c] = false; });
+function onKey(c, repeat) {
+  audio(); KEY[c] = true; if (repeat) return;
+  if (c === 'KeyM') { setSound(!SET.sound); return; }
+  if (!$('menu').hidden) { menuKey(c); return; }
+  if (!G) return;
+  if (c === 'KeyP' || c === 'Escape') { pause(); return; }
+  if (c === 'KeyC') { G.camMode = (G.camMode + 1) % 2; SET.cam = G.camMode; saveSet(); return; }
+  if (c === 'Space' || c === 'Enter' || c === 'NumpadEnter') pressEdge();
+  else if (c === 'ArrowUp' || c === 'KeyW') clubChange(-1); else if (c === 'ArrowDown' || c === 'KeyS') clubChange(1);
+}
+function pause() { if (!G || G.state !== 'play') return; G.state = 'pause'; KEY = {}; $('pRes').innerHTML = '<div class="hint">' + G.players.map(function (p) { return p.name + ' ' + relStr(totalRel(p)); }).join(' · ') + '</div>'; $('sTitle').hidden = $('sOver').hidden = true; $('sPause').hidden = false; $('menu').hidden = false; focusFirst(); }
+function resume() { if (!G) return; G.state = 'play'; $('menu').hidden = true; }
+function items() { return [].slice.call(document.querySelectorAll('#menu .scr:not([hidden]) button')).filter(function (b) { return !b.hidden; }); }
+function focusFirst() { var it = items(); it.forEach(function (b) { b.classList.remove('sel'); }); if (it[0]) it[0].classList.add('sel'); }
+function menuKey(c) {
+  var it = items(), cur = document.querySelector('#menu .sel'), i = Math.max(0, it.indexOf(cur));
+  if (c === 'ArrowDown' || c === 'KeyS') { it[i].classList.remove('sel'); it[(i + 1) % it.length].classList.add('sel'); sfx('tick'); }
+  else if (c === 'ArrowUp' || c === 'KeyW') { it[i].classList.remove('sel'); it[(i - 1 + it.length) % it.length].classList.add('sel'); sfx('tick'); }
+  else if (c === 'Enter' || c === 'Space' || c === 'NumpadEnter') { (cur || it[0]).click(); }
+  else if (c === 'Escape' || c === 'Backspace') { if (!$('sPause').hidden) resume(); }
+}
+document.addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('#menu button'); if (!b) return; audio(); go(b.dataset.go); });
+var LASTNP = 1;
+function go(what) {
+  sfx('tick');
+  if (/^p[1-4]$/.test(what)) { LASTNP = +what[1]; newGame(LASTNP); }
+  else if (what === 'again') newGame(LASTNP);
+  else if (what === 'resume') resume();
+  else if (what === 'title') { endGame(); showTitle(); }
+  else if (what === 'exit') post('exit');
+}
+function showTitle() { $('sTitle').hidden = false; $('sOver').hidden = $('sPause').hidden = true; $('menu').hidden = false; $('mExit').hidden = !EMBED; $('best').textContent = (SAVE.best ? 'BEST ROUND ' + SAVE.best + ' (' + relStr(SAVE.best - 27) + ')' : 'NO ROUND YET') + ' · ACES ' + SAVE.aces; $('hint').textContent = TOUCH ? 'Drag to aim. Tap SWING to start the meter, tap for power, tap again for accuracy. CLUB changes the club.' : '← → aim · ↑ ↓ club · SPACE three times: start, power, accuracy · C camera · P pause · M mute · controller: stick, (A), d-pad'; focusFirst(); }
+function pollPads() {
+  for (var i = 0; i < 2; i++) { var r = padRead(i); if (!r) continue; var prev = PADPREV[i] || {}, now = { up: r.up || r.ly < -0.5, down: r.down || r.ly > 0.5, a: r.a, b: r.b, start: r.start, y: r.y, x: r.x }; function edge(k) { return now[k] && !prev[k]; }
+    if (r.any) audio();
+    if (!$('menu').hidden) { if (edge('up')) menuKey('ArrowUp'); if (edge('down')) menuKey('ArrowDown'); if (edge('a') || edge('start')) menuKey('Enter'); if (edge('b')) menuKey('Escape'); }
+    else if (G) { if (edge('start')) pause(); if (edge('a')) pressEdge(); if (edge('up')) clubChange(-1); if (edge('down')) clubChange(1); if (edge('y')) { G.camMode = (G.camMode + 1) % 2; } }
+    PADPREV[i] = now; }
+}
+(function touch() {
+  var zone = $('tAim'), knob = $('tKnob'), sid = null, ox = 0;
+  zone.addEventListener('pointerdown', function (e) { audio(); sid = e.pointerId; ox = e.clientX; TCH.active = true; zone.setPointerCapture(sid); e.preventDefault(); });
+  zone.addEventListener('pointermove', function (e) { if (e.pointerId !== sid) return; var dx = clamp((e.clientX - ox) / 55, -1, 1); TCH.aim = dx; knob.style.transform = 'translateX(' + (dx * 46) + 'px)'; });
+  function up(e) { if (e.pointerId !== sid) return; sid = null; TCH.aim = 0; knob.style.transform = ''; }
+  zone.addEventListener('pointerup', up); zone.addEventListener('pointercancel', up);
+  $('tSwing').addEventListener('pointerdown', function (e) { audio(); TCH.active = true; e.preventDefault(); if (G && $('menu').hidden) pressEdge(); });
+  $('tClub').addEventListener('pointerdown', function (e) { audio(); e.preventDefault(); if (G) clubChange(1 - (G.players[G.cur].club === 7 ? 8 : 0)); });
+  window.addEventListener('touchstart', function () { TCH.active = true; }, { passive: true });
+})();
+$('pauseBtn').addEventListener('click', function () { audio(); pause(); });
+$('camBtn').addEventListener('click', function () { audio(); if (G) { G.camMode = (G.camMode + 1) % 2; SET.cam = G.camMode; saveSet(); } });
+window.addEventListener('blur', function () { KEY = {}; pause(); });
+document.addEventListener('visibilitychange', function () { if (document.hidden) pause(); });
+
+/* ── frame ── */
+function update(dt) {
+  if (!G) return;
+  if (G.msgT > 0) { G.msgT -= dt; if (G.msgT <= 0) $('msg').classList.remove('on'); }
+  if (G.state === 'ready') { G.readyT -= dt; if (G.readyT <= 0) G.state = 'play'; return; }
+  if (G.state !== 'play') return;
+  G.t += dt; var p = G.players[G.cur];
+  pollInputs(dt);
+  if (G.phase === 'swing' && G.swing) {
+    var S = G.swing; S.t += dt;
+    if (S.pow === 0) { S.v = Math.min(1, S.v + dt * 0.9); if (S.v >= 1) { S.v = 1; S.pow = 1; S.up = false; $('meter').querySelector('em').style.display = 'block'; $('meter').querySelector('em').style.left = '100%'; } }
+    else { S.v -= dt * 1.25; if (S.v < -0.3) { strike(p, S.pow, -0.3); } }
+  }
+  if (G.phase === 'fly') { G.shotT += dt; for (var k = 0; k < 4; k++) stepBall(p, dt / 4); if (!p.inAir && !p.rolling && G.phase === 'fly') { settle(p, surfaceAt(p.x, p.z)); } }
+  if (G.phase === 'settle') { G.settleT -= dt; if (G.settleT <= 0) nextTurn(); }
+  // HUD
+  var dp = distToPin(p), onG = p.lie === 'green';
+  $('distT').textContent = Math.round(dp * YD) + (onG ? ' yds' : ' yds'); $('windT').textContent = Math.round(Math.hypot(G.wind[0], G.wind[1])); $('wind').style.transform = 'rotate(' + (Math.atan2(G.wind[0], -G.wind[1]) * 57.3 + 90 - G.aim * 57.3) + 'deg)';
+  var club = CLUBS[p.club]; $('clubT').textContent = club.n; $('club').lastChild.textContent = (onG ? 'PUTT · POWER = DISTANCE' : Math.round(club.d * YD) + ' YDS · ↑↓ CHANGE');
+  $('whoT').textContent = p.name; $('whoS').textContent = 'STROKE ' + (p.strokes + 1) + ' · ' + relStr(totalRel(p)) + (p.lie !== 'tee' ? ' · ' + p.lie.toUpperCase() : '');
+  var M = $('meter'); if (G.swing) { M.querySelector('i').style.width = Math.max(0, G.swing.v * 100) + '%'; M.querySelector('u').style.left = Math.max(0, Math.min(100, G.swing.v * 100)) + '%'; } else { M.querySelector('i').style.width = '0%'; M.querySelector('u').style.left = '0%'; M.querySelector('em').style.display = 'none'; }
+  $('mhint').textContent = G.phase === 'aim' ? (TOUCH ? 'TAP SWING TO START' : 'SPACE · START THE SWING') : G.phase === 'swing' ? (G.swing && G.swing.pow === 0 ? 'POWER · press again' : 'ACCURACY · press at the start') : '';
+  // aim line
+  if (G.phase === 'aim' || G.phase === 'swing') { var L = Math.min(dp, onG ? 8 : CLUBS[p.club].d * 0.45); aimLine.visible = true; aimLine.geometry.setFromPoints([new THREE.Vector3(p.x, p.y + 0.05, p.z), new THREE.Vector3(p.x + Math.sin(G.aim) * L, groundY(p.x + Math.sin(G.aim) * L, p.z + Math.cos(G.aim) * L) + 0.05, p.z + Math.cos(G.aim) * L)]); aimLine.computeLineDistances(); } else aimLine.visible = false;
+  if (HG && HG.flag) HG.flag.rotation.y = Math.sin(G.t * 2.2) * 0.25 + Math.atan2(G.wind[0], G.wind[1]);
+  updateCam(dt);
+}
+var last = performance.now();
+function frame(now) { requestAnimationFrame(frame); var dt = Math.min(0.05, (now - last) / 1000); last = now; pollPads(); update(dt); draw(now); }
+function draw(now) {
+  var Wd = window.innerWidth, Hh = window.innerHeight; if (renderer.domElement.width !== Math.floor(Wd * renderer.getPixelRatio())) renderer.setSize(Wd, Hh, false);
+  cam.aspect = Wd / Hh; cam.updateProjectionMatrix();
+  if (!G) { var a = now / 12000; cam.position.set(Math.sin(a) * 30, 14, 40 + Math.cos(a) * 20); cam.lookAt(0, 0, 70); }
+  if (W.water) W.water.position.x = cam.position.x, W.water.position.z = cam.position.z;
+  renderer.render(scene, cam);
+}
+window.addEventListener('resize', function () { renderer.setSize(window.innerWidth, window.innerHeight, false); });
+renderer.setSize(window.innerWidth, window.innerHeight, false);
+buildHole(HOLES[0]); showTitle(); requestAnimationFrame(frame);
+var artN = 0; ['grass', 'green', 'sand', 'timber', 'brick'].forEach(function (k) { loadArt(k, 1024, function () { if (++artN === 5 && !G) buildHole(HOLES[0]); }); });
+window.__hp = { get G() { return G; }, newGame: newGame, step: function (sec) { for (var i = 0; i < Math.round(sec * 60); i++) update(1 / 60); }, strike: strike, press: swingPress, save: function () { return SAVE; }, build: BUILD, HOLES: HOLES, surfaceAt: function (x, z) { return surfaceAt(x, z); }, heightAt: function (x, z) { return heightAt(x, z); }, render: function () { draw(performance.now()); }, play: function () { if (G) G.state = 'play'; } };
+})();
+</script>
+</body>
+</html>
