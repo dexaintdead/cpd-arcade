@@ -498,7 +498,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 <script>
 (function () {
   'use strict';
-  var GAME_ID = 'night-drive', BUILD = '2026111602-nd';
+  var GAME_ID = 'night-drive', BUILD = '2026111603-nd';
   var $ = function (id) { return document.getElementById(id); };
   var EMBED = false; try { EMBED = window.top !== window; } catch (e) { EMBED = true; }
   function post(type, extra) { try { if (EMBED) window.parent.postMessage(Object.assign({ arcade: type, game: GAME_ID }, extra || {}), '*'); } catch (e) {} }
@@ -2194,7 +2194,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var f = c._f, m = c.mesh, st = cam.userData;
     var heading = st.h || (st.h = new THREE.Vector3()); var want = new THREE.Vector3().copy(f.t).multiplyScalar(Math.cos(c.yaw * 0.7)).addScaledVector(f.r, Math.sin(c.yaw * 0.7)).normalize();
     if (snap || !st.init) { heading.copy(want); st.init = true; } else heading.lerp(want, Math.min(1, h * 5)).normalize();
-    var bike = c.def && c.def.bike, dist = mode === 1 ? (bike ? 8 : 9.8) : (bike ? 4.9 : 6.0), hgt = mode === 1 ? (bike ? 2.6 : 3.2) : (bike ? 1.6 : 1.9), boost = (c.boost ? 1 : 0) + (c.turbo > 0 ? 0.5 : 0);
+    var bike = c.def && c.def.bike, tall = c.def && (c.def.heavy || c.def.L > 5.5), dist = mode === 1 ? (bike ? 8 : tall ? 11.5 : 9.8) : (bike ? 4.9 : tall ? 8.6 : 6.0), hgt = mode === 1 ? (bike ? 2.6 : tall ? 3.8 : 3.2) : (bike ? 1.6 : tall ? 2.9 : 1.9), boost = (c.boost ? 1 : 0) + (c.turbo > 0 ? 0.5 : 0);
     st.bz = (st.bz || 0) + (boost - (st.bz || 0)) * Math.min(1, h * 3);
     dist += st.bz * 0.9 + (st.air || 0) * 2.2; hgt += (st.air || 0) * 1.2;
     var pos = st.p || (st.p = new THREE.Vector3()), tgt = new THREE.Vector3();
