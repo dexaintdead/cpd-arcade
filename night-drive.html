@@ -500,7 +500,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 <script>
 (function () {
   'use strict';
-  var GAME_ID = 'night-drive', BUILD = '2026111609-nd';
+  var GAME_ID = 'night-drive', BUILD = '2026111701-nd';
   var $ = function (id) { return document.getElementById(id); };
   var EMBED = false; try { EMBED = window.top !== window; } catch (e) { EMBED = true; }
   function post(type, extra) { try { if (EMBED) window.parent.postMessage(Object.assign({ arcade: type, game: GAME_ID }, extra || {}), '*'); } catch (e) {} }
@@ -4558,7 +4558,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     STATE = 'race'; UI.hideAll();
     $('touch').hidden = !TOUCH; $('split').hidden = true; $('bg').hidden = true; $('cash').hidden = true;
     musicStop(); sfx('radio'); if (!race) musicStart('city');
-    walkersBuild(R); oddBuild(R); wxInit(R); R.jobNext = 25;
+    walkersBuild(R); oddBuild(R); wxInit(R); R.jobNext = 25; if (!race && (!opt.story || opt.story.M.foot)) castBuild(R);
     if (!race && (!opt.story || opt.story.M.foot)) specialsSpawn(R);
     if (!race && !opt.story && radioStation().id === 'static' && staticOpen()) staticOn(R);
     resize();
@@ -4568,7 +4568,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     (R.beacons || []).forEach(function (b) { sc.remove(b); }); (R.markers || []).forEach(function (m) { sc.remove(m.mesh); });
     if (R.arrow) sc.remove(R.arrow);
     footCopsClear(R); if (R.job && R.job.beacon) sc.remove(R.job.beacon); if (R.wx && R.wx.cur) wxEnd(R); $('jobHud').hidden = true;
-    staticOff(R); walkersDispose(R); oddDispose(R); R.humans.forEach(function (h) { if (h.foot) footEnd(R, h); }); $('fPrompt').hidden = true;
+    staticOff(R); walkersDispose(R); oddDispose(R); castDispose(R); R.humans.forEach(function (h) { if (h.foot) footEnd(R, h); }); $('fPrompt').hidden = true;
   }
   // wrecks in the city: roll and slide (startWreck does the roll), then back on the nearest street, facing along it
   function cityWreckStep(R, c, h) {
@@ -5906,7 +5906,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       });
       cityMarkers(R, dt); cityPayout(R);
       R.humans.forEach(function (hh, hi) { if (hh.foot) { footStep(R, hh, dt, hi); if (hh.foot) { footCopsStep(R, hh, dt); wrongStep(R, hh, dt); } } else specialStep(R, hh, dt); });
-      walkersStep(R, dt); oddStep(R, dt); wxStep(R, dt); jobStep(R, dt);
+      walkersStep(R, dt); oddStep(R, dt); castStep(R, dt); wxStep(R, dt); jobStep(R, dt);
       G_AIR = (STATIC.on ? 7 : 15) * (R.humans[0] && R.humans[0].def.lowG && !R.humans[0].foot ? R.humans[0].def.lowG : 1);
       if (R.cps && R.humans.every(function (hh) { return hh.finished; })) {
         R.wait += dt;
@@ -7159,9 +7159,10 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     if (P.spr) { heroFace(P, F, h.cam.position); heroPose(P, F, mv, F.camYaw); }
     // what's at hand: a car to take, an oddity to grab, a payphone, someone to talk to
     var prompt = '', act = actEdge(), key = TOUCH ? 'ACT' : 'E';
-    var od = oddNear(R, F.x, F.z, 1.6), wk = !od ? walkerNear(R, F.x, F.z, 1.7) : null;
+    var od = oddNear(R, F.x, F.z, 1.6), cs = !od ? castNear(F.x, F.z, 2.0) : null, wk = !od && !cs ? walkerNear(R, F.x, F.z, 1.7) : null;
     if (od) { if (od.kind === 'phone') { prompt = od.ring > 0 ? key + ' · ANSWER THE PHONE' : (SAVE.odd.calls.indexOf(od.id) >= 0 ? 'a dead line' : key + ' · PICK UP'); if (act) oddTake(R, h, od); } else { prompt = key + ' · ' + (od.kind === 'tape' ? 'TAKE THE CASSETTE' : 'TAKE THE POLAROID'); if (act) oddTake(R, h, od); } }
     else if (near) { prompt = key + ' · ' + (near === h ? 'GET IN' : 'TAKE THE ' + (near.def.name || 'car').toUpperCase()); if (act) enterCar(R, h, near); }
+    else if (cs) { prompt = key + ' · TALK TO ' + CAST[cs.id].n.split(' ')[0].toUpperCase(); if (act) castTalk(R, h, cs); }
     else if (wk) { prompt = key + ' · TALK'; if (act) walkerTalk(R, h, wk); }
     else if (R.jobOffer) { prompt = key + ' · TAKE THE JOB'; if (act) jobTake(R); }
     var pe = $('fPrompt'); if (!h.foot) { pe.hidden = true; return; }
@@ -7173,34 +7174,23 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   /* ── 2026-11-16 (night): the people as ContentPad sprites. Two nano-banana-pro crowd sheets (eight 1980s pedestrians
      each, front view, on green) are keyed, sliced by column and packed into one 16-cell atlas; each walker is a
      billboard plane picking a cell. The cylinder figures stay as the fallback until the sheets arrive. ── */
-  var PEOPLE_SHEETS = ['e9e3bb87-6cbd-4857-9636-98768201344f.png', '4f654686-4788-49fc-84e6-d639a0a1f889.png'];
+  var PEOPLE_SHEETS = ['ae34e8b4-9ea3-48bc-a647-3934fc053abd.png', '08a2004f-0733-4739-bba6-7cfb75b8906f.png'];   // 2026-11-17: pairs, standing + mid-stride
   var PEOPLE = { tex: null, n: 0, cells: [], loading: false, failed: false };
   function peopleLoad() {
     if (PEOPLE.loading || PEOPLE.tex || PEOPLE.failed) return; PEOPLE.loading = true;
-    var cells = [], done = 0;
+    var per = [], done = 0;
     PEOPLE_SHEETS.forEach(function (f, si) {
-      var im = new Image(); im.crossOrigin = 'anonymous';
-      im.onload = function () {
-        try {
-          var W = im.width, H = im.height, c = cvs(W, H), g = c.getContext('2d'); g.drawImage(im, 0, 0);
-          var id = g.getImageData(0, 0, W, H), px = id.data, cols = new Uint16Array(W);
-          for (var i = 0; i < px.length; i += 4) { var r = px[i], gg = px[i + 1], b = px[i + 2]; if (gg > r + 40 && gg > b + 40) px[i + 3] = 0; else if (px[i + 3] > 8) cols[(i >> 2) % W]++; }
-          g.putImageData(id, 0, 0);
-          var segs = [], on = false, st = 0; for (var x = 0; x < W; x++) { if (cols[x] && !on) { on = true; st = x; } if (!cols[x] && on) { on = false; if (x - st > W * 0.03) segs.push([st, x]); } } if (on && W - st > W * 0.03) segs.push([st, W]);
-          var out = sheetSplit(segs, cols);
-          out.forEach(function (q) { var y0 = H, y1 = 0; for (var y = 0; y < H; y++) for (var xx = q[0]; xx < q[1]; xx += 2) { if (px[(y * W + xx) * 4 + 3] > 8) { if (y < y0) y0 = y; if (y > y1) y1 = y; break; } } if (y1 > y0) cells.push({ c: c, x: q[0], y: y0, w: q[1] - q[0], h: y1 - y0 + 1, s: si }); });
-        } catch (e) { }
-        if (++done === PEOPLE_SHEETS.length) peoplePack(cells);
-      };
-      im.onerror = function () { if (++done === PEOPLE_SHEETS.length) peoplePack(cells); };
-      im.src = ART_HOST + ART + f + '?w=1600';
+      sheetLoad(f, function (cells) {
+        var list = cells || []; if (list.length % 2) list = list.slice(0, list.length - 1);   // the sheets are pairs: standing, then the same person mid-stride
+        per[si] = list.map(function (c) { c.s = si; return c; });
+        if (++done === PEOPLE_SHEETS.length) { var all = []; per.forEach(function (l) { if (l) all = all.concat(l); }); peoplePack(all); }
+      });
     });
   }
   function peoplePack(cells) {
     PEOPLE.loading = false; if (cells.length < 6) { PEOPLE.failed = true; return; }
-    cells.sort(function (a, b) { return a.s - b.s || a.x - b.x; });
     var CW = 128, CH = 256, n = Math.min(32, cells.length), atlas = cvs(CW * n, CH), g = atlas.getContext('2d'), out = [];
-    for (var k = 0; k < n; k++) { var q = cells[k], sc = Math.min(CH / q.h, CW / q.w), dw = q.w * sc, dh = q.h * sc; g.drawImage(q.c, q.x, q.y, q.w, q.h, k * CW + (CW - dw) / 2, CH - dh, dw, dh); out.push({ aspect: dw / dh, hgt: dh / CH }); }
+    for (var k = 0; k < n; k++) { var q = cells[k], sc = Math.min(CH / q.h, CW / q.w), dw = q.w * sc, dh = q.h * sc; g.drawImage(q.src || q.c, q.x, q.y, q.w, q.h, k * CW + (CW - dw) / 2, CH - dh, dw, dh); out.push({ aspect: dw / dh, hgt: dh / CH }); }
     var tex = new THREE.CanvasTexture(atlas); tex.minFilter = THREE.LinearMipmapLinearFilter; tex.magFilter = THREE.LinearFilter; tex.generateMipmaps = true; tex.anisotropy = 4;
     PEOPLE.tex = tex; PEOPLE.n = n; PEOPLE.cells = out;
   }
@@ -7217,9 +7207,67 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   function walkersSprites(R) {
     var W = WALKERS; if (!W || W.spr || !PEOPLE.tex) return;
     var m = peopleMesh(W.list.length), ca = m.userData.cellAttr;
-    W.list.forEach(function (w, k) { w.cell = (w.lines + k) % PEOPLE.n; ca.setX(k, w.cell); }); ca.needsUpdate = true;
+    var pairs = Math.max(1, PEOPLE.n >> 1); W.list.forEach(function (w, k) { w.cell = ((w.lines + k) % pairs) * 2; ca.setX(k, w.cell); }); ca.needsUpdate = true; W.ca = ca;
     R.W.S.scene.add(m); W.spr = m;
     Object.keys(W.I).forEach(function (q) { W.I[q].visible = false; });
+  }
+
+
+  /* ── 2026-11-17: the cast on the street. Lou, Velvet, Tina and Duke stand where they belong (ContentPad figures drawn
+     from their portraits, cut out by Bria); walk up on foot and E talks to them. Each has lines that point you at the
+     things you can only find on foot. ── */
+  var CAST_FIG = {
+    LOU: { file: '5662afe7-b1fb-471c-abe8-0b405171731d.png', h: 1.82 },
+    VELVET: { file: '8657a633-71af-46fe-b427-e2dbc160358f.png', h: 1.76 },
+    TINA: { file: 'e7840f50-6056-493d-aa21-933e1c4cac4f.png', h: 1.9 },
+    DUKE: { file: '4d6ed343-f686-4d6b-be9f-f2b78426885f.png', h: 1.9 }
+  };
+  var CAST_LINES = {
+    LOU: ["The hatch is yours now, kid. Doesn't mean you can't borrow a hearse. There's one in a Manhattan alley nobody's claimed.", "Somebody keeps dropping Polaroids around town. One of them's my garage, '79. Bring it back if you find it.",
+      "The tow truck in the yard was mine. Big Hook. Takes a cruiser down in two. I'm not saying do that.", "Get out and walk once in a while. The town looks different at eye level. Weirder, mostly.",
+      "You hear that ice-cream jingle at three a.m.? That truck's been at the drive-in since '72. Nobody drives it. You could.", "Velvet says there are tapes behind the lamps. I've seen one. Didn't touch it. Not my story to pick up."],
+    VELVET: ["This is Velvet, off the air for five minutes. Don't tell anyone I drink coffee. It ruins the voice.", "Twelve tapes, back of the sidewalks, one a block. Six and the dial opens past the end. I'd say don't, but I made them.",
+      "When the buildings go to wire, the people stop and look at you. They're not being rude. They just finally can.", "The payphones ring for you. Only you. I've stood next to one for an hour. Nothing.",
+      "There's a station past RADIO OFF. You've heard it. Side B is the one I never played on air.", "Go stand in a race light with no car. I dare you."],
+    TINA: ["It rains on this block. Only this block. I stopped asking why in '84.", "One of the Polaroids is me, in this rain. If you find it, don't look at it too long. It looks back.",
+      "The hearse in the alley: the police look the other way. I think they're scared of it. I think they're right.", "Manhattan has a wrong alley. You walk in, you come out across town. Try it with the umbrella. It doesn't help.",
+      "You're the only one here who gets out of the car. Did you notice? Everyone else just drives.", "Say hi to Lou. He pretends he doesn't miss the circuit. He misses the circuit."],
+    DUKE: ["The rover out there. Found it in the sand in '81. No plates, no gravity. Drive it and you'll see what I mean.", "Desert road's the only honest road in this town. Nothing to hide behind. Nothing to hit, either.",
+      "Blackout nights are the good nights. Headlights only. The police can't see a thing. Neither can you, but that's the deal.", "The caller on the phones? He called the cantina once. Asked for himself. I said he wasn't in.",
+      "A fog comes in off the ocean some nights. Can't see a car till it's on you. Near misses pay double. So does the hospital.", "You drive like someone who's leaving. Nobody leaves. But keep driving like that."]
+  };
+  var CASTSPR = {}, CASTS = null;
+  function castSpots() {
+    var lots = CG.blocks.filter(function (b) { return b.lot; }), dIn = lots.filter(function (b) { return b.lot === 'drive-in'; })[0] || lots[0], cas = lots.filter(function (b) { return b.lot !== 'drive-in' && b.lot !== 'yard'; })[0] || lots[1] || lots[0];
+    return {
+      LOU: { x: dIn.x0 + 2.2, z: dIn.z1 - 14 },                 // Sunset, by the drive-in gate
+      VELVET: { x: cas.x1 - 2.2, z: cas.z0 + 16 },             // the Strip, outside the station by the casino lot
+      TINA: { x: CG.xs[1] + 12.6, z: CG.zs[1] + 30 },           // Manhattan, in the rain
+      DUKE: { x: CG.X1 + 100, z: CG.zs[2] - 11.5 }                 // the desert road, by the cantina
+    };
+  }
+  function castBuild(R) {
+    castDispose(R); CASTS = []; var sc = R.W.S.scene, spots = castSpots();
+    Object.keys(CAST_FIG).forEach(function (id) {
+      var F = CAST_FIG[id]; if (!CASTSPR[id]) CASTSPR[id] = { cells: null, loading: false, failed: false, tex: {}, src: null, n: 1, layout: { front: 0, back: 0, side: 0 }, file: F.file, need: 1, single: true };
+      figureLoad(CASTSPR[id]);
+      var sp = spots[id], p = cityPush(sp.x, sp.z, 0.5, FOOT_INSET); var x = sp.x + (p.n ? p.x : 0), z = sp.z + (p.n ? p.z : 0);
+      CASTS.push({ id: id, x: x, z: z, P: null, h: F.h });
+    });
+  }
+  function castDispose(R) { if (!CASTS) return; var sc = R.W.S.scene; CASTS.forEach(function (c) { if (c.P) { sc.remove(c.P.g); c.P.g.traverse(function (m) { if (m.geometry) m.geometry.dispose(); }); if (c.P.tex) c.P.tex.dispose(); } }); CASTS = null; }
+  function castStep(R, dt) {
+    if (!CASTS) return; var sc = R.W.S.scene, cam = R.humans[0] && R.humans[0].cam.position;
+    CASTS.forEach(function (c) {
+      var S = CASTSPR[c.id];
+      if (!c.P && S.cells) { c.P = figureSprite(S, null, c.h); c.P.g.position.set(c.x, cityOnWalk(c.x, c.z) ? CURB_H : 0, c.z); c.P.spr.material.color.setHex(0xe4e6f0); sc.add(c.P.g); c.P.tex.repeat.x = 1; c.P.tex.offset.x = 0; }
+      if (c.P && cam) c.P.g.rotation.y = Math.atan2(cam.x - c.x, cam.z - c.z);
+    });
+  }
+  function castNear(x, z, d) { if (!CASTS) return null; var best = null, bd = d; CASTS.forEach(function (c) { if (!c.P) return; var q = Math.hypot(c.x - x, c.z - z); if (q < bd) { bd = q; best = c; } }); return best; }
+  function castTalk(R, h, c) {
+    if (TALK.on) return; var S = SAVE.odd, k = 'cast_' + c.id, n = S[k] | 0, lines = CAST_LINES[c.id]; S[k] = n + 1; persist();
+    talkShow([[c.id, lines[n % lines.length]]]);
   }
 
   /* ── people: walkers along every block face, instanced (legs, body, head, umbrella), who dive out of the way ── */
@@ -7312,14 +7360,15 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     if (W.spr) {   // billboards: each plane turns to the camera, bobs as it walks, lies down when it's down
       var cam = RACE && RACE.humans[0] ? RACE.humans[0].cam.position : null, cx = cam ? cam.x : 0, cz = cam ? cam.z : 0;
       for (var q = 0; q < L.length; q++) {
-        var w2 = L[q], ce = PEOPLE.cells[w2.cell] || { aspect: 0.45, hgt: 1 }, moving = w2.st === 'walk' || w2.st === 'follow', hh = 1.75 * w2.h * ce.hgt, bob2 = moving ? Math.abs(Math.sin(w2.ph)) * 0.05 : 0;
+        var w2 = L[q], moving = w2.st === 'walk' || w2.st === 'follow', frame = w2.cell + (moving && Math.sin(w2.ph * 1.3) > 0 ? 1 : 0), ce = PEOPLE.cells[frame] || { aspect: 0.45, hgt: 1 }, hh = 1.75 * w2.h * ce.hgt, bob2 = moving ? Math.abs(Math.sin(w2.ph * 1.3)) * 0.03 : 0;
+        if (W.ca.getX(q) !== frame) { W.ca.setX(q, frame); W.caDirty = true; }
         var yaw = Math.atan2(cx - w2.x, cz - w2.z), tilt2 = 0;
         if (w2.st === 'down') tilt2 = -Math.PI / 2 * (w2.t < 1.2 ? 1 : 1 - smooth01((w2.t - 1.2) / 0.4)); else if (w2.st === 'dive') tilt2 = -0.5;
         E.set(tilt2, yaw, moving ? Math.sin(w2.ph) * 0.05 : 0, 'YXZ'); Q.setFromEuler(E);
         var sy = w2.st === 'ride' ? 0.001 : hh * (1 + bob2 * 0.4); S.set(w2.st === 'ride' ? 0.001 : hh * ce.aspect, sy, 1); V.set(w2.x, (cityOnWalk(w2.x, w2.z) ? CURB_H : 0) + bob2, w2.z);
         M.compose(V, Q, S); W.spr.setMatrixAt(q, M);
       }
-      W.spr.instanceMatrix.needsUpdate = true; return;
+      W.spr.instanceMatrix.needsUpdate = true; if (W.caDirty) { W.ca.needsUpdate = true; W.caDirty = false; } return;
     }
     for (var k = 0; k < L.length; k++) {
       var w = L[k], bob = w.st === 'walk' || w.st === 'follow' ? Math.abs(Math.sin(w.ph)) * 0.04 : 0, y = (cityOnWalk(w.x, w.z) ? CURB_H : 0) + bob, lean = 0, tilt = 0;
@@ -8238,7 +8287,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var talk = stars ? (prev ? null : M.win) : M.lose;
     if (talk) setTimeout(function () { if (STATE === 'results') talkShow(talk, null, null); }, 700);
   }
-  window.__nd = { get race() { return RACE; }, get state() { return STATE; }, start: function (type, i, opt) { startRace(type, TRACKS[i], opt || {}); }, photo: function () { var o = {}; Object.keys(PHOTO).forEach(function (k) { o[k] = (PHOTO[k].wheels || []).map(function (w) { return [w.x.toFixed(3), w.y.toFixed(3), w.r.toFixed(3)]; }); }); return o; }, film: function (src) { if (src) FILM_SRC = src; return filmShow(false); }, auto: function (on) { AUTO = !!on; if (RACE) RACE.humans.forEach(function (h) { if (on && !h.ai) h.ai = { skill: 1, lane: 0, laneNow: 0, laneT: 2, nitroOn: false }; }); }, speed: function (s) { TS = s; }, _step: function (sec, fn) { for (var i = 0; i < Math.round(sec * 60); i++) { if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); if (fn) fn(i); } }, sim: function (sec) { for (var i = 0; i < Math.round(sec * 60); i++) if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); render(); }, save: function () { return SAVE; }, _STORY: STORY, storyGo: function (ci, mi) { storyStart(ci, mi); }, _storyResults: function () { storyResults(); }, _talk: function () { return TALK; }, card: function () { return photoCanvas().c.toDataURL('image/jpeg', 0.85); }, tracks: TRACKS, build: BUILD, city: function (opt) { startCity(CITY, opt || {}); }, _HW: HW, _STUNT: STUNT, _TRAPS: TRAPS, _BOARDS: function () { return BOARDS; }, _PROPS: function () { return PROPS; }, _CS: function () { return CS(); }, _surf: function (c) { return surfaceAt(c); }, _push: function (x, z, r, y) { CP_Y = y || 0; var p = cityPush(x, z, r), o = { x: p.x, z: p.z, n: p.n }; CP_Y = 0; return o; }, _sp: function (x, z, r, y) { return stuntPush(x, z, r, y); }, _hgp: function (x, z, r) { return hwGroundPush(x, z, r); }, _open: function () { return OPEN; }, _CITY_RACES: CITY_RACES, _CG: CG, _drive: drive, _newCar: newCar, _CAR: CAR, _ODD: function () { return ODD; }, _WALK: function () { return WALKERS; }, _STATIC: STATIC, _act: function () { ACT.edge = true; }, _fc: function () { return RACE.footCops || []; }, _PEOPLE: PEOPLE, _HERO: HERO, _COPSPR: COPSPR, _sheet: sheetLoad, _renderer: function () { return renderer; }, _ledger: function () { return ledgerHtml(RACE); }, _wx: function (k) { if (k) wxStart(RACE, k); return RACE && RACE.wx; }, _job: function () { return { offer: RACE.jobOffer, job: RACE.job }; }, _jobOffer: function (k) { jobOffer(RACE, k); }, _SPECIAL: SPECIAL, _radio: radioSet, _odd: { take: oddTake, near: oddNear }, info: function () { return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geos: renderer.info.memory.geometries, tex: renderer.info.memory.textures }; } };
+  window.__nd = { get race() { return RACE; }, get state() { return STATE; }, start: function (type, i, opt) { startRace(type, TRACKS[i], opt || {}); }, photo: function () { var o = {}; Object.keys(PHOTO).forEach(function (k) { o[k] = (PHOTO[k].wheels || []).map(function (w) { return [w.x.toFixed(3), w.y.toFixed(3), w.r.toFixed(3)]; }); }); return o; }, film: function (src) { if (src) FILM_SRC = src; return filmShow(false); }, auto: function (on) { AUTO = !!on; if (RACE) RACE.humans.forEach(function (h) { if (on && !h.ai) h.ai = { skill: 1, lane: 0, laneNow: 0, laneT: 2, nitroOn: false }; }); }, speed: function (s) { TS = s; }, _step: function (sec, fn) { for (var i = 0; i < Math.round(sec * 60); i++) { if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); if (fn) fn(i); } }, sim: function (sec) { for (var i = 0; i < Math.round(sec * 60); i++) if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); render(); }, save: function () { return SAVE; }, _STORY: STORY, storyGo: function (ci, mi) { storyStart(ci, mi); }, _storyResults: function () { storyResults(); }, _talk: function () { return TALK; }, card: function () { return photoCanvas().c.toDataURL('image/jpeg', 0.85); }, tracks: TRACKS, build: BUILD, city: function (opt) { startCity(CITY, opt || {}); }, _HW: HW, _STUNT: STUNT, _TRAPS: TRAPS, _BOARDS: function () { return BOARDS; }, _PROPS: function () { return PROPS; }, _CS: function () { return CS(); }, _surf: function (c) { return surfaceAt(c); }, _push: function (x, z, r, y) { CP_Y = y || 0; var p = cityPush(x, z, r), o = { x: p.x, z: p.z, n: p.n }; CP_Y = 0; return o; }, _sp: function (x, z, r, y) { return stuntPush(x, z, r, y); }, _hgp: function (x, z, r) { return hwGroundPush(x, z, r); }, _open: function () { return OPEN; }, _CITY_RACES: CITY_RACES, _CG: CG, _drive: drive, _newCar: newCar, _CAR: CAR, _ODD: function () { return ODD; }, _WALK: function () { return WALKERS; }, _STATIC: STATIC, _act: function () { ACT.edge = true; }, _fc: function () { return RACE.footCops || []; }, _PEOPLE: PEOPLE, _HERO: HERO, _COPSPR: COPSPR, _CASTS: function () { return CASTS; }, _CASTSPR: CASTSPR, _sheet: sheetLoad, _renderer: function () { return renderer; }, _ledger: function () { return ledgerHtml(RACE); }, _wx: function (k) { if (k) wxStart(RACE, k); return RACE && RACE.wx; }, _job: function () { return { offer: RACE.jobOffer, job: RACE.job }; }, _jobOffer: function (k) { jobOffer(RACE, k); }, _SPECIAL: SPECIAL, _radio: radioSet, _odd: { take: oddTake, near: oddNear }, info: function () { return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geos: renderer.info.memory.geometries, tex: renderer.info.memory.textures }; } };
 })();
 </script>
 </body>
