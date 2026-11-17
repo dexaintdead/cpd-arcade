@@ -500,7 +500,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 <script>
 (function () {
   'use strict';
-  var GAME_ID = 'night-drive', BUILD = '2026111606-nd';
+  var GAME_ID = 'night-drive', BUILD = '2026111607-nd';
   var $ = function (id) { return document.getElementById(id); };
   var EMBED = false; try { EMBED = window.top !== window; } catch (e) { EMBED = true; }
   function post(type, extra) { try { if (EMBED) window.parent.postMessage(Object.assign({ arcade: type, game: GAME_ID }, extra || {}), '*'); } catch (e) {} }
@@ -6935,6 +6935,16 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   /* ── 2026-11-16 (late): the hero. One ContentPad sheet (nano-banana-pro, YESTERDAYLAND lock): our guy in eight poses
      on green — front / back / side, standing and mid-stride — in a flat magenta jacket the game recolours to your
      paint. On foot he's a billboard that picks the pose from where the camera is; the blockhead stays as fallback. ── */
+  // a sheet column run wider than 1.6x the median is two figures touching: cut at the thinnest column in its middle
+  function sheetSplit(segs, cnt) {
+    var ws = segs.map(function (q) { return q[1] - q[0]; }).sort(function (a, b) { return a - b; }), med = ws[ws.length >> 1] || 1, out = [];
+    segs.forEach(function (q) {
+      var w = q[1] - q[0]; if (w <= med * 1.6) { out.push(q); return; }
+      var a = q[0] + Math.floor(w * 0.3), b = q[0] + Math.floor(w * 0.7), best = a, bv = 1e9; for (var x = a; x < b; x++) if (cnt[x] < bv) { bv = cnt[x]; best = x; }
+      out.push([q[0], best], [best, q[1]]);
+    });
+    return out;
+  }
   var HERO_SHEET = 'd6792cc2-912c-4095-8cd1-b6016aa798cf.png';
   var HERO = { cells: null, loading: false, failed: false, tex: {}, src: null, n: 0 };
   function heroLoad() {
@@ -6944,10 +6954,11 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       HERO.loading = false;
       try {
         var W = im.width, H = im.height, c = cvs(W, H), g = c.getContext('2d'); g.drawImage(im, 0, 0);
-        var id = g.getImageData(0, 0, W, H), px = id.data, cols = new Uint8Array(W);
-        for (var i = 0; i < px.length; i += 4) { var r = px[i], gg = px[i + 1], b = px[i + 2]; if (gg > r + 40 && gg > b + 40) px[i + 3] = 0; else if (px[i + 3] > 8) cols[(i >> 2) % W] = 1; }
+        var id = g.getImageData(0, 0, W, H), px = id.data, cols = new Uint16Array(W);
+        for (var i = 0; i < px.length; i += 4) { var r = px[i], gg = px[i + 1], b = px[i + 2]; if (gg > r + 40 && gg > b + 40) px[i + 3] = 0; else if (px[i + 3] > 8) cols[(i >> 2) % W]++; }
         g.putImageData(id, 0, 0);
         var segs = [], on = false, st = 0; for (var x = 0; x < W; x++) { if (cols[x] && !on) { on = true; st = x; } if (!cols[x] && on) { on = false; if (x - st > W * 0.02) segs.push([st, x]); } } if (on) segs.push([st, W]);
+        segs = sheetSplit(segs, cols);
         if (segs.length < 8) { HERO.failed = true; return; }
         var cells = segs.slice(0, 8).map(function (q) { var y0 = H, y1 = 0; for (var y = 0; y < H; y++) for (var xx = q[0]; xx < q[1]; xx += 2) { if (px[(y * W + xx) * 4 + 3] > 8) { if (y < y0) y0 = y; if (y > y1) y1 = y; break; } } return { x: q[0], y: y0, w: q[1] - q[0], h: y1 - y0 + 1 }; });
         HERO.src = c; HERO.cells = cells; HERO.n = 8;
@@ -7160,12 +7171,11 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       im.onload = function () {
         try {
           var W = im.width, H = im.height, c = cvs(W, H), g = c.getContext('2d'); g.drawImage(im, 0, 0);
-          var id = g.getImageData(0, 0, W, H), px = id.data, cols = new Uint8Array(W);
-          for (var i = 0; i < px.length; i += 4) { var r = px[i], gg = px[i + 1], b = px[i + 2]; if (gg > r + 40 && gg > b + 40) px[i + 3] = 0; else if (px[i + 3] > 8) cols[(i >> 2) % W] = 1; }
+          var id = g.getImageData(0, 0, W, H), px = id.data, cols = new Uint16Array(W);
+          for (var i = 0; i < px.length; i += 4) { var r = px[i], gg = px[i + 1], b = px[i + 2]; if (gg > r + 40 && gg > b + 40) px[i + 3] = 0; else if (px[i + 3] > 8) cols[(i >> 2) % W]++; }
           g.putImageData(id, 0, 0);
           var segs = [], on = false, st = 0; for (var x = 0; x < W; x++) { if (cols[x] && !on) { on = true; st = x; } if (!cols[x] && on) { on = false; if (x - st > W * 0.03) segs.push([st, x]); } } if (on && W - st > W * 0.03) segs.push([st, W]);
-          var ws = segs.map(function (q) { return q[1] - q[0]; }).sort(function (a, b) { return a - b; }), med = ws[ws.length >> 1] || 1, out = [];
-          segs.forEach(function (q) { if (q[1] - q[0] > med * 1.7) { var m = (q[0] + q[1]) >> 1; out.push([q[0], m], [m, q[1]]); } else out.push(q); });
+          var out = sheetSplit(segs, cols);
           out.forEach(function (q) { var y0 = H, y1 = 0; for (var y = 0; y < H; y++) for (var xx = q[0]; xx < q[1]; xx += 2) { if (px[(y * W + xx) * 4 + 3] > 8) { if (y < y0) y0 = y; if (y > y1) y1 = y; break; } } if (y1 > y0) cells.push({ c: c, x: q[0], y: y0, w: q[1] - q[0], h: y1 - y0 + 1, s: si }); });
         } catch (e) { }
         if (++done === PEOPLE_SHEETS.length) peoplePack(cells);
