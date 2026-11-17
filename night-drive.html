@@ -500,7 +500,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 <script>
 (function () {
   'use strict';
-  var GAME_ID = 'night-drive', BUILD = '2026111605-nd';
+  var GAME_ID = 'night-drive', BUILD = '2026111606-nd';
   var $ = function (id) { return document.getElementById(id); };
   var EMBED = false; try { EMBED = window.top !== window; } catch (e) { EMBED = true; }
   function post(type, extra) { try { if (EMBED) window.parent.postMessage(Object.assign({ arcade: type, game: GAME_ID }, extra || {}), '*'); } catch (e) {} }
@@ -6931,6 +6931,64 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   var ACT = { down: false, edge: false, padPrev: false };
   function actEdge() { var e = ACT.edge; ACT.edge = false; return e; }
   // a runner: legs and arms swing from the hips and shoulders, so the body is a group of pivots (one draw call each)
+
+  /* ── 2026-11-16 (late): the hero. One ContentPad sheet (nano-banana-pro, YESTERDAYLAND lock): our guy in eight poses
+     on green — front / back / side, standing and mid-stride — in a flat magenta jacket the game recolours to your
+     paint. On foot he's a billboard that picks the pose from where the camera is; the blockhead stays as fallback. ── */
+  var HERO_SHEET = 'd6792cc2-912c-4095-8cd1-b6016aa798cf.png';
+  var HERO = { cells: null, loading: false, failed: false, tex: {}, src: null, n: 0 };
+  function heroLoad() {
+    if (HERO.loading || HERO.cells || HERO.failed) return; HERO.loading = true;
+    var im = new Image(); im.crossOrigin = 'anonymous';
+    im.onload = function () {
+      HERO.loading = false;
+      try {
+        var W = im.width, H = im.height, c = cvs(W, H), g = c.getContext('2d'); g.drawImage(im, 0, 0);
+        var id = g.getImageData(0, 0, W, H), px = id.data, cols = new Uint8Array(W);
+        for (var i = 0; i < px.length; i += 4) { var r = px[i], gg = px[i + 1], b = px[i + 2]; if (gg > r + 40 && gg > b + 40) px[i + 3] = 0; else if (px[i + 3] > 8) cols[(i >> 2) % W] = 1; }
+        g.putImageData(id, 0, 0);
+        var segs = [], on = false, st = 0; for (var x = 0; x < W; x++) { if (cols[x] && !on) { on = true; st = x; } if (!cols[x] && on) { on = false; if (x - st > W * 0.02) segs.push([st, x]); } } if (on) segs.push([st, W]);
+        if (segs.length < 8) { HERO.failed = true; return; }
+        var cells = segs.slice(0, 8).map(function (q) { var y0 = H, y1 = 0; for (var y = 0; y < H; y++) for (var xx = q[0]; xx < q[1]; xx += 2) { if (px[(y * W + xx) * 4 + 3] > 8) { if (y < y0) y0 = y; if (y > y1) y1 = y; break; } } return { x: q[0], y: y0, w: q[1] - q[0], h: y1 - y0 + 1 }; });
+        HERO.src = c; HERO.cells = cells; HERO.n = 8;
+      } catch (e) { HERO.failed = true; }
+    };
+    im.onerror = function () { HERO.loading = false; HERO.failed = true; };
+    im.src = ART_HOST + ART + HERO_SHEET + '?w=1600';
+  }
+  // the atlas in one paint: eight 128x256 cells, the magenta jacket swapped for the paint (its shading kept)
+  function heroTex(paintHex) {
+    if (HERO.tex[paintHex]) return HERO.tex[paintHex];
+    var CW = 128, CH = 256, a = cvs(CW * 8, CH), g = a.getContext('2d'), pr = (paintHex >> 16) & 255, pg = (paintHex >> 8) & 255, pb = paintHex & 255;
+    HERO.cells.forEach(function (q, k) { var sc = Math.min(CH / q.h, CW / q.w), dw = q.w * sc, dh = q.h * sc; g.drawImage(HERO.src, q.x, q.y, q.w, q.h, k * CW + (CW - dw) / 2, CH - dh, dw, dh); });
+    var id = g.getImageData(0, 0, a.width, a.height), px = id.data;
+    for (var i = 0; i < px.length; i += 4) {
+      var r = px[i], gg = px[i + 1], b = px[i + 2]; if (px[i + 3] < 8) continue;
+      if (r > 110 && b > 110 && gg < Math.min(r, b) * 0.7) { var lum = Math.min(1.25, (r + b) / 2 / 215); px[i] = Math.min(255, pr * lum); px[i + 1] = Math.min(255, pg * lum); px[i + 2] = Math.min(255, pb * lum); }
+    }
+    g.putImageData(id, 0, 0);
+    var t = new THREE.CanvasTexture(a); t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; t.anisotropy = 4; t.repeat.set(1 / 8, 1);
+    HERO.tex[paintHex] = t; return t;
+  }
+  function heroSprite(paintHex) {
+    var t = heroTex(paintHex).clone(); t.needsUpdate = true;
+    var geo = new THREE.PlaneGeometry(1, 1); geo.translate(0, 0.5, 0);
+    var m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: t, alphaTest: 0.45, side: THREE.DoubleSide, color: 0xd0d4e4, fog: true }));
+    var q = HERO.cells[0], hh = 1.78, g = new THREE.Group(); m.scale.set(hh * q.w / q.h, hh, 1); g.add(m);
+    var sh = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.1), new THREE.MeshBasicMaterial({ map: SOFTBOX, color: 0, transparent: true, opacity: 0.5, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.y = 0.03; g.add(sh);
+    g.userData.noStatic = true;
+    return { g: g, spr: m, tex: t, cell: -1, torso: m, head: m, lL: null, lR: null, aL: null, aR: null };
+  }
+  // pose: pick the cell from where the camera is (front / back / side), and the stride from the walk phase
+  function heroPose(P, F, mv, camYaw) {
+    var rel = F.th - camYaw; while (rel > Math.PI) rel -= 2 * Math.PI; while (rel < -Math.PI) rel += 2 * Math.PI;
+    var a = Math.abs(rel), base, mirror = false;
+    if (a < Math.PI / 4) base = 2; else if (a > 3 * Math.PI / 4) base = 0; else { base = 6; mirror = rel < 0; }
+    var stride = mv > 0.6 && Math.sin(F.ph * 1.6) > 0 ? 1 : 0, cell = base + stride, key = cell * 2 + (mirror ? 1 : 0);
+    if (P.cell !== key) { P.cell = key; var q = HERO.cells[cell]; P.spr.scale.x = 1.78 * q.w / q.h * (mirror ? -1 : 1); P.tex.repeat.x = 1 / 8; P.tex.offset.x = cell / 8; }
+    P.spr.position.y = mv > 0.6 ? Math.abs(Math.sin(F.ph * 1.6)) * 0.05 : 0;
+  }
+  function heroFace(P, F, camPos) { P.g.rotation.y = Math.atan2(camPos.x - F.x, camPos.z - F.z); }
   function makeRunner(jacket, skin) {
     var g = new THREE.Group(), mJ = new THREE.MeshLambertMaterial({ color: jacket }), mL = new THREE.MeshLambertMaterial({ color: 0x1a1c28 }), mS = new THREE.MeshLambertMaterial({ color: skin || 0xd8a888 }), mH = new THREE.MeshLambertMaterial({ color: 0x241a16 });
     function piv(geo, mat, x, y, z, oy) { var p = new THREE.Group(); p.position.set(x, y, z); var m = new THREE.Mesh(geo, mat); m.position.y = oy; p.add(m); g.add(p); return p; }
@@ -6945,6 +7003,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     return { g: g, lL: lL, lR: lR, aL: aL, aR: aR, torso: torso, head: head };
   }
   function runnerPose(P, ph, amp, lean) {
+    if (P.spr) return;
     var s = Math.sin(ph) * amp; P.lL.rotation.z = s; P.lR.rotation.z = -s; P.aL.rotation.z = -s * 0.8; P.aR.rotation.z = s * 0.8;
     P.g.children.forEach(function (o) { if (o !== P.g.children[P.g.children.length - 1]) o.position.y = (o.userData.y0 == null ? (o.userData.y0 = o.position.y) : o.userData.y0) + Math.abs(Math.sin(ph)) * amp * 0.06; });
     P.torso.rotation.z = lean || 0;
@@ -6968,7 +7027,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   function exitCar(R, h, fling) {
     var i = h.human, st = Math.sin(h.th), ct = Math.cos(h.th), ox = h.x + st * 1.7, oz = h.z - ct * 1.7;   // the driver's side
     var p = cityPush(ox, oz, FOOT_R, FOOT_INSET); if (p.n) { ox += p.x; oz += p.z; }
-    var P = makeRunner(PAINTS[h.paint] ? PAINTS[h.paint].c : 0xff2d95);
+    var jacket = PAINTS[h.paint] ? PAINTS[h.paint].c : 0xff2d95, P = HERO.cells ? heroSprite(jacket) : makeRunner(jacket); heroLoad();
     h.foot = { x: ox, z: oz, th: h.th, vx: 0, vz: 0, y: 0, vy: 0, ph: 0, P: P, camYaw: h.th, fl: null, near: null, msgT: 0, up: 0 };
     P.g.position.set(ox, 0, oz); R.W.S.scene.add(P.g);
     h.v = 0; h.inp = noInp(); h.boost = false; h.drift = 0; h.slip = 0; h.slipV = 0;
@@ -6981,7 +7040,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   }
   function footEnd(R, h) {
     var F = h.foot; if (!F) return;
-    R.W.S.scene.remove(F.P.g); F.P.g.traverse(function (o) { if (o.geometry) o.geometry.dispose(); });
+    R.W.S.scene.remove(F.P.g); F.P.g.traverse(function (o) { if (o.geometry) o.geometry.dispose(); }); if (F.P.tex) F.P.tex.dispose();
     h.foot = null; h.cam.userData = {}; $('fPrompt').hidden = true;
     updateCam(h.cam, h, R.TR, 0.016, SET.cam, true);
   }
@@ -7043,14 +7102,14 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       var L = F.fl; L.t += dt; F.vy -= 16 * dt; F.x += F.vx * dt; F.z += F.vz * dt; F.y += F.vy * dt;
       if (F.y <= 0) { F.y = 0; F.vy = 0; F.vx *= Math.max(0, 1 - 6 * dt); F.vz *= Math.max(0, 1 - 6 * dt); }
       var pf = cityPush(F.x, F.z, FOOT_R, FOOT_INSET); if (pf.n) { F.x += pf.x; F.z += pf.z; }
-      P.g.position.set(F.x, F.y, F.z); P.g.rotation.set(0, -F.th, 0);
-      if (F.y > 0.02) P.g.rotation.x = L.spin * L.t; else { P.g.rotation.x = Math.PI / 2 * (1 - smooth01((L.t - 1.4) / 0.5)); }
+      P.g.position.set(F.x, F.y, F.z); P.g.rotation.set(0, -F.th, 0); if (P.spr) { heroFace(P, F, h.cam.position); heroPose(P, F, 0, F.camYaw); }
+      if (F.y > 0.02) P.g.rotation.x = L.spin * L.t; else { P.g.rotation.x = (P.spr ? -1 : 1) * Math.PI / 2 * (1 - smooth01((L.t - 1.4) / 0.5)); }
       runnerPose(P, 0, 0, 0);
       if (L.t > 2.0) { F.fl = null; P.g.rotation.x = 0; }
       $('fPrompt').hidden = true; return;
     }
     if (TOUCH && TCH.brake) { F.stopT = (F.stopT || 0) + dt; if (F.stopT > 1.6) { footRecall(R, h); return; } } else F.stopT = 0;
-    if (F.cuff > 0) { F.vx = F.vz = 0; runnerPose(P, 0, 0, 0); return; }
+    if (F.cuff > 0) { F.vx = F.vz = 0; runnerPose(P, 0, 0, 0); if (P.spr) { heroFace(P, F, h.cam.position); heroPose(P, F, 0, F.camYaw); } return; }
     // move relative to the camera's heading; sprinting burns the legs (the nitro bar reads LEGS on foot)
     if (F.stam == null) F.stam = 1;
     var cy = F.camYaw, fx = Math.cos(cy), fz = Math.sin(cy), rx = -fz, rz = fx, mag = Math.min(1, Math.hypot(inp.mx, inp.my));
@@ -7074,6 +7133,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     F.ph += mv * dt / 0.95 * (mv > WALK_V + 1 ? 0.85 : 1);
     runnerPose(P, F.ph, clamp(mv / RUN_V, 0, 1) * 0.95, clamp(mv / RUN_V, 0, 1) * 0.12);
     P.g.position.set(F.x, F.y, F.z); P.g.rotation.set(0, -F.th, 0);
+    if (P.spr) { heroFace(P, F, h.cam.position); heroPose(P, F, mv, F.camYaw); }
     // what's at hand: a car to take, an oddity to grab, a payphone, someone to talk to
     var prompt = '', act = actEdge(), key = TOUCH ? 'ACT' : 'E';
     var od = oddNear(R, F.x, F.z, 1.6), wk = !od ? walkerNear(R, F.x, F.z, 1.7) : null;
@@ -7143,7 +7203,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   /* ── people: walkers along every block face, instanced (legs, body, head, umbrella), who dive out of the way ── */
   var WALKERS = null, WALK_N = 0;
   function walkersBuild(R) {
-    walkersDispose(R); peopleLoad();
+    walkersDispose(R); peopleLoad(); heroLoad();
     var n = WALK_N = TOUCH ? 72 : 150, sc = R.W.S.scene, rng = seeded(31337), list = [];
     var legG = new THREE.CylinderGeometry(0.13, 0.15, 0.85, 6), bodyG = new THREE.CylinderGeometry(0.2, 0.17, 0.66, 7), headG = new THREE.SphereGeometry(0.12, 7, 5), umbG = new THREE.ConeGeometry(0.55, 0.28, 8, 1, true);
     legG.translate(0, 0.43, 0); bodyG.translate(0, 1.18, 0); headG.translate(0, 1.64, 0); umbG.translate(0.1, 2.05, 0);
@@ -8111,7 +8171,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var talk = stars ? (prev ? null : M.win) : M.lose;
     if (talk) setTimeout(function () { if (STATE === 'results') talkShow(talk, null, null); }, 700);
   }
-  window.__nd = { get race() { return RACE; }, get state() { return STATE; }, start: function (type, i, opt) { startRace(type, TRACKS[i], opt || {}); }, photo: function () { var o = {}; Object.keys(PHOTO).forEach(function (k) { o[k] = (PHOTO[k].wheels || []).map(function (w) { return [w.x.toFixed(3), w.y.toFixed(3), w.r.toFixed(3)]; }); }); return o; }, film: function (src) { if (src) FILM_SRC = src; return filmShow(false); }, auto: function (on) { AUTO = !!on; if (RACE) RACE.humans.forEach(function (h) { if (on && !h.ai) h.ai = { skill: 1, lane: 0, laneNow: 0, laneT: 2, nitroOn: false }; }); }, speed: function (s) { TS = s; }, _step: function (sec, fn) { for (var i = 0; i < Math.round(sec * 60); i++) { if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); if (fn) fn(i); } }, sim: function (sec) { for (var i = 0; i < Math.round(sec * 60); i++) if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); render(); }, save: function () { return SAVE; }, _STORY: STORY, storyGo: function (ci, mi) { storyStart(ci, mi); }, _storyResults: function () { storyResults(); }, _talk: function () { return TALK; }, card: function () { return photoCanvas().c.toDataURL('image/jpeg', 0.85); }, tracks: TRACKS, build: BUILD, city: function (opt) { startCity(CITY, opt || {}); }, _HW: HW, _STUNT: STUNT, _TRAPS: TRAPS, _BOARDS: function () { return BOARDS; }, _PROPS: function () { return PROPS; }, _CS: function () { return CS(); }, _surf: function (c) { return surfaceAt(c); }, _push: function (x, z, r, y) { CP_Y = y || 0; var p = cityPush(x, z, r), o = { x: p.x, z: p.z, n: p.n }; CP_Y = 0; return o; }, _sp: function (x, z, r, y) { return stuntPush(x, z, r, y); }, _hgp: function (x, z, r) { return hwGroundPush(x, z, r); }, _open: function () { return OPEN; }, _CITY_RACES: CITY_RACES, _CG: CG, _drive: drive, _newCar: newCar, _CAR: CAR, _ODD: function () { return ODD; }, _WALK: function () { return WALKERS; }, _STATIC: STATIC, _act: function () { ACT.edge = true; }, _fc: function () { return RACE.footCops || []; }, _PEOPLE: PEOPLE, _renderer: function () { return renderer; }, _ledger: function () { return ledgerHtml(RACE); }, _wx: function (k) { if (k) wxStart(RACE, k); return RACE && RACE.wx; }, _job: function () { return { offer: RACE.jobOffer, job: RACE.job }; }, _jobOffer: function (k) { jobOffer(RACE, k); }, _SPECIAL: SPECIAL, _radio: radioSet, _odd: { take: oddTake, near: oddNear }, info: function () { return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geos: renderer.info.memory.geometries, tex: renderer.info.memory.textures }; } };
+  window.__nd = { get race() { return RACE; }, get state() { return STATE; }, start: function (type, i, opt) { startRace(type, TRACKS[i], opt || {}); }, photo: function () { var o = {}; Object.keys(PHOTO).forEach(function (k) { o[k] = (PHOTO[k].wheels || []).map(function (w) { return [w.x.toFixed(3), w.y.toFixed(3), w.r.toFixed(3)]; }); }); return o; }, film: function (src) { if (src) FILM_SRC = src; return filmShow(false); }, auto: function (on) { AUTO = !!on; if (RACE) RACE.humans.forEach(function (h) { if (on && !h.ai) h.ai = { skill: 1, lane: 0, laneNow: 0, laneT: 2, nitroOn: false }; }); }, speed: function (s) { TS = s; }, _step: function (sec, fn) { for (var i = 0; i < Math.round(sec * 60); i++) { if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); if (fn) fn(i); } }, sim: function (sec) { for (var i = 0; i < Math.round(sec * 60); i++) if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); render(); }, save: function () { return SAVE; }, _STORY: STORY, storyGo: function (ci, mi) { storyStart(ci, mi); }, _storyResults: function () { storyResults(); }, _talk: function () { return TALK; }, card: function () { return photoCanvas().c.toDataURL('image/jpeg', 0.85); }, tracks: TRACKS, build: BUILD, city: function (opt) { startCity(CITY, opt || {}); }, _HW: HW, _STUNT: STUNT, _TRAPS: TRAPS, _BOARDS: function () { return BOARDS; }, _PROPS: function () { return PROPS; }, _CS: function () { return CS(); }, _surf: function (c) { return surfaceAt(c); }, _push: function (x, z, r, y) { CP_Y = y || 0; var p = cityPush(x, z, r), o = { x: p.x, z: p.z, n: p.n }; CP_Y = 0; return o; }, _sp: function (x, z, r, y) { return stuntPush(x, z, r, y); }, _hgp: function (x, z, r) { return hwGroundPush(x, z, r); }, _open: function () { return OPEN; }, _CITY_RACES: CITY_RACES, _CG: CG, _drive: drive, _newCar: newCar, _CAR: CAR, _ODD: function () { return ODD; }, _WALK: function () { return WALKERS; }, _STATIC: STATIC, _act: function () { ACT.edge = true; }, _fc: function () { return RACE.footCops || []; }, _PEOPLE: PEOPLE, _HERO: HERO, _renderer: function () { return renderer; }, _ledger: function () { return ledgerHtml(RACE); }, _wx: function (k) { if (k) wxStart(RACE, k); return RACE && RACE.wx; }, _job: function () { return { offer: RACE.jobOffer, job: RACE.job }; }, _jobOffer: function (k) { jobOffer(RACE, k); }, _SPECIAL: SPECIAL, _radio: radioSet, _odd: { take: oddTake, near: oddNear }, info: function () { return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geos: renderer.info.memory.geometries, tex: renderer.info.memory.textures }; } };
 })();
 </script>
 </body>
