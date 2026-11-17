@@ -500,7 +500,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 <script>
 (function () {
   'use strict';
-  var GAME_ID = 'night-drive', BUILD = '2026111607-nd';
+  var GAME_ID = 'night-drive', BUILD = '2026111608-nd';
   var $ = function (id) { return document.getElementById(id); };
   var EMBED = false; try { EMBED = window.top !== window; } catch (e) { EMBED = true; }
   function post(type, extra) { try { if (EMBED) window.parent.postMessage(Object.assign({ arcade: type, game: GAME_ID }, extra || {}), '*'); } catch (e) {} }
@@ -6945,58 +6945,70 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     });
     return out;
   }
-  var HERO_SHEET = 'd6792cc2-912c-4095-8cd1-b6016aa798cf.png';
-  var HERO = { cells: null, loading: false, failed: false, tex: {}, src: null, n: 0 };
-  function heroLoad() {
-    if (HERO.loading || HERO.cells || HERO.failed) return; HERO.loading = true;
+  var HERO_SHEET = 'd6792cc2-912c-4095-8cd1-b6016aa798cf.png', COP_SHEET = '0b267432-6a48-4809-aa47-9fdb8e0b79c6.png';
+  // a figure sheet on green → keyed canvas + cells (row bands first, then columns in each band, touching figures split)
+  function sheetLoad(file, cb) {
     var im = new Image(); im.crossOrigin = 'anonymous';
     im.onload = function () {
-      HERO.loading = false;
       try {
         var W = im.width, H = im.height, c = cvs(W, H), g = c.getContext('2d'); g.drawImage(im, 0, 0);
-        var id = g.getImageData(0, 0, W, H), px = id.data, cols = new Uint16Array(W);
-        for (var i = 0; i < px.length; i += 4) { var r = px[i], gg = px[i + 1], b = px[i + 2]; if (gg > r + 40 && gg > b + 40) px[i + 3] = 0; else if (px[i + 3] > 8) cols[(i >> 2) % W]++; }
+        var id = g.getImageData(0, 0, W, H), px = id.data, rows = new Uint16Array(H);
+        for (var i = 0; i < px.length; i += 4) { var r = px[i], gg = px[i + 1], b = px[i + 2]; if (gg > r + 40 && gg > b + 40) px[i + 3] = 0; else if (px[i + 3] > 8) rows[((i >> 2) / W) | 0]++; }
         g.putImageData(id, 0, 0);
-        var segs = [], on = false, st = 0; for (var x = 0; x < W; x++) { if (cols[x] && !on) { on = true; st = x; } if (!cols[x] && on) { on = false; if (x - st > W * 0.02) segs.push([st, x]); } } if (on) segs.push([st, W]);
-        segs = sheetSplit(segs, cols);
-        if (segs.length < 8) { HERO.failed = true; return; }
-        var cells = segs.slice(0, 8).map(function (q) { var y0 = H, y1 = 0; for (var y = 0; y < H; y++) for (var xx = q[0]; xx < q[1]; xx += 2) { if (px[(y * W + xx) * 4 + 3] > 8) { if (y < y0) y0 = y; if (y > y1) y1 = y; break; } } return { x: q[0], y: y0, w: q[1] - q[0], h: y1 - y0 + 1 }; });
-        HERO.src = c; HERO.cells = cells; HERO.n = 8;
-      } catch (e) { HERO.failed = true; }
+        var bands = [], on = false, st = 0; for (var y = 0; y < H; y++) { if (rows[y] > 2 && !on) { on = true; st = y; } if (rows[y] <= 2 && on) { on = false; if (y - st > H * 0.08) bands.push([st, y]); } } if (on && H - st > H * 0.08) bands.push([st, H]);
+        var cells = [];
+        bands.forEach(function (bd) {
+          var cols = new Uint16Array(W); for (var yy = bd[0]; yy < bd[1]; yy++) for (var x = 0; x < W; x++) if (px[(yy * W + x) * 4 + 3] > 8) cols[x]++;
+          var segs = [], o2 = false, s2 = 0; for (var x2 = 0; x2 < W; x2++) { if (cols[x2] && !o2) { o2 = true; s2 = x2; } if (!cols[x2] && o2) { o2 = false; if (x2 - s2 > W * 0.02) segs.push([s2, x2]); } } if (o2 && W - s2 > W * 0.02) segs.push([s2, W]);
+          sheetSplit(segs, cols).forEach(function (q) { var y0 = bd[1], y1 = bd[0]; for (var y3 = bd[0]; y3 < bd[1]; y3++) for (var xx = q[0]; xx < q[1]; xx += 2) { if (px[(y3 * W + xx) * 4 + 3] > 8) { if (y3 < y0) y0 = y3; if (y3 > y1) y1 = y3; break; } } if (y1 > y0) cells.push({ x: q[0], y: y0, w: q[1] - q[0], h: y1 - y0 + 1, src: c }); });
+        });
+        cb(cells, c);
+      } catch (e) { cb(null); }
     };
-    im.onerror = function () { HERO.loading = false; HERO.failed = true; };
-    im.src = ART_HOST + ART + HERO_SHEET + '?w=1600';
+    im.onerror = function () { cb(null); };
+    im.src = ART_HOST + ART + file + '?w=1600';
   }
-  // the atlas in one paint: eight 128x256 cells, the magenta jacket swapped for the paint (its shading kept)
-  function heroTex(paintHex) {
-    if (HERO.tex[paintHex]) return HERO.tex[paintHex];
-    var CW = 128, CH = 256, a = cvs(CW * 8, CH), g = a.getContext('2d'), pr = (paintHex >> 16) & 255, pg = (paintHex >> 8) & 255, pb = paintHex & 255;
-    HERO.cells.forEach(function (q, k) { var sc = Math.min(CH / q.h, CW / q.w), dw = q.w * sc, dh = q.h * sc; g.drawImage(HERO.src, q.x, q.y, q.w, q.h, k * CW + (CW - dw) / 2, CH - dh, dw, dh); });
-    var id = g.getImageData(0, 0, a.width, a.height), px = id.data;
-    for (var i = 0; i < px.length; i += 4) {
-      var r = px[i], gg = px[i + 1], b = px[i + 2]; if (px[i + 3] < 8) continue;
-      if (r > 110 && b > 110 && gg < Math.min(r, b) * 0.7) { var lum = Math.min(1.25, (r + b) / 2 / 215); px[i] = Math.min(255, pr * lum); px[i + 1] = Math.min(255, pg * lum); px[i + 2] = Math.min(255, pb * lum); }
+  var HERO = { cells: null, loading: false, failed: false, tex: {}, src: null, n: 8, layout: { front: 0, back: 2, side: 6 }, file: HERO_SHEET, need: 8 };
+  var COPSPR = { cells: null, loading: false, failed: false, tex: {}, src: null, n: 6, layout: { front: 0, back: 2, side: 4 }, file: COP_SHEET, need: 6 };
+  function figureLoad(S) {
+    if (S.loading || S.cells || S.failed) return; S.loading = true;
+    sheetLoad(S.file, function (cells, c) { S.loading = false; if (!cells || cells.length < S.need) { S.failed = true; return; } S.src = c; S.cells = cells.slice(0, S.n); });
+  }
+  function heroLoad() { figureLoad(HERO); figureLoad(COPSPR); }
+  // the atlas in one paint: 128x256 cells, the magenta jacket swapped for the paint (its shading kept); cops as drawn
+  function figureTex(S, paintHex) {
+    var key = paintHex == null ? 'as-is' : paintHex; if (S.tex[key]) return S.tex[key];
+    var CW = 128, CH = 256, n = S.cells.length, a = cvs(CW * n, CH), g = a.getContext('2d');
+    S.cells.forEach(function (q, k) { var sc = Math.min(CH / q.h, CW / q.w), dw = q.w * sc, dh = q.h * sc; g.drawImage(q.src, q.x, q.y, q.w, q.h, k * CW + (CW - dw) / 2, CH - dh, dw, dh); });
+    if (paintHex != null) {
+      var pr = (paintHex >> 16) & 255, pg = (paintHex >> 8) & 255, pb = paintHex & 255, id = g.getImageData(0, 0, a.width, a.height), px = id.data;
+      for (var i = 0; i < px.length; i += 4) {
+        var r = px[i], gg = px[i + 1], b = px[i + 2]; if (px[i + 3] < 8) continue;
+        if (r > 110 && b > 110 && gg < Math.min(r, b) * 0.7) { var lum = Math.min(1.25, (r + b) / 2 / 215); px[i] = Math.min(255, pr * lum); px[i + 1] = Math.min(255, pg * lum); px[i + 2] = Math.min(255, pb * lum); }
+      }
+      g.putImageData(id, 0, 0);
     }
-    g.putImageData(id, 0, 0);
-    var t = new THREE.CanvasTexture(a); t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; t.anisotropy = 4; t.repeat.set(1 / 8, 1);
-    HERO.tex[paintHex] = t; return t;
+    var t = new THREE.CanvasTexture(a); t.minFilter = THREE.LinearMipmapLinearFilter; t.magFilter = THREE.LinearFilter; t.anisotropy = 4; t.repeat.set(1 / n, 1);
+    S.tex[key] = t; return t;
   }
-  function heroSprite(paintHex) {
-    var t = heroTex(paintHex).clone(); t.needsUpdate = true;
+  function heroTex(paintHex) { return figureTex(HERO, paintHex); }
+  function figureSprite(S, paintHex, hh) {
+    var t = figureTex(S, paintHex).clone(); t.needsUpdate = true;
     var geo = new THREE.PlaneGeometry(1, 1); geo.translate(0, 0.5, 0);
     var m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ map: t, alphaTest: 0.45, side: THREE.DoubleSide, color: 0xd0d4e4, fog: true }));
-    var q = HERO.cells[0], hh = 1.78, g = new THREE.Group(); m.scale.set(hh * q.w / q.h, hh, 1); g.add(m);
+    var q = S.cells[0], g = new THREE.Group(); m.scale.set(hh * q.w / q.h, hh, 1); g.add(m);
     var sh = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.1), new THREE.MeshBasicMaterial({ map: SOFTBOX, color: 0, transparent: true, opacity: 0.5, depthWrite: false })); sh.rotation.x = -Math.PI / 2; sh.position.y = 0.03; g.add(sh);
     g.userData.noStatic = true;
-    return { g: g, spr: m, tex: t, cell: -1, torso: m, head: m, lL: null, lR: null, aL: null, aR: null };
+    return { g: g, spr: m, tex: t, cell: -1, S: S, hh: hh, torso: m, head: m, lL: null, lR: null, aL: null, aR: null };
   }
+  function heroSprite(paintHex) { return figureSprite(HERO, paintHex, 1.78); }
   // pose: pick the cell from where the camera is (front / back / side), and the stride from the walk phase
   function heroPose(P, F, mv, camYaw) {
-    var rel = F.th - camYaw; while (rel > Math.PI) rel -= 2 * Math.PI; while (rel < -Math.PI) rel += 2 * Math.PI;
+    var S = P.S, L = S.layout, rel = F.th - camYaw; while (rel > Math.PI) rel -= 2 * Math.PI; while (rel < -Math.PI) rel += 2 * Math.PI;
     var a = Math.abs(rel), base, mirror = false;
-    if (a < Math.PI / 4) base = 2; else if (a > 3 * Math.PI / 4) base = 0; else { base = 6; mirror = rel < 0; }
-    var stride = mv > 0.6 && Math.sin(F.ph * 1.6) > 0 ? 1 : 0, cell = base + stride, key = cell * 2 + (mirror ? 1 : 0);
-    if (P.cell !== key) { P.cell = key; var q = HERO.cells[cell]; P.spr.scale.x = 1.78 * q.w / q.h * (mirror ? -1 : 1); P.tex.repeat.x = 1 / 8; P.tex.offset.x = cell / 8; }
+    if (a < Math.PI / 4) base = L.back; else if (a > 3 * Math.PI / 4) base = L.front; else { base = L.side; mirror = rel < 0; }
+    var stride = mv > 0.6 && Math.sin(F.ph * 1.6) > 0 ? 1 : 0, cell = base + stride, key = cell * 2 + (mirror ? 1 : 0), n = S.cells.length;
+    if (P.cell !== key) { P.cell = key; var q = S.cells[cell]; P.spr.scale.x = P.hh * q.w / q.h * (mirror ? -1 : 1); P.tex.repeat.x = 1 / n; P.tex.offset.x = cell / n; }
     P.spr.position.y = mv > 0.6 ? Math.abs(Math.sin(F.ph * 1.6)) * 0.05 : 0;
   }
   function heroFace(P, F, camPos) { P.g.rotation.y = Math.atan2(camPos.x - F.x, camPos.z - F.z); }
@@ -7743,14 +7755,14 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       if (!c.cop || c.gone || c.wrecked || c.block || c.cop.mode !== 'chase' || c.cop.tgt !== h || c.cop.footed || L.length >= 2) return;
       if (Math.hypot(c.x - F.x, c.z - F.z) > 42) return;
       c.cop.footed = true; c.hold = 99;   // the cruiser waits
-      var P = makeRunner(0x1a1a22, 0xd8a888); P.torso.material = new THREE.MeshLambertMaterial({ color: 0xf2f0ea });
+      var P = COPSPR.cells ? figureSprite(COPSPR, null, 1.8) : makeRunner(0x1a1a22, 0xd8a888); if (!P.spr) P.torso.material = new THREE.MeshLambertMaterial({ color: 0xf2f0ea });
       var st = Math.sin(c.th), ct = Math.cos(c.th), o = { x: c.x + st * 1.8, z: c.z - ct * 1.8, th: c.th, v: 0, P: P, car: c, lost: 0, ph: 0 };
       P.g.position.set(o.x, 0, o.z); sc.add(P.g); L.push(o);
       hudMsg(i, 'ON FOOT, WITH THE HEAT ON<small>they\'re out of the car · lose them in the alleys</small>', 'warn', 2.4); sfx('busted');
     });
     for (var k = L.length - 1; k >= 0; k--) {
       var o = L[k], dx = F.x - o.x, dz = F.z - o.z, d = Math.hypot(dx, dz);
-      if (F.cuff) { runnerPose(o.P, 0, 0, 0); continue; }
+      if (F.cuff) { runnerPose(o.P, 0, 0, 0); if (o.P.spr) { heroFace(o.P, o, h.cam.position); heroPose(o.P, o, 0, F.camYaw); } continue; }
       var see = d < 75 && cityLOS(o.x, o.z, F.x, F.z);
       if (see) { o.lost = 0; o.tx = F.x; o.tz = F.z; } else o.lost += dt;
       if (o.lost > 7 || d > 140) { footCopGone(R, o, k, true); continue; }
@@ -7759,6 +7771,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       o.x += gx / gl * sp * dt; o.z += gz / gl * sp * dt; o.th = Math.atan2(gz, gx); o.ph += sp * dt / 0.95;
       var p = cityPush(o.x, o.z, FOOT_R, FOOT_INSET); if (p.n) { o.x += p.x; o.z += p.z; }
       o.P.g.position.set(o.x, cityOnWalk(o.x, o.z) ? CURB_H : 0, o.z); o.P.g.rotation.set(0, -o.th, 0); runnerPose(o.P, o.ph, sp > 1 ? 0.95 : 0, 0.12);
+      if (o.P.spr) { heroFace(o.P, o, h.cam.position); heroPose(o.P, o, sp, F.camYaw); }
       if (d < 1.25 && !F.fl) footCaught(R, h, o);
     }
     if (!L.length && !F.cuff) return;
@@ -7774,7 +7787,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     hudMsg(h.human, 'GOT YOU<small>' + (SAVE.cash >= 100 ? 'E to bribe, or take the fine' : 'take the fine') + '</small>', 'warn', 2); sfx('busted'); h.cam.userData.shake = 0.4;
   }
   function footCopGone(R, o, k, lost) {
-    R.W.S.scene.remove(o.P.g); o.P.g.traverse(function (m) { if (m.geometry) m.geometry.dispose(); }); R.footCops.splice(k, 1);
+    R.W.S.scene.remove(o.P.g); o.P.g.traverse(function (m) { if (m.geometry) m.geometry.dispose(); }); if (o.P.tex) o.P.tex.dispose(); R.footCops.splice(k, 1);
     var c = o.car; c.cop.footed = false; c.hold = 0;
     if (lost) { giveUp(R, c, true); hudMsg(0, 'LOST HIM<small>on foot · the cruiser gives up</small>', '', 1.8); }
   }
@@ -8181,7 +8194,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var talk = stars ? (prev ? null : M.win) : M.lose;
     if (talk) setTimeout(function () { if (STATE === 'results') talkShow(talk, null, null); }, 700);
   }
-  window.__nd = { get race() { return RACE; }, get state() { return STATE; }, start: function (type, i, opt) { startRace(type, TRACKS[i], opt || {}); }, photo: function () { var o = {}; Object.keys(PHOTO).forEach(function (k) { o[k] = (PHOTO[k].wheels || []).map(function (w) { return [w.x.toFixed(3), w.y.toFixed(3), w.r.toFixed(3)]; }); }); return o; }, film: function (src) { if (src) FILM_SRC = src; return filmShow(false); }, auto: function (on) { AUTO = !!on; if (RACE) RACE.humans.forEach(function (h) { if (on && !h.ai) h.ai = { skill: 1, lane: 0, laneNow: 0, laneT: 2, nitroOn: false }; }); }, speed: function (s) { TS = s; }, _step: function (sec, fn) { for (var i = 0; i < Math.round(sec * 60); i++) { if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); if (fn) fn(i); } }, sim: function (sec) { for (var i = 0; i < Math.round(sec * 60); i++) if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); render(); }, save: function () { return SAVE; }, _STORY: STORY, storyGo: function (ci, mi) { storyStart(ci, mi); }, _storyResults: function () { storyResults(); }, _talk: function () { return TALK; }, card: function () { return photoCanvas().c.toDataURL('image/jpeg', 0.85); }, tracks: TRACKS, build: BUILD, city: function (opt) { startCity(CITY, opt || {}); }, _HW: HW, _STUNT: STUNT, _TRAPS: TRAPS, _BOARDS: function () { return BOARDS; }, _PROPS: function () { return PROPS; }, _CS: function () { return CS(); }, _surf: function (c) { return surfaceAt(c); }, _push: function (x, z, r, y) { CP_Y = y || 0; var p = cityPush(x, z, r), o = { x: p.x, z: p.z, n: p.n }; CP_Y = 0; return o; }, _sp: function (x, z, r, y) { return stuntPush(x, z, r, y); }, _hgp: function (x, z, r) { return hwGroundPush(x, z, r); }, _open: function () { return OPEN; }, _CITY_RACES: CITY_RACES, _CG: CG, _drive: drive, _newCar: newCar, _CAR: CAR, _ODD: function () { return ODD; }, _WALK: function () { return WALKERS; }, _STATIC: STATIC, _act: function () { ACT.edge = true; }, _fc: function () { return RACE.footCops || []; }, _PEOPLE: PEOPLE, _HERO: HERO, _renderer: function () { return renderer; }, _ledger: function () { return ledgerHtml(RACE); }, _wx: function (k) { if (k) wxStart(RACE, k); return RACE && RACE.wx; }, _job: function () { return { offer: RACE.jobOffer, job: RACE.job }; }, _jobOffer: function (k) { jobOffer(RACE, k); }, _SPECIAL: SPECIAL, _radio: radioSet, _odd: { take: oddTake, near: oddNear }, info: function () { return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geos: renderer.info.memory.geometries, tex: renderer.info.memory.textures }; } };
+  window.__nd = { get race() { return RACE; }, get state() { return STATE; }, start: function (type, i, opt) { startRace(type, TRACKS[i], opt || {}); }, photo: function () { var o = {}; Object.keys(PHOTO).forEach(function (k) { o[k] = (PHOTO[k].wheels || []).map(function (w) { return [w.x.toFixed(3), w.y.toFixed(3), w.r.toFixed(3)]; }); }); return o; }, film: function (src) { if (src) FILM_SRC = src; return filmShow(false); }, auto: function (on) { AUTO = !!on; if (RACE) RACE.humans.forEach(function (h) { if (on && !h.ai) h.ai = { skill: 1, lane: 0, laneNow: 0, laneT: 2, nitroOn: false }; }); }, speed: function (s) { TS = s; }, _step: function (sec, fn) { for (var i = 0; i < Math.round(sec * 60); i++) { if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); if (fn) fn(i); } }, sim: function (sec) { for (var i = 0; i < Math.round(sec * 60); i++) if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); render(); }, save: function () { return SAVE; }, _STORY: STORY, storyGo: function (ci, mi) { storyStart(ci, mi); }, _storyResults: function () { storyResults(); }, _talk: function () { return TALK; }, card: function () { return photoCanvas().c.toDataURL('image/jpeg', 0.85); }, tracks: TRACKS, build: BUILD, city: function (opt) { startCity(CITY, opt || {}); }, _HW: HW, _STUNT: STUNT, _TRAPS: TRAPS, _BOARDS: function () { return BOARDS; }, _PROPS: function () { return PROPS; }, _CS: function () { return CS(); }, _surf: function (c) { return surfaceAt(c); }, _push: function (x, z, r, y) { CP_Y = y || 0; var p = cityPush(x, z, r), o = { x: p.x, z: p.z, n: p.n }; CP_Y = 0; return o; }, _sp: function (x, z, r, y) { return stuntPush(x, z, r, y); }, _hgp: function (x, z, r) { return hwGroundPush(x, z, r); }, _open: function () { return OPEN; }, _CITY_RACES: CITY_RACES, _CG: CG, _drive: drive, _newCar: newCar, _CAR: CAR, _ODD: function () { return ODD; }, _WALK: function () { return WALKERS; }, _STATIC: STATIC, _act: function () { ACT.edge = true; }, _fc: function () { return RACE.footCops || []; }, _PEOPLE: PEOPLE, _HERO: HERO, _COPSPR: COPSPR, _sheet: sheetLoad, _renderer: function () { return renderer; }, _ledger: function () { return ledgerHtml(RACE); }, _wx: function (k) { if (k) wxStart(RACE, k); return RACE && RACE.wx; }, _job: function () { return { offer: RACE.jobOffer, job: RACE.job }; }, _jobOffer: function (k) { jobOffer(RACE, k); }, _SPECIAL: SPECIAL, _radio: radioSet, _odd: { take: oddTake, near: oddNear }, info: function () { return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geos: renderer.info.memory.geometries, tex: renderer.info.memory.textures }; } };
 })();
 </script>
 </body>
