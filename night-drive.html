@@ -500,7 +500,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 <script>
 (function () {
   'use strict';
-  var GAME_ID = 'night-drive', BUILD = '2026111604-nd';
+  var GAME_ID = 'night-drive', BUILD = '2026111605-nd';
   var $ = function (id) { return document.getElementById(id); };
   var EMBED = false; try { EMBED = window.top !== window; } catch (e) { EMBED = true; }
   function post(type, extra) { try { if (EMBED) window.parent.postMessage(Object.assign({ arcade: type, game: GAME_ID }, extra || {}), '*'); } catch (e) {} }
@@ -7086,10 +7086,64 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     h.v = 0;   // the car sits
   }
 
+
+  /* ── 2026-11-16 (night): the people as ContentPad sprites. Two nano-banana-pro crowd sheets (eight 1980s pedestrians
+     each, front view, on green) are keyed, sliced by column and packed into one 16-cell atlas; each walker is a
+     billboard plane picking a cell. The cylinder figures stay as the fallback until the sheets arrive. ── */
+  var PEOPLE_SHEETS = ['e9e3bb87-6cbd-4857-9636-98768201344f.png', '4f654686-4788-49fc-84e6-d639a0a1f889.png'];
+  var PEOPLE = { tex: null, n: 0, cells: [], loading: false, failed: false };
+  function peopleLoad() {
+    if (PEOPLE.loading || PEOPLE.tex || PEOPLE.failed) return; PEOPLE.loading = true;
+    var cells = [], done = 0;
+    PEOPLE_SHEETS.forEach(function (f, si) {
+      var im = new Image(); im.crossOrigin = 'anonymous';
+      im.onload = function () {
+        try {
+          var W = im.width, H = im.height, c = cvs(W, H), g = c.getContext('2d'); g.drawImage(im, 0, 0);
+          var id = g.getImageData(0, 0, W, H), px = id.data, cols = new Uint8Array(W);
+          for (var i = 0; i < px.length; i += 4) { var r = px[i], gg = px[i + 1], b = px[i + 2]; if (gg > r + 40 && gg > b + 40) px[i + 3] = 0; else if (px[i + 3] > 8) cols[(i >> 2) % W] = 1; }
+          g.putImageData(id, 0, 0);
+          var segs = [], on = false, st = 0; for (var x = 0; x < W; x++) { if (cols[x] && !on) { on = true; st = x; } if (!cols[x] && on) { on = false; if (x - st > W * 0.03) segs.push([st, x]); } } if (on && W - st > W * 0.03) segs.push([st, W]);
+          var ws = segs.map(function (q) { return q[1] - q[0]; }).sort(function (a, b) { return a - b; }), med = ws[ws.length >> 1] || 1, out = [];
+          segs.forEach(function (q) { if (q[1] - q[0] > med * 1.7) { var m = (q[0] + q[1]) >> 1; out.push([q[0], m], [m, q[1]]); } else out.push(q); });
+          out.forEach(function (q) { var y0 = H, y1 = 0; for (var y = 0; y < H; y++) for (var xx = q[0]; xx < q[1]; xx += 2) { if (px[(y * W + xx) * 4 + 3] > 8) { if (y < y0) y0 = y; if (y > y1) y1 = y; break; } } if (y1 > y0) cells.push({ c: c, x: q[0], y: y0, w: q[1] - q[0], h: y1 - y0 + 1, s: si }); });
+        } catch (e) { }
+        if (++done === PEOPLE_SHEETS.length) peoplePack(cells);
+      };
+      im.onerror = function () { if (++done === PEOPLE_SHEETS.length) peoplePack(cells); };
+      im.src = ART_HOST + ART + f + '?w=1600';
+    });
+  }
+  function peoplePack(cells) {
+    PEOPLE.loading = false; if (cells.length < 6) { PEOPLE.failed = true; return; }
+    cells.sort(function (a, b) { return a.s - b.s || a.x - b.x; });
+    var CW = 128, CH = 256, n = Math.min(32, cells.length), atlas = cvs(CW * n, CH), g = atlas.getContext('2d'), out = [];
+    for (var k = 0; k < n; k++) { var q = cells[k], sc = Math.min(CH / q.h, CW / q.w), dw = q.w * sc, dh = q.h * sc; g.drawImage(q.c, q.x, q.y, q.w, q.h, k * CW + (CW - dw) / 2, CH - dh, dw, dh); out.push({ aspect: dw / dh, hgt: dh / CH }); }
+    var tex = new THREE.CanvasTexture(atlas); tex.minFilter = THREE.LinearMipmapLinearFilter; tex.magFilter = THREE.LinearFilter; tex.generateMipmaps = true; tex.anisotropy = 4;
+    PEOPLE.tex = tex; PEOPLE.n = n; PEOPLE.cells = out;
+  }
+  var PEOPLE_VERT = 'attribute float cell; uniform float n; varying vec2 vUv;\n#include <fog_pars_vertex>\nvoid main(){ vUv = vec2((cell + uv.x) / n, uv.y); vec4 mvPosition = modelViewMatrix * instanceMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mvPosition;\n#include <fog_vertex>\n}';
+  var PEOPLE_FRAG = 'uniform sampler2D map; uniform vec3 tint; varying vec2 vUv;\n#include <fog_pars_fragment>\nvoid main(){ vec4 c = texture2D(map, vUv); if (c.a < 0.45) discard; gl_FragColor = vec4(c.rgb * tint, 1.0);\n#include <fog_fragment>\n}';
+  function peopleMesh(n) {
+    var geo = new THREE.PlaneGeometry(1, 1); geo.translate(0, 0.5, 0);
+    var cellAttr = new THREE.InstancedBufferAttribute(new Float32Array(n), 1); geo.setAttribute('cell', cellAttr);
+    var mat = new THREE.ShaderMaterial({ uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { map: { value: null }, n: { value: PEOPLE.n }, tint: { value: new THREE.Color(0.78, 0.8, 0.9) } }]), vertexShader: PEOPLE_VERT, fragmentShader: PEOPLE_FRAG, fog: true, side: THREE.DoubleSide });
+    mat.uniforms.map.value = PEOPLE.tex;
+    var m = new THREE.InstancedMesh(geo, mat, n); m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); m.frustumCulled = false; m.userData.noStatic = true; m.userData.cellAttr = cellAttr;
+    return m;
+  }
+  function walkersSprites(R) {
+    var W = WALKERS; if (!W || W.spr || !PEOPLE.tex) return;
+    var m = peopleMesh(W.list.length), ca = m.userData.cellAttr;
+    W.list.forEach(function (w, k) { w.cell = (w.lines + k) % PEOPLE.n; ca.setX(k, w.cell); }); ca.needsUpdate = true;
+    R.W.S.scene.add(m); W.spr = m;
+    Object.keys(W.I).forEach(function (q) { W.I[q].visible = false; });
+  }
+
   /* ── people: walkers along every block face, instanced (legs, body, head, umbrella), who dive out of the way ── */
   var WALKERS = null, WALK_N = 0;
   function walkersBuild(R) {
-    walkersDispose(R);
+    walkersDispose(R); peopleLoad();
     var n = WALK_N = TOUCH ? 72 : 150, sc = R.W.S.scene, rng = seeded(31337), list = [];
     var legG = new THREE.CylinderGeometry(0.13, 0.15, 0.85, 6), bodyG = new THREE.CylinderGeometry(0.2, 0.17, 0.66, 7), headG = new THREE.SphereGeometry(0.12, 7, 5), umbG = new THREE.ConeGeometry(0.55, 0.28, 8, 1, true);
     legG.translate(0, 0.43, 0); bodyG.translate(0, 1.18, 0); headG.translate(0, 1.64, 0); umbG.translate(0.1, 2.05, 0);
@@ -7111,7 +7165,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     WALKERS = { list: list, I: I, M: new THREE.Matrix4(), Q: new THREE.Quaternion(), E: new THREE.Euler(), S: new THREE.Vector3(), V: new THREE.Vector3() };
     walkersPose(0);
   }
-  function walkersDispose(R) { if (!WALKERS) return; var sc = R.W.S.scene; Object.keys(WALKERS.I).forEach(function (q) { sc.remove(WALKERS.I[q]); WALKERS.I[q].geometry.dispose(); }); WALKERS = null; }
+  function walkersDispose(R) { if (!WALKERS) return; var sc = R.W.S.scene; Object.keys(WALKERS.I).forEach(function (q) { sc.remove(WALKERS.I[q]); WALKERS.I[q].geometry.dispose(); }); if (WALKERS.spr) { sc.remove(WALKERS.spr); WALKERS.spr.geometry.dispose(); WALKERS.spr.material.dispose(); } WALKERS = null; }
   function walkerPlace(w) {
     var sg = w.seg, A = CG.nodes[sg.a], B = CG.nodes[sg.b], tx = (B.x - A.x) / sg.len, tz = (B.z - A.z) / sg.len;
     w.x = A.x + tx * w.s - tz * w.sd * w.off; w.z = A.z + tz * w.s + tx * w.sd * w.off; w.th = Math.atan2(tz * w.dir, tx * w.dir);
@@ -7172,6 +7226,19 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   }
   function walkersPose(dt) {
     var W = WALKERS, L = W.list, I = W.I, M = W.M, Q = W.Q, E = W.E, S = W.S, V = W.V;
+    if (!W.spr && PEOPLE.tex && RACE) walkersSprites(RACE);
+    if (W.spr) {   // billboards: each plane turns to the camera, bobs as it walks, lies down when it's down
+      var cam = RACE && RACE.humans[0] ? RACE.humans[0].cam.position : null, cx = cam ? cam.x : 0, cz = cam ? cam.z : 0;
+      for (var q = 0; q < L.length; q++) {
+        var w2 = L[q], ce = PEOPLE.cells[w2.cell] || { aspect: 0.45, hgt: 1 }, moving = w2.st === 'walk' || w2.st === 'follow', hh = 1.75 * w2.h * ce.hgt, bob2 = moving ? Math.abs(Math.sin(w2.ph)) * 0.05 : 0;
+        var yaw = Math.atan2(cx - w2.x, cz - w2.z), tilt2 = 0;
+        if (w2.st === 'down') tilt2 = -Math.PI / 2 * (w2.t < 1.2 ? 1 : 1 - smooth01((w2.t - 1.2) / 0.4)); else if (w2.st === 'dive') tilt2 = -0.5;
+        E.set(tilt2, yaw, moving ? Math.sin(w2.ph) * 0.05 : 0, 'YXZ'); Q.setFromEuler(E);
+        var sy = w2.st === 'ride' ? 0.001 : hh * (1 + bob2 * 0.4); S.set(w2.st === 'ride' ? 0.001 : hh * ce.aspect, sy, 1); V.set(w2.x, (cityOnWalk(w2.x, w2.z) ? CURB_H : 0) + bob2, w2.z);
+        M.compose(V, Q, S); W.spr.setMatrixAt(q, M);
+      }
+      W.spr.instanceMatrix.needsUpdate = true; return;
+    }
     for (var k = 0; k < L.length; k++) {
       var w = L[k], bob = w.st === 'walk' || w.st === 'follow' ? Math.abs(Math.sin(w.ph)) * 0.04 : 0, y = (cityOnWalk(w.x, w.z) ? CURB_H : 0) + bob, lean = 0, tilt = 0;
       if (w.st === 'down') tilt = Math.PI / 2 * (w.t < 1.2 ? 1 : 1 - smooth01((w.t - 1.2) / 0.4)); else if (w.st === 'dive') lean = 0.5;
@@ -8044,7 +8111,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var talk = stars ? (prev ? null : M.win) : M.lose;
     if (talk) setTimeout(function () { if (STATE === 'results') talkShow(talk, null, null); }, 700);
   }
-  window.__nd = { get race() { return RACE; }, get state() { return STATE; }, start: function (type, i, opt) { startRace(type, TRACKS[i], opt || {}); }, photo: function () { var o = {}; Object.keys(PHOTO).forEach(function (k) { o[k] = (PHOTO[k].wheels || []).map(function (w) { return [w.x.toFixed(3), w.y.toFixed(3), w.r.toFixed(3)]; }); }); return o; }, film: function (src) { if (src) FILM_SRC = src; return filmShow(false); }, auto: function (on) { AUTO = !!on; if (RACE) RACE.humans.forEach(function (h) { if (on && !h.ai) h.ai = { skill: 1, lane: 0, laneNow: 0, laneT: 2, nitroOn: false }; }); }, speed: function (s) { TS = s; }, _step: function (sec, fn) { for (var i = 0; i < Math.round(sec * 60); i++) { if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); if (fn) fn(i); } }, sim: function (sec) { for (var i = 0; i < Math.round(sec * 60); i++) if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); render(); }, save: function () { return SAVE; }, _STORY: STORY, storyGo: function (ci, mi) { storyStart(ci, mi); }, _storyResults: function () { storyResults(); }, _talk: function () { return TALK; }, card: function () { return photoCanvas().c.toDataURL('image/jpeg', 0.85); }, tracks: TRACKS, build: BUILD, city: function (opt) { startCity(CITY, opt || {}); }, _HW: HW, _STUNT: STUNT, _TRAPS: TRAPS, _BOARDS: function () { return BOARDS; }, _PROPS: function () { return PROPS; }, _CS: function () { return CS(); }, _surf: function (c) { return surfaceAt(c); }, _push: function (x, z, r, y) { CP_Y = y || 0; var p = cityPush(x, z, r), o = { x: p.x, z: p.z, n: p.n }; CP_Y = 0; return o; }, _sp: function (x, z, r, y) { return stuntPush(x, z, r, y); }, _hgp: function (x, z, r) { return hwGroundPush(x, z, r); }, _open: function () { return OPEN; }, _CITY_RACES: CITY_RACES, _CG: CG, _drive: drive, _newCar: newCar, _CAR: CAR, _ODD: function () { return ODD; }, _WALK: function () { return WALKERS; }, _STATIC: STATIC, _act: function () { ACT.edge = true; }, _fc: function () { return RACE.footCops || []; }, _ledger: function () { return ledgerHtml(RACE); }, _wx: function (k) { if (k) wxStart(RACE, k); return RACE && RACE.wx; }, _job: function () { return { offer: RACE.jobOffer, job: RACE.job }; }, _jobOffer: function (k) { jobOffer(RACE, k); }, _SPECIAL: SPECIAL, _radio: radioSet, _odd: { take: oddTake, near: oddNear }, info: function () { return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geos: renderer.info.memory.geometries, tex: renderer.info.memory.textures }; } };
+  window.__nd = { get race() { return RACE; }, get state() { return STATE; }, start: function (type, i, opt) { startRace(type, TRACKS[i], opt || {}); }, photo: function () { var o = {}; Object.keys(PHOTO).forEach(function (k) { o[k] = (PHOTO[k].wheels || []).map(function (w) { return [w.x.toFixed(3), w.y.toFixed(3), w.r.toFixed(3)]; }); }); return o; }, film: function (src) { if (src) FILM_SRC = src; return filmShow(false); }, auto: function (on) { AUTO = !!on; if (RACE) RACE.humans.forEach(function (h) { if (on && !h.ai) h.ai = { skill: 1, lane: 0, laneNow: 0, laneT: 2, nitroOn: false }; }); }, speed: function (s) { TS = s; }, _step: function (sec, fn) { for (var i = 0; i < Math.round(sec * 60); i++) { if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); if (fn) fn(i); } }, sim: function (sec) { for (var i = 0; i < Math.round(sec * 60); i++) if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); render(); }, save: function () { return SAVE; }, _STORY: STORY, storyGo: function (ci, mi) { storyStart(ci, mi); }, _storyResults: function () { storyResults(); }, _talk: function () { return TALK; }, card: function () { return photoCanvas().c.toDataURL('image/jpeg', 0.85); }, tracks: TRACKS, build: BUILD, city: function (opt) { startCity(CITY, opt || {}); }, _HW: HW, _STUNT: STUNT, _TRAPS: TRAPS, _BOARDS: function () { return BOARDS; }, _PROPS: function () { return PROPS; }, _CS: function () { return CS(); }, _surf: function (c) { return surfaceAt(c); }, _push: function (x, z, r, y) { CP_Y = y || 0; var p = cityPush(x, z, r), o = { x: p.x, z: p.z, n: p.n }; CP_Y = 0; return o; }, _sp: function (x, z, r, y) { return stuntPush(x, z, r, y); }, _hgp: function (x, z, r) { return hwGroundPush(x, z, r); }, _open: function () { return OPEN; }, _CITY_RACES: CITY_RACES, _CG: CG, _drive: drive, _newCar: newCar, _CAR: CAR, _ODD: function () { return ODD; }, _WALK: function () { return WALKERS; }, _STATIC: STATIC, _act: function () { ACT.edge = true; }, _fc: function () { return RACE.footCops || []; }, _PEOPLE: PEOPLE, _renderer: function () { return renderer; }, _ledger: function () { return ledgerHtml(RACE); }, _wx: function (k) { if (k) wxStart(RACE, k); return RACE && RACE.wx; }, _job: function () { return { offer: RACE.jobOffer, job: RACE.job }; }, _jobOffer: function (k) { jobOffer(RACE, k); }, _SPECIAL: SPECIAL, _radio: radioSet, _odd: { take: oddTake, near: oddNear }, info: function () { return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geos: renderer.info.memory.geometries, tex: renderer.info.memory.textures }; } };
 })();
 </script>
 </body>
