@@ -102,6 +102,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 .hud .card b{display:block;font:400 clamp(11px,2vw,22px)/1.35 var(--wide);letter-spacing:.2em;color:#fff}
 .hud .card span{display:block;font:400 clamp(20px,3vw,34px)/1.2 var(--script);color:var(--amb);text-shadow:0 0 18px rgba(255,154,60,.55)}
 #fPrompt{position:fixed;left:50%;bottom:22%;transform:translateX(-50%);z-index:8;pointer-events:none;font:700 clamp(13px,1.6vw,18px)/1 var(--hud);letter-spacing:.12em;color:#fff;background:rgba(10,12,24,.72);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:10px 16px;text-shadow:0 0 12px rgba(24,216,255,.8);white-space:nowrap}
+#jobHud{position:fixed;left:50%;top:84px;transform:translateX(-50%);z-index:8;pointer-events:none;font:700 clamp(12px,1.4vw,16px)/1 var(--hud);letter-spacing:.14em;color:#9fe8ff;background:rgba(10,12,24,.6);border:1px solid rgba(94,224,255,.4);border-radius:999px;padding:8px 16px;white-space:nowrap}
+#jobHud.late{color:#ff9a9a;border-color:rgba(255,120,120,.6)}
 #count{position:fixed;inset:0;display:grid;place-items:center;z-index:8;pointer-events:none;font:900 clamp(80px,18vw,200px)/1 var(--hud);color:#fff;text-shadow:0 0 30px rgba(255,154,60,.8),0 6px 0 rgba(0,0,0,.5)}
 #count.go{color:#ffd29a}
 #count span{animation:pop .9s ease-out both}
@@ -308,6 +310,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 <div id="split" hidden></div>
 <div id="count" hidden></div>
 <div id="fPrompt" hidden></div>
+<div id="jobHud" hidden></div>
 <div id="vig"></div>
 <canvas id="grain" width="256" height="256"></canvas>
 
@@ -495,7 +498,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 <script>
 (function () {
   'use strict';
-  var GAME_ID = 'night-drive', BUILD = '2026111601-nd';
+  var GAME_ID = 'night-drive', BUILD = '2026111602-nd';
   var $ = function (id) { return document.getElementById(id); };
   var EMBED = false; try { EMBED = window.top !== window; } catch (e) { EMBED = true; }
   function post(type, extra) { try { if (EMBED) window.parent.postMessage(Object.assign({ arcade: type, game: GAME_ID }, extra || {}), '*'); } catch (e) {} }
@@ -681,7 +684,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   var WALK_DRIVE = 3.4, CURB_H = 0.18;   // 2026-10-10: how much of the 4.5 m sidewalk you can drive on (the back of it stays for people, lamps and palms); curb height
 
   /* ════════════════ SAVE ════════════════ */
-  function blankSave() { return { cash: 0, earned: 0, spent: 0, cash_at: 0, car: 'hatch', cars: { hatch: { eng: 0, tire: 0, nitro: 0, paint: CAR.hatch.paint } }, unlocked: 1, laps: {}, wins: 0, races: 0, podiums: {}, story: { done: {} }, odd: { tapes: [], photos: [], calls: [], talks: 0 } }; }
+  function blankSave() { return { cash: 0, earned: 0, spent: 0, cash_at: 0, car: 'hatch', cars: { hatch: { eng: 0, tire: 0, nitro: 0, paint: CAR.hatch.paint } }, unlocked: 1, laps: {}, wins: 0, races: 0, podiums: {}, story: { done: {} }, odd: { tapes: [], photos: [], calls: [], talks: 0, rides: [], jobs: 0, wrong: 0 } }; }
   var SAVE = blankSave();
   function loadSave() {
     var s = lsj('nd_save'), b = blankSave();
@@ -706,7 +709,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       }
       if (s.odd && typeof s.odd === 'object') {   // 2026-11-16: oddities found on foot (ids; the worker unions them)
         ['tapes', 'photos', 'calls'].forEach(function (k) { if (Array.isArray(s.odd[k])) b.odd[k] = s.odd[k].filter(function (v, i, a) { return typeof v === 'string' && /^[tfp]\d{1,2}$/.test(v) && a.indexOf(v) === i; }); });
-        b.odd.talks = Math.max(0, s.odd.talks | 0);
+        b.odd.talks = Math.max(0, s.odd.talks | 0); b.odd.jobs = Math.max(0, s.odd.jobs | 0); b.odd.wrong = Math.max(0, s.odd.wrong | 0);
+        if (Array.isArray(s.odd.rides)) b.odd.rides = s.odd.rides.filter(function (v, i, a) { return typeof v === 'string' && /^[a-z]{3,8}$/.test(v) && a.indexOf(v) === i; });
       }
       // a top-3 finish on a drive opens the next one (so Drive 06 opens for anyone who already podiumed Miami)
       TRACKS.forEach(function (t, i) { if (b.podiums[t.id] && b.podiums[t.id] <= 3) b.unlocked = Math.max(b.unlocked, Math.min(TRACKS.length, i + 2)); });
@@ -1929,7 +1933,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     if (v > vmax) v -= Math.min(v - vmax, 9 * h);
     // 2026-10-10: speed-sensitive steering for players: quick at parking speed, calmer flat out (less twitch on the straights)
     c.steerSm += (inp.steer - c.steerSm) * Math.min(1, h * (c.human != null ? 12 - 5 * clamp(av / 55, 0, 1) : 6));
-    var latMax = LAT * st.grip, yawMax = Math.min(1.9, latMax / Math.max(av, 7)), yawRate;
+    var latMax = LAT * st.grip * WX_GRIP, yawMax = Math.min(1.9, latMax / Math.max(av, 7)), yawRate;
     var eb = inp.drift && av > 3 && c.spinT <= 0;
     if (eb) v -= Math.sign(v) * Math.min(Math.abs(v), (2.5 + av * 0.1) * h);   // the handbrake drags
     var live = clamp(av / 24, 0, 1.25);
@@ -2530,7 +2534,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var bright = mat('uniform sampler2D src; varying vec2 vUv; void main(){ vec3 c = texture2D(src, vUv).rgb; float l = max(c.r, max(c.g, c.b)); gl_FragColor = vec4(c * smoothstep(0.52, 0.95, l), 1.0); }', { src: { value: null } });
     var blur = mat('uniform sampler2D src; uniform vec2 dir; varying vec2 vUv; void main(){ vec3 c = texture2D(src, vUv).rgb * 0.227; c += (texture2D(src, vUv + dir * 1.385).rgb + texture2D(src, vUv - dir * 1.385).rgb) * 0.316; c += (texture2D(src, vUv + dir * 3.231).rgb + texture2D(src, vUv - dir * 3.231).rgb) * 0.070; gl_FragColor = vec4(c, 1.0); }', { src: { value: null }, dir: { value: new THREE.Vector2() } });
     var comp = mat([
-      'uniform sampler2D src, bloomA, bloomB; uniform float time, amt, ca; uniform vec2 res; varying vec2 vUv;',
+      'uniform sampler2D src, bloomA, bloomB; uniform float time, amt, ca, gain; uniform vec3 tint; uniform vec2 res; varying vec2 vUv;',
       'float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }',
       'void main(){',
       ' vec2 d = vUv - 0.5; float r2 = dot(d, d);',
@@ -2542,11 +2546,12 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       ' c = mix(vec3(l), c, 0.88);',                                                      // pull colour back a little
       ' c += vec3(0.012, 0.022, 0.045) * (1.0 - smoothstep(0.0, 0.35, l));',              // shadows toward twilight blue
       ' c *= mix(vec3(1.0), vec3(1.06, 1.0, 0.92), smoothstep(0.45, 1.0, l));',           // warm highlights
+      ' c *= gain * tint;',                                                                 // 2026-11-16: the weather grades the night
       ' c = c / (1.0 + c * 0.18);',                                                        // gentle film shoulder
       ' c *= 1.0 - r2 * 0.95;',                                                            // vignette
       ' c += (h(vUv * res + time) - 0.5) * 0.055;',                                        // grain
       ' gl_FragColor = vec4(c, 1.0);',
-      '}'].join('\n'), { src: { value: null }, bloomA: { value: null }, bloomB: { value: null }, time: { value: 0 }, amt: { value: 1 }, ca: { value: 0.012 }, res: { value: new THREE.Vector2(1, 1) } });
+      '}'].join('\n'), { src: { value: null }, bloomA: { value: null }, bloomB: { value: null }, time: { value: 0 }, amt: { value: 1 }, ca: { value: 0.012 }, gain: { value: 1 }, tint: { value: new THREE.Vector3(1, 1, 1) }, res: { value: new THREE.Vector2(1, 1) } });
     FILM = { cam: cam, quad: quad, scene: sc, bright: bright, blur: blur, comp: comp, rt: null, a: null, b: null, c: null, d: null, w: 0, h: 0 };
     return FILM;
   }
@@ -3014,7 +3019,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   function copHit(c, imp, by, ev) {
     if (!c.cop || c.block || c.wrecked || c.hitCd > 0 || imp < 2) return;
     c.hitCd = 0.45;
-    var you = by && by.human != null, amt = you ? clamp(imp * 0.75, 3, 10) : by && by.cop ? 0 : clamp(imp * 0.1, 0.3, 2.5);
+    var you = by && by.human != null, amt = (you ? clamp(imp * 0.75, 3, 10) : by && by.cop ? 0 : clamp(imp * 0.1, 0.3, 2.5)) * (by && by.def && by.def.ram ? by.def.ram : 1);
     c.dmg = (c.dmg || 0) + amt;
     if (you) { c.hitBy = by; c.hitT = TR_NOW.t; if (ev) ev.push(['copdmg', by, Math.min(100, Math.round(c.dmg / (c.hp || 100) * 100)), c]); }
   }
@@ -3142,7 +3147,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var pts = Math.round(D.pts);
     if (pts < 60 || D.t < 0.45) { D.pts = 0; return; }
     if (clean) {
-      var cash = Math.round(pts / 8 / 5) * 5;
+      var cash = Math.round(pts / 8 / 5) * 5 * ((R.wx && R.wx.driftMult) || 1);
       B.cash += cash; B.dpts = (B.dpts || 0) + pts; B.drifts = (B.drifts || 0) + 1; if (pts > (B.dbest || 0)) B.dbest = pts;
       D.last = { pts: pts, cash: cash, t: 1.6, ok: true };
       if (D.t > 1.6) { c.turbo = Math.max(c.turbo, Math.min(1.2, 0.3 + D.t * 0.2)); }
@@ -4108,6 +4113,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       var hx = t.turn ? Math.cos(t.th) : F.ux, hz = t.turn ? Math.sin(t.th) : F.uz;
       for (j = 0; j < T.length; j++) { o = T[j]; if (o === t || o.gone || o.hw) continue; var dx = o.x - t.x, dz = o.z - t.z, al = dx * hx + dz * hz; if (al <= 0 || al > 40) continue; var lat = Math.abs(-dx * hz + dz * hx); if (lat < 2.2 && al < gap) gap = al; }
       for (j = 0; j < R.cars.length; j++) { o = R.cars[j]; if (o.gone || o.ghost || o.inv > 0 || o.deck >= 0) continue; var dx2 = o.x - t.x, dz2 = o.z - t.z, al2 = dx2 * hx + dz2 * hz; if (al2 <= 0 || al2 > 40) continue; var lat2 = Math.abs(-dx2 * hz + dz2 * hx); if (lat2 < 2.4 && al2 < gap) gap = al2; }
+      for (j = 0; j < R.humans.length; j++) { var hf = R.humans[j].foot; if (!hf) continue; var dx3 = hf.x - t.x, dz3 = hf.z - t.z, al3 = dx3 * hx + dz3 * hz; if (al3 <= 0 || al3 > 30) continue; if (Math.abs(-dx3 * hz + dz3 * hx) < 2.6 && al3 < gap) gap = al3; }   // 2026-11-16: they stop for a person in the road (so you can take the car)
       if (gap < 9 + t.v * 0.9) want = Math.min(want, Math.max(0, (gap - 7.5) * 0.9));
       if (!t.turn) {
         var toStop = F.sg.len - HALF - 1.5 - t.s;   // the stop line at the next corner
@@ -4174,7 +4180,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
         if (!(prev != null && prev > 0 && al <= 0 && prev < 30)) continue;
         var gap = Math.abs(-ox * dz + oz * dx) - (c.def.Wd + t.Wd) / 2, tdot = Math.cos(t.th) * dx + Math.sin(t.th) * dz, rel = c.v - tdot * t.v;
         if (gap < 0 || gap > 1.25 || c.v < 22 || rel < 12) continue;
-        var onc = tdot < -0.5, cash = (onc ? 150 : 75) * (1 + Math.min(4, B.combo) * 0.5) * (c.def.bike ? 2 : 1);   // 2026-11-16: a bike splitting lanes pays double
+        var onc = tdot < -0.5, cash = (onc ? 150 : 75) * (1 + Math.min(4, B.combo) * 0.5) * (c.def.bike ? 2 : 1) * (c.def.nmMult || 1) * ((R.wx && R.wx.nmMult) || 1);   // 2026-11-16: a bike splitting lanes pays double; the limo ×3; the fog ×2
         B.combo++; B.comboT = 3; B.nm++; B.cash += Math.round(cash / 5) * 5;
         c.tank = Math.min(c.st.cap, c.tank + (onc ? 0.55 : 0.35));
         popMsg(hi, (c.def.bike ? 'LANE SPLIT' : (onc ? 'ONCOMING ' : '') + 'NEAR MISS') + (B.combo > 1 ? ' ×' + B.combo : ''), '+$' + (Math.round(cash / 5) * 5));
@@ -4362,7 +4368,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   function cityPatrolWatch(c, R) {
     var P = c.cop, lim = R.pol.level >= 2 ? 3 : 2; if (P.cool > 0) return;
     for (var i = 0; i < R.racers.length; i++) {
-      var r = R.racers[i]; if (r.finished || r.busted || r.wreck || r.hold > 0) continue;
+      var r = R.racers[i]; if (r.finished || r.busted || r.wreck || r.hold > 0 || r.foot || r.def.ghost || (R.wx && R.wx.cur === 'blackout')) continue;
       var dx = r.x - c.x, dz = r.z - c.z, d = Math.hypot(dx, dz), al = dx * Math.cos(r.th) + dz * Math.sin(r.th), prev = P.pass[i]; P.pass[i] = al;
       var hit = c.hitBy === r && R.t - (c.hitT || 0) < 1;
       var passed = prev != null && prev < 0 && al >= 0 && d < 16 && r.v > 27;
@@ -4550,7 +4556,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     STATE = 'race'; UI.hideAll();
     $('touch').hidden = !TOUCH; $('split').hidden = true; $('bg').hidden = true; $('cash').hidden = true;
     musicStop(); sfx('radio'); if (!race) musicStart('city');
-    walkersBuild(R); oddBuild(R);
+    walkersBuild(R); oddBuild(R); wxInit(R); R.jobNext = 25;
+    if (!race && !opt.story) specialsSpawn(R);
     if (!race && !opt.story && radioStation().id === 'static' && staticOpen()) staticOn(R);
     resize();
   }
@@ -4558,6 +4565,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var sc = R.W.S.scene;
     (R.beacons || []).forEach(function (b) { sc.remove(b); }); (R.markers || []).forEach(function (m) { sc.remove(m.mesh); });
     if (R.arrow) sc.remove(R.arrow);
+    if (R.job && R.job.beacon) sc.remove(R.job.beacon); if (R.wx && R.wx.cur) wxEnd(R); $('jobHud').hidden = true;
     staticOff(R); walkersDispose(R); oddDispose(R); R.humans.forEach(function (h) { if (h.foot) footEnd(R, h); }); $('fPrompt').hidden = true;
   }
   // wrecks in the city: roll and slide (startWreck does the roll), then back on the nearest street, facing along it
@@ -4623,7 +4631,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   // free roam pays as you go
   function cityPayout(R) {
     if (R.mode !== 'roam') return;
-    var B = R.bonus[0], due = B.cash - R.paid; if (due >= 5) { addCash(due); R.paid = B.cash; $('cash').textContent = money(SAVE.cash); }
+    var B = R.bonus[0], due = B.cash - R.paid, me = R.humans[0]; if (due >= 5) { addCash(Math.round(due * wxMult(R) * (me && me.def.mult && !me.foot ? me.def.mult : 1))); R.paid = B.cash; $('cash').textContent = money(SAVE.cash); }
   }
 
   // how far along the race a car is, in metres (for the standings and keeping the pack together)
@@ -4645,7 +4653,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var best = draftOf(c, R.cars, rel); if (R.traffic.length) best = Math.max(best, draftOf(c, R.traffic, rel));
     slipstream(R, c, best, h);
   }
-  function cityRouteFor(R, c) { return R.routes ? R.routes[Math.min(c.cp, R.cps.length - 1)] : null; }
+  function cityRouteFor(R, c) { return R.routes ? R.routes[Math.min(c.cp, R.cps.length - 1)] : jobRoute(R, c); }
 
 
   /* ════════════════ 2026-10-20 · CITY 2.0: THE LOOP, JUMPS, SMASHABLES, ALLEYS, SPEED TRAPS ════════════════
@@ -5846,7 +5854,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     // 2026-11-16: out of the car (E / Y / the e-brake button when you're stopped)
     if (R.state === 'run') R.humans.forEach(function (h, i) {
       if (h.foot) return;
-      if (actEdge()) { var m = footMayExit(R, h); if (m === 'ok') exitCar(R, h); else if (m === 'slow') hudMsg(i, 'STOP FIRST<small>to get out</small>', '', 1); else if (m === 'heat') hudMsg(i, 'NOT WITH THE HEAT ON', 'warn', 1.2); }
+      if (actEdge()) { var m = footMayExit(R, h); if (R.jobOffer) jobTake(R); else if (m === 'ok') exitCar(R, h); else if (m === 'slow') hudMsg(i, 'STOP FIRST<small>to get out</small>', '', 1); else if (m === 'heat') hudMsg(i, 'NOT WITH THE HEAT ON', 'warn', 1.2); }
     });
     if (R.state === 'run') {
       var steps = Math.min(8, Math.ceil(dt * 120)), h = dt / steps, i, c;
@@ -5861,7 +5869,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
           else if (c.cop) cityCopDrive(c, R, h);
           else if (c.ai && (c.human == null || c.finished || AUTO)) {
             var rt = cityRouteFor(R, c);
-            if (rt) cityDrive(c, R, h, rt, { then: R.routes[c.cp + 1] });
+            if (rt) cityDrive(c, R, h, rt, { then: R.routes ? R.routes[c.cp + 1] : null });
             else { if (!c.ai.wander || Math.hypot(CG.nodes[c.ai.wander.target].x - c.x, CG.nodes[c.ai.wander.target].z - c.z) < 14) c.ai.wander = routeTo(Math.floor(Math.random() * CG.nodes.length)); cityDrive(c, R, h, c.ai.wander); }
           }
           if (c.ai && c.ai.reset && c.human == null) { var far = R.humans.every(function (hh) { return Math.hypot(hh.x - c.x, hh.z - c.z) > 45; }); if (far) { c.ai.reset = false; c.ai.revN = 0; c.ai.rev = 0; cityRespawn(R, c, c.ai.route); } }
@@ -5895,8 +5903,9 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
         hh.wasLoop = on;
       });
       cityMarkers(R, dt); cityPayout(R);
-      R.humans.forEach(function (hh, hi) { if (hh.foot) footStep(R, hh, dt, hi); });
-      walkersStep(R, dt); oddStep(R, dt);
+      R.humans.forEach(function (hh, hi) { if (hh.foot) { footStep(R, hh, dt, hi); wrongStep(R, hh, dt); } else specialStep(R, hh, dt); });
+      walkersStep(R, dt); oddStep(R, dt); wxStep(R, dt); jobStep(R, dt);
+      G_AIR = (STATIC.on ? 7 : 15) * (R.humans[0] && R.humans[0].def.lowG && !R.humans[0].foot ? R.humans[0].def.lowG : 1);
       if (R.cps && R.humans.every(function (hh) { return hh.finished; })) {
         R.wait += dt;
         if (!R.done && (R.racers.every(function (o) { return o.finished || o.busted; }) || R.wait > 7)) { R.done = true; cityShowResults(); }
@@ -5908,6 +5917,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       var cc = R.cars[j]; if (cc.gone) continue; placeCity(cc); wreckPose(cc); setLights(cc, cc.inp.brk > 0.1 && cc.v > 1);
       if (cc.cop && !cc.block && !cc.wrecked) copSmoke(cc);
       if (cc.cop) { var bfx = cc.mesh.userData.fx; if (bfx.bar) { bfx.bar.on = (cc.cop.on || cc.block) && !cc.wrecked; bfx.bar.idle = !bfx.bar.on && !cc.wrecked && cc.cop.mode === 'patrol'; } flashBar(bfx, now + j * 0.13); }
+      else if (cc.special === 'ambo' && cc.mesh.userData.fx && cc.mesh.userData.fx.bar) { var afx = cc.mesh.userData.fx; afx.bar.on = cc.human != null && !cc.foot; afx.bar.idle = !afx.bar.on; flashBar(afx, now); }
     }
     for (j = 0; j < R.cars.length; j++) if (!R.cars[j].block) tyreFx(R, R.cars[j], dt);
     stepTyreFx(R, dt); stepSparks(R, dt);
@@ -5987,14 +5997,14 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     // the route to the next checkpoint (and on to the one after, fainter)
     var rt = cityRouteFor(R, me);
     if (rt && !me.finished) {
-      [[rt, me.navN != null ? me.navN : firstNode(me.x, me.z, me.th, rt, me), 'rgba(255,176,80,.95)', [me.x, me.z]], R.routes[me.cp + 1] ? [R.routes[me.cp + 1], R.cps[me.cp], 'rgba(159,200,255,.6)', null] : null].forEach(function (L) {
+      [[rt, me.navN != null ? me.navN : firstNode(me.x, me.z, me.th, rt, me), 'rgba(255,176,80,.95)', [me.x, me.z]], R.routes && R.routes[me.cp + 1] ? [R.routes[me.cp + 1], R.cps[me.cp], 'rgba(159,200,255,.6)', null] : null].forEach(function (L) {
         if (!L) return; var r2 = L[0], k = L[1], first = L[3] || [CG.nodes[k].x, CG.nodes[k].z], p = P(first[0], first[1]);
         x.strokeStyle = L[2]; x.lineWidth = 4.5 * lw * S; x.lineJoin = 'round'; x.beginPath(); x.moveTo(p[0], p[1]);
         var guard = 0; while (k >= 0 && guard++ < 40) { var N = CG.nodes[k], q = P(N.x, N.z); x.lineTo(q[0], q[1]); if (k === r2.target) break; k = r2.next[k]; }
         x.stroke();
       });
-      var CN = CG.nodes[R.cps[me.cp]], cq = P(CN.x, CN.z);
-      x.fillStyle = '#ffb050'; x.strokeStyle = '#000'; x.lineWidth = 1.5 * lw * S; x.beginPath(); x.arc(cq[0], cq[1], 7 * lw * S, 0, 7); x.fill(); x.stroke();
+      var CN = R.cps ? CG.nodes[R.cps[me.cp]] : (R.job && R.job.tgt), cq = CN ? P(CN.x, CN.z) : null;
+      if (cq) { x.fillStyle = '#ffb050'; x.strokeStyle = '#000'; x.lineWidth = 1.5 * lw * S; x.beginPath(); x.arc(cq[0], cq[1], 7 * lw * S, 0, 7); x.fill(); x.stroke(); }
     }
     cityMapIcons(x, P, lw, S);
     if (R.markers) R.markers.forEach(function (m) { var q = P(m.node.x, m.node.z); x.fillStyle = '#5ee0ff'; x.beginPath(); x.arc(q[0], q[1], 6 * lw * S, 0, 7); x.fill(); });
@@ -6912,7 +6922,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
        THE STATIC tune the radio past the last station once you hold six tapes: the city goes wireframe, the sky inverts,
                   gravity halves, the people stop and watch you. A driving game having a dream of itself. */
   var FOOT_R = 0.38, WALK_V = 4.2, RUN_V = 8.2, FOOT_INSET = 1.2;
-  function noInp() { return { thr: 0, brk: 1, steer: 0, nitro: false, drift: false }; }
+  function noInp() { return { thr: 0, brk: 0, steer: 0, nitro: false, drift: false }; }   // no brake: from a standstill the brake is reverse
   var ACT = { down: false, edge: false, padPrev: false };
   function actEdge() { var e = ACT.edge; ACT.edge = false; return e; }
   // a runner: legs and arms swing from the hips and shoulders, so the body is a group of pivots (one draw call each)
@@ -6977,7 +6987,8 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var sc = R.W.S.scene;
     if (c.traffic) {
       var t = c, spare = newCar(h.def, h.upg, h.paint, '', null);
-      ['x', 'z', 'th', 'y', 'deck', 'di', 'mesh', 'spin'].forEach(function (k) { spare[k] = h[k]; });
+      ['x', 'z', 'th', 'y', 'deck', 'di', 'mesh', 'spin', 'special', 'findGlow'].forEach(function (k) { spare[k] = h[k]; });
+      h.special = null; h.findGlow = null;
       spare.v = 0; spare.inp = noInp(); spare.spare = true; spare.kx = spare.kz = 0; spare.cp = 0; spare.inv = 0; spare.deck = spare.deck == null ? -1 : spare.deck;
       R.cars.push(spare);
       h.def = t.def; h.upg = { eng: 1, tire: 1, nitro: 1 }; h.st = stats(t.def, h.upg); h.taken = true;
@@ -6985,11 +6996,11 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       t.gone = true; t.mesh = makeCar(t.def, null, { paintHex: TRAFFIC_COLS[Math.floor(Math.random() * TRAFFIC_COLS.length)], bare: true, expo: 0.92 }); t.mesh.visible = false; sc.add(t.mesh);
       hudMsg(h.human, 'TOOK A ' + esc(t.def.name).toUpperCase() + '<small>nobody saw a thing</small>', '', 2); sfx('takedown');
     } else if (c.spare) {
-      var keep = {}; ['def', 'upg', 'st', 'x', 'z', 'th', 'y', 'deck', 'di', 'mesh', 'spin', 'taken'].forEach(function (k) { keep[k] = h[k]; h[k] = c[k]; c[k] = keep[k]; });
+      var keep = {}; ['def', 'upg', 'st', 'x', 'z', 'th', 'y', 'deck', 'di', 'mesh', 'spin', 'taken', 'special', 'findGlow'].forEach(function (k) { keep[k] = h[k]; h[k] = c[k]; c[k] = keep[k]; });
       h.v = 0; c.v = 0; h.kx = h.kz = c.kx = c.kz = 0; h.tank = Math.min(h.tank, h.st.cap); h.inv = 0; c.inp = noInp(); if (h.deck == null) h.deck = -1;
-      hudMsg(h.human, 'BACK IN THE ' + esc(h.def.name).toUpperCase(), '', 1.4); sfx('ok');
+      if (h.special) specialFound(R, h); else { hudMsg(h.human, 'BACK IN THE ' + esc(h.def.name).toUpperCase(), '', 1.4); sfx('ok'); }
     } else return;
-    footEnd(R, h); placeCity(h); if (c.spare) placeCity(c);
+    placeCity(h); if (c.spare) placeCity(c); footEnd(R, h);
   }
   // T on foot: straight back to your own car, wherever you left it (your own, not a taken one)
   function footRecall(R, h) { if (!h.foot) return false; var F = h.foot; sfx('ok'); footEnd(R, h); return true; }
@@ -7060,6 +7071,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     if (od) { if (od.kind === 'phone') { prompt = od.ring > 0 ? key + ' · ANSWER THE PHONE' : (SAVE.odd.calls.indexOf(od.id) >= 0 ? 'a dead line' : key + ' · PICK UP'); if (act) oddTake(R, h, od); } else { prompt = key + ' · ' + (od.kind === 'tape' ? 'TAKE THE CASSETTE' : 'TAKE THE POLAROID'); if (act) oddTake(R, h, od); } }
     else if (near) { prompt = key + ' · ' + (near === h ? 'GET IN' : 'TAKE THE ' + (near.def.name || 'car').toUpperCase()); if (act) enterCar(R, h, near); }
     else if (wk) { prompt = key + ' · TALK'; if (act) walkerTalk(R, h, wk); }
+    else if (R.jobOffer) { prompt = key + ' · TAKE THE JOB'; if (act) jobTake(R); }
     var pe = $('fPrompt'); if (!h.foot) { pe.hidden = true; return; }
     if (prompt) { if (pe.textContent !== prompt) pe.textContent = prompt; pe.hidden = false; } else pe.hidden = true;
     h.v = 0;   // the car sits
@@ -7104,6 +7116,15 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
       var w = L[k], dm = Math.hypot(w.x - mx, w.z - mz);
       if (STATIC.on) { if (dm < 90) { w.th = Math.atan2(mz - w.z, mx - w.x); w.st = 'watch'; } else if (w.st === 'watch') w.st = 'walk'; continue; }
       if (w.st === 'watch') w.st = 'walk';
+      if (w.st === 'ride') continue;
+      if (me && !me.foot && me.def.jingle && w.st === 'walk' && dm < 30 && dm > 3.2) { w.st = 'follow'; w.t = 0; }
+      if (w.st === 'follow') {
+        var fdx = mx - w.x, fdz = mz - w.z, fl = Math.hypot(fdx, fdz);
+        if (!me || me.foot || !me.def.jingle || fl > 42) { w.st = 'down'; w.t = 1.4; continue; }
+        if (fl > 3.2) { w.x += fdx / fl * 1.5 * dt; w.z += fdz / fl * 1.5 * dt; w.ph += 1.5 * dt / 0.7; } w.th = Math.atan2(fdz, fdx);
+        var pf = cityPush(w.x, w.z, 0.3, FOOT_INSET); if (pf.n) { w.x += pf.x; w.z += pf.z; }
+        continue;
+      }
       if (w.st === 'walk') {
         if (dm < 70) {   // a car coming: dive for the sidewalk side, then lie there a moment
           for (var c = 0; c < cars.length; c++) {
@@ -7143,9 +7164,9 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   function walkersPose(dt) {
     var W = WALKERS, L = W.list, I = W.I, M = W.M, Q = W.Q, E = W.E, S = W.S, V = W.V;
     for (var k = 0; k < L.length; k++) {
-      var w = L[k], bob = w.st === 'walk' ? Math.abs(Math.sin(w.ph)) * 0.04 : 0, y = (cityOnWalk(w.x, w.z) ? CURB_H : 0) + bob, lean = 0, tilt = 0;
+      var w = L[k], bob = w.st === 'walk' || w.st === 'follow' ? Math.abs(Math.sin(w.ph)) * 0.04 : 0, y = (cityOnWalk(w.x, w.z) ? CURB_H : 0) + bob, lean = 0, tilt = 0;
       if (w.st === 'down') tilt = Math.PI / 2 * (w.t < 1.2 ? 1 : 1 - smooth01((w.t - 1.2) / 0.4)); else if (w.st === 'dive') lean = 0.5;
-      E.set(tilt, -w.th + Math.PI / 2, lean, 'YXZ'); Q.setFromEuler(E); S.set(w.h, w.h, w.h); V.set(w.x, y, w.z);
+      E.set(tilt, -w.th + Math.PI / 2, lean, 'YXZ'); Q.setFromEuler(E); var hs = w.st === 'ride' ? 0.001 : w.h; S.set(hs, hs, hs); V.set(w.x, y, w.z);
       M.compose(V, Q, S); I.legs.setMatrixAt(k, M); I.body.setMatrixAt(k, M); I.head.setMatrixAt(k, M);
       if (w.umb && w.st === 'walk') I.umb.setMatrixAt(k, M); else { S.set(0.001, 0.001, 0.001); M.compose(V, Q, S); I.umb.setMatrixAt(k, M); }
     }
@@ -7342,6 +7363,226 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     c.whl = whl + (want - whl) * Math.min(1, h * (want ? 3.5 : 7));
     if (c.whl > 0.12 && c.human != null) { c.whlD = (c.whlD || 0) + av * h; } else if ((c.whlD || 0) > 8 && c.human != null) { var B = RACE && RACE.bonus && RACE.bonus[c.human]; if (B) { var pay = Math.round(c.whlD * 5); B.cash += pay; B.whl = (B.whl || 0) + 1; hudMsg(c.human, 'WHEELIE ' + Math.round(c.whlD) + ' M<small>+ ' + money(pay) + '</small>', '', 1.4); } c.whlD = 0; } else c.whlD = 0;
     if (c.whl > 0.15) c.steerSm *= 0.5;
+  }
+
+  /* ════════════════ 2026-11-16 (later) · THE NIGHT HAS PLANS ════════════════
+     Dex: "make it weirder … missions, an economy, challenges, something strange: parked vehicles around the city you
+     could jump into, weather events."
+       SPECIALS  seven one-off vehicles parked around the city, each with a quirk: a hearse the police won't touch, an
+                 ice-cream truck the people follow, a checker cab that takes fares, a stretch limo, a tow truck, a lunar
+                 rover that forgot about gravity, and a '59 ambulance. Find them on foot; the first ride pays.
+       WEATHER   every minute or so the night changes: fog, rain over the whole city, the Pink Hour, a blackout, and,
+                 once the Static is open, a static storm. Each one changes the money.
+       JOBS      Velvet calls them in on the radio: courier runs, on-foot dashes, close-shave counts, valet runs with a
+                 special, wheelie dares on a bike. Take one with E; a timer and a beacon do the rest.
+       WRONG     three pairs of alleys that don't come out where they go in. */
+  var SPECIALS = [
+    { id: 'hearse', name: 'Last Ride', kind: 'Hearse · 1979', top: 52, acc: 10, grip: 0.95, nitro: 2.6, L: 6.0, Wd: 2.0, paintHex: 0x101014, quirk: 'the police look the other way · street cash ×2', mult: 2, ghost: true,
+      body: [[-3.0, .3], [3.0, .3], [3.05, .62], [2.95, .8], [1.4, .86], [-2.9, .9], [-3.05, .6]], cab: [[1.35, .84], [.9, 1.46], [-2.85, 1.5], [-2.95, .9]], wing: 0, wheelX: 2.0 },
+    { id: 'softee', name: 'Mr Frosty', kind: 'Ice-cream truck · 1972', top: 38, acc: 7, grip: 0.9, nitro: 2.2, L: 5.6, Wd: 2.2, paintHex: 0xfff4e0, quirk: 'the people follow · stop and sell · $10 a scoop', jingle: true, heavy: true,
+      body: [[-2.8, .4], [2.8, .4], [2.82, 1.0], [2.7, 1.7], [1.6, 1.85], [-2.8, 2.6], [-2.82, .7]], cab: [[2.7, 1.7], [2.2, 2.1], [1.6, 2.1]], wing: 0, wheelX: 1.9 },
+    { id: 'checker', name: 'Checker Cab', kind: 'Taxi · 1981', top: 56, acc: 11, grip: 1.0, nitro: 2.8, L: 5.0, Wd: 1.9, paintHex: 0xffc61a, quirk: 'stop by someone on the sidewalk · fares pay $3 a metre', taxi: true,
+      body: [[-2.5, .3], [2.5, .3], [2.55, .62], [2.45, .8], [.9, .84], [-1.7, .86], [-2.5, .84], [-2.55, .55]], cab: [[.85, .82], [.3, 1.4], [-1.3, 1.42], [-1.7, .86]], wing: 0, wheelX: 1.6 },
+    { id: 'limo', name: 'The Stretch', kind: 'Limousine · 1984', top: 58, acc: 9, grip: 0.9, nitro: 3.0, L: 8.2, Wd: 2.0, paintHex: 0xece8f6, quirk: 'eight metres of near miss · they pay ×3', nmMult: 3,
+      body: [[-4.1, .3], [4.1, .3], [4.15, .6], [4.05, .78], [2.6, .84], [-3.6, .86], [-4.1, .84], [-4.15, .55]], cab: [[2.55, .82], [2.0, 1.36], [-3.4, 1.38], [-3.6, .86]], wing: 0, wheelX: 2.9 },
+    { id: 'tow', name: 'Big Hook', kind: 'Tow truck · 1978', top: 50, acc: 11, grip: 1.0, nitro: 3.0, L: 6.2, Wd: 2.3, paintHex: 0xff7a18, quirk: 'built to hit things · cruisers go down in two', ram: 2, tough: true, heavy: true,
+      body: [[-3.1, .4], [3.1, .4], [3.12, 1.0], [3.0, 1.4], [1.9, 1.5], [-0.4, 1.5], [-3.1, 1.1], [-3.12, .7]], cab: [[1.85, 1.46], [1.5, 2.2], [0, 2.2], [-0.4, 1.5]], wing: 0, wheelX: 2.0 },
+    { id: 'rover', name: 'Lunar Rover', kind: 'Something from the desert', top: 44, acc: 12, grip: 0.7, nitro: 4.0, L: 3.6, Wd: 2.2, paintHex: 0xb4b8c0, quirk: 'forgot about gravity · the jumps go on forever', lowG: 0.4, air: 1.6,
+      body: [[-1.8, .5], [1.8, .5], [1.82, .9], [1.7, 1.0], [-1.7, 1.0], [-1.82, .7]], cab: [[1.0, 1.0], [.6, 1.5], [-.9, 1.5], [-1.2, 1.0]], wing: 0, wheelX: 1.3 },
+    { id: 'ambo', name: 'Unit 9', kind: 'Ambulance · 1959', top: 54, acc: 12, grip: 0.98, nitro: 3.4, L: 6.0, Wd: 2.1, paintHex: 0xf4f0e8, quirk: 'wrecks heal · and the siren is yours', siren: true, heal: true,
+      body: [[-3.0, .35], [3.0, .35], [3.05, .7], [2.9, .9], [1.3, .95], [-3.0, 2.2], [-3.05, .6]], cab: [[1.25, .92], [.8, 1.6], [-.2, 1.6], [-.3, .95]], wing: 0, wheelX: 2.0 }
+  ];
+  var SPECIAL = {}; SPECIALS.forEach(function (s) { s.special = s.id; s.price = 0; s.tier = 1; s.paint = 3; SPECIAL[s.id] = s; CAR[s.id] = s; });
+  // where each one waits (block indices + an offset), the same every night
+  function specialSpots() {
+    var out = {}, B = function (i, j) { return CG.blocks[i * CG.N + j]; };
+    var lots = CG.blocks.filter(function (b) { return b.lot; });
+    var dIn = lots.filter(function (b) { return b.lot === 'drive-in'; })[0] || lots[0], cas = lots.filter(function (b) { return b.lot !== 'drive-in' && b.lot !== 'yard'; })[0] || lots[1] || lots[0], yard = lots.filter(function (b) { return b.lot === 'yard'; })[0] || lots[0];
+    var hb = B(1, 1), ha = hb.alley; out.hearse = ha ? { x: ha.c, z: hb.z1 - 14, th: -Math.PI / 2 } : { x: CG.xs[1] + 11, z: CG.zs[1] + 40, th: Math.PI / 2 };   // Manhattan: in the alley, in the rain
+    out.softee = { x: (dIn.x0 + dIn.x1) / 2, z: dIn.z1 - 7, th: Math.PI };                  // the drive-in
+    out.checker = { x: CG.xs[3] + 11, z: CG.zs[3] + 46, th: Math.PI / 2 };                 // Midtown, at the kerb
+    out.limo = { x: (cas.x0 + cas.x1) / 2 + 12, z: cas.z0 + 7, th: 0 };                   // the casino lot
+    out.tow = { x: yard.x0 + 8, z: (yard.z0 + yard.z1) / 2, th: 0 };                        // the yard
+    out.rover = { x: CG.X1 + 120, z: CG.zs[2], th: Math.PI };                               // out in the desert
+    out.ambo = { x: CG.xs[6] + 11, z: CG.zs[7] - 46, th: -Math.PI / 2 };                    // Ocean Drive, at the kerb
+    return out;
+  }
+  function specialsSpawn(R) {
+    var spots = specialSpots(), sc = R.W.S.scene, found = SAVE.odd.rides || [];
+    SPECIALS.forEach(function (def) {
+      var sp = spots[def.id], c = newCar(def, { eng: 1, tire: 1, nitro: 1 }, 3, def.name, null);
+      c.x = sp.x; c.z = sp.z; c.th = sp.th; c.y = 0; c.deck = -1; c.di = -1; c.v = 0; c.spare = true; c.special = def.id; c.inp = noInp(); c.kx = c.kz = 0; c.cp = 0; c.inv = 0;
+      var p = cityPush(c.x, c.z, 2.6); if (p.n) { c.x += p.x; c.z += p.z; }
+      c.mesh = makeCar(def, null, { paintHex: def.paintHex, beam: 0.32 }); c.mesh.userData.noStatic = true; sc.add(c.mesh);
+      if (def.siren) { var fx = c.mesh.userData.fx; if (fx && !fx.bar) addLightBar(c.mesh, fx, -0.2, 2.2, {}); }
+      // a soft glow marks one you haven't ridden yet
+      var g = new THREE.Points(new THREE.BufferGeometry().setAttribute('position', new THREE.Float32BufferAttribute([0, 2.6, 0], 3)), new THREE.PointsMaterial({ color: 0xffd84a, size: 4, map: GLOW, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending }));
+      g.visible = found.indexOf(def.id) < 0; c.mesh.add(g); c.findGlow = g;
+      R.cars.push(c); placeCity(c);
+    });
+  }
+  function specialFound(R, h) {
+    var id = h.special; if (!id) return;
+    var S = SAVE.odd; S.rides = S.rides || [];
+    var def = SPECIAL[id], first = S.rides.indexOf(id) < 0;
+    if (first) { S.rides.push(id); persist(); addCash(1000); }
+    hudMsg(h.human, esc(def.name).toUpperCase() + '<small>' + esc(def.quirk) + (first ? ' · + $1,000 · ' + S.rides.length + ' / ' + SPECIALS.length + ' found' : '') + '</small>', '', 3.6);
+    if (h.findGlow) h.findGlow.visible = false;
+    if (first) sfx('takedown');
+  }
+  // the quirks, every frame you're driving one
+  function specialStep(R, h, dt) {
+    var def = h.def; if (!def.special) { if (h.jingleT) h.jingleT = 0; return; }
+    var i = h.human, B = R.bonus[i];
+    if (def.jingle) {
+      h.jingleT = (h.jingleT || 0) - dt;   // eight notes, round and round
+      if (h.jingleT <= 0) { h.jingleT = 4.8; if (SET.sound && AC) { var N = [0, 4, 7, 12, 7, 4, 0, -5]; N.forEach(function (n, k) { tone('triangle', hz(n + 12), hz(n + 12), 0.5, 0.05, MG, AC.currentTime + k * 0.55); }); } }
+      if (Math.abs(h.v) < 1 && WALKERS) {   // selling: anyone who's walked up gets a scoop
+        WALKERS.list.forEach(function (w) { if ((w.st === 'walk' || w.st === 'follow') && Math.hypot(w.x - h.x, w.z - h.z) < 4.5 && R.t - (w.scoopT || -9) > 3) { w.scoopT = R.t; B.cash += 10; B.scoops = (B.scoops || 0) + 1; popMsg(i, 'SCOOP', '+$10 · ' + B.scoops + ' sold'); sfx('cash', 0.4); } });
+      }
+    }
+    if (def.taxi) fareStep(R, h, dt);
+    if (def.heal && h.wrecked) { h.wrecked = false; hudMsg(i, 'UNIT 9<small>wrecks heal</small>', '', 1.2); }
+  }
+  function fareStep(R, h, dt) {
+    var i = h.human, F = R.fare;
+    if (!F) {
+      if (Math.abs(h.v) < 1 && WALKERS) {
+        for (var k = 0; k < WALKERS.list.length; k++) { var w = WALKERS.list[k]; if (w.st !== 'walk' || Math.hypot(w.x - h.x, w.z - h.z) > 3.6) continue; R.fare = { w: w, x0: h.x, z0: h.z, t: 0 }; w.st = 'ride'; hudMsg(i, 'FARE<small>take them anywhere 150 m away and stop · $3 a metre</small>', '', 2.4); sfx('ok'); break; }
+      }
+      return;
+    }
+    F.t += dt; var d = Math.hypot(h.x - F.x0, h.z - F.z0);
+    if (Math.abs(h.v) < 1 && F.t > 3 && d >= 150) {
+      var pay = Math.round(d * 3 / 5) * 5, B = R.bonus[i]; B.cash += pay; B.fares = (B.fares || 0) + 1;
+      hudMsg(i, 'FARE ' + money(pay) + '<small>' + Math.round(d) + ' m · ' + B.fares + ' tonight' + (F.t < d / 14 ? ' · fast, they tipped' : '') + '</small>', '', 2.6); sfx('cash');
+      if (F.t < d / 14) B.cash += Math.round(pay * 0.25);
+      var w = F.w; w.x = h.x + Math.cos(h.th + Math.PI / 2) * 2.2; w.z = h.z + Math.sin(h.th + Math.PI / 2) * 2.2; w.st = 'down'; w.t = 1.2; R.fare = null;
+    }
+  }
+
+  /* ── weather ── */
+  var WX_KINDS = ['fog', 'rain', 'pink', 'blackout'];
+  var WX_INFO = { fog: ['THE FOG', 'you can\'t see them · near misses pay ×2'], rain: ['RAIN ALL OVER', 'less grip everywhere · drifts pay ×2'], pink: ['THE PINK HOUR', 'everything pays ×2 · it won\'t last'], blackout: ['BLACKOUT', 'headlights only · the police can\'t see you'], storm: ['STATIC STORM', 'the city flickers · tapes glow · cash ×3'] };
+  var WX_GRIP = 1;
+  function wxInit(R) { R.wx = { cur: null, left: 0, next: 35 + Math.random() * 30, keep: null }; }
+  function wxStart(R, kind) {
+    var sc = R.W.S.scene, W = R.wx; if (W.cur) wxEnd(R);
+    var hemi = null; sc.children.forEach(function (o) { if (o.isHemisphereLight) hemi = o; });
+    W.keep = { fog: [sc.fog.color.getHex(), sc.fog.near, sc.fog.far], hemi: hemi ? [hemi.color.getHex(), hemi.groundColor.getHex(), hemi.intensity] : null, hemiObj: hemi, ringV: R.W.S.ring ? R.W.S.ring.visible : true, skyV: R.W.S.sky.visible };
+    W.cur = kind; W.left = kind === 'pink' ? 40 : 55 + Math.random() * 20; W.mult = kind === 'pink' ? 2 : kind === 'storm' ? 3 : 1; W.nmMult = kind === 'fog' ? 2 : 1; W.driftMult = kind === 'rain' ? 2 : 1;
+    if (kind === 'fog') { sc.fog.near = 12; sc.fog.far = 150; sc.fog.color.setHex(0x2a2a36); if (R.W.S.ring) R.W.S.ring.visible = false; }
+    if (kind === 'rain') { WX_GRIP = 0.9; }
+    if (kind === 'pink') { sc.fog.color.setHex(0xff6fb0); sc.fog.near = 20; sc.fog.far = Math.min(sc.fog.far, 420); if (hemi) { hemi.color.setHex(0xffb0d8); hemi.intensity = 0.9; } }
+    if (kind === 'blackout') { if (hemi) hemi.intensity = 0.1; sc.fog.color.setHex(0x05050a); sc.fog.far = Math.min(sc.fog.far, 320); if (R.W.S.ring) R.W.S.ring.visible = false; R.W.S.sky.visible = false; }
+    if (kind === 'storm') { W.flick = 0; }
+    wxGrade(kind);
+    var I = WX_INFO[kind]; hudMsg(0, I[0] + '<small>' + I[1] + '</small>', 'warn', 3.6); sfx('radio');
+  }
+  function wxEnd(R) {
+    var W = R.wx, sc = R.W.S.scene, K = W.keep; if (!W.cur) return;
+    if (K) { sc.fog.color.setHex(K.fog[0]); sc.fog.near = K.fog[1]; sc.fog.far = K.fog[2]; if (K.hemiObj && K.hemi) { K.hemiObj.color.setHex(K.hemi[0]); K.hemiObj.groundColor.setHex(K.hemi[1]); K.hemiObj.intensity = K.hemi[2]; } if (R.W.S.ring) R.W.S.ring.visible = K.ringV; R.W.S.sky.visible = K.skyV; }
+    if (W.cur === 'storm' && STATIC.on) STATIC.flick = 0;
+    wxGrade(null); WX_GRIP = 1; W.cur = null; W.mult = 1; W.nmMult = 1; W.driftMult = 1; W.next = 45 + Math.random() * 45;
+    hudMsg(0, 'THE NIGHT CLEARS', '', 1.6);
+  }
+  function wxGrade(kind) {
+    if (!FILM || !FILM.comp) return; var u = FILM.comp.uniforms, g = { fog: [0.9, [0.86, 0.9, 1.02]], rain: [0.92, [0.9, 0.95, 1.05]], pink: [1.08, [1.28, 0.82, 1.12]], blackout: [0.42, [0.9, 0.9, 1.0]], storm: [1.1, [1.1, 0.9, 1.2]] }[kind] || [1, [1, 1, 1]];
+    u.gain.value = g[0]; u.tint.value.set(g[1][0], g[1][1], g[1][2]); u.ca.value = kind === 'storm' ? 0.05 : 0.012;
+  }
+  function wxStep(R, dt) {
+    var W = R.wx; if (!W || R.mode !== 'roam' || R.story) return;
+    if (W.cur) { W.left -= dt; if (W.left <= 0) wxEnd(R); else if (W.cur === 'storm') { W.flick += dt; if (W.flick > 0.4) { W.flick = 0; if (!STATIC.on) staticOn(R); else if (Math.random() < 0.35) staticOff(R); } } return; }
+    W.next -= dt;
+    if (W.next <= 0) { var pool = WX_KINDS.slice(); if (staticOpen() && !STATIC.on) pool.push('storm'); if (STATIC.on) pool = ['fog', 'pink']; wxStart(R, pool[Math.floor(Math.random() * pool.length)]); }
+  }
+  function wxMult(R) { return (R.wx && R.wx.mult) || 1; }
+
+  /* ── jobs: Velvet calls them in ── */
+  var JOB_KINDS = ['courier', 'dash', 'shave', 'valet', 'wheelie'];
+  function jobOffer(R, force) {
+    var me = R.humans[0], S = R.jobs, pool = [];
+    if (!me.foot && !me.def.bike) pool.push('courier', 'courier', 'shave');
+    if (me.foot) pool.push('dash', 'dash');
+    if (me.def.bike && !me.foot) pool.push('wheelie', 'courier');
+    if (!me.foot && !me.def.special) { var left = R.cars.filter(function (c) { return c.spare && c.special && Math.hypot(c.x - me.x, c.z - me.z) > 120 && c !== me; }); if (left.length) pool.push('valet'); }
+    if (!pool.length) return;
+    var kind = force || pool[Math.floor(Math.random() * pool.length)], j = { kind: kind, offered: 10, t: 0 }, px = me.foot ? me.foot.x : me.x, pz = me.foot ? me.foot.z : me.z;
+    function farNode(min, max) { for (var q = 0; q < 300; q++) { var n = CG.nodes[Math.floor(Math.random() * CG.nodes.length)]; if (n.hw) continue; var d = Math.hypot(n.x - px, n.z - pz); if (d >= min && d <= max) return n; } return null; }
+    if (kind === 'courier') { var A = farNode(120, 320), Bn = A && farNode(200, 700); if (!A || !Bn) return; j.a = A; j.b = Bn; j.dist = Math.hypot(A.x - px, A.z - pz) + Math.hypot(Bn.x - A.x, Bn.z - A.z); j.limit = 24 + j.dist / 11; j.pay = Math.round(j.dist * 5 / 100) * 100; j.text = 'COURIER · pick up, then ' + Math.round(j.dist) + ' m · ' + money(j.pay); }
+    else if (kind === 'dash') { var D = farNode(110, 220); if (!D) return; j.b = D; j.dist = Math.hypot(D.x - px, D.z - pz); j.limit = 8 + j.dist / 6.2; j.pay = Math.round(j.dist * 8 / 100) * 100; j.text = 'DASH · run ' + Math.round(j.dist) + ' m in ' + Math.round(j.limit) + ' s · ' + money(j.pay); }
+    else if (kind === 'shave') { j.need = 6; j.limit = 60; j.pay = 2400; j.n0 = R.bonus[0].shaves || 0; j.text = 'CLOSE SHAVES · make six people jump in 60 s · ' + money(j.pay); }
+    else if (kind === 'wheelie') { j.need = 60; j.limit = 45; j.pay = 3000; j.text = 'WHEELIE · hold one for 60 m · ' + money(j.pay); }
+    else if (kind === 'valet') { var opts = R.cars.filter(function (c) { return c.spare && c.special && Math.hypot(c.x - me.x, c.z - me.z) > 120; }), car = opts[Math.floor(Math.random() * opts.length)], L = farNode(150, 400); if (!car || !L) return; j.car = car; j.b = L; j.dist = Math.hypot(car.x - px, car.z - pz) + Math.hypot(L.x - car.x, L.z - car.z); j.limit = 45 + j.dist / 10; j.pay = Math.round(j.dist * 7 / 100) * 100 + 1500; j.text = 'VALET · bring ' + car.def.name.toUpperCase() + ' to the light · ' + money(j.pay); }
+    R.jobOffer = j; hudMsg(0, 'VELVET HAS A JOB<small>' + esc(j.text) + ' · ' + (TOUCH ? 'ACT' : 'E') + ' to take it</small>', '', 6); sfx('radio');
+  }
+  function jobTake(R) {
+    var j = R.jobOffer; if (!j) return; R.jobOffer = null; R.job = j; j.t = 0; j.stage = 0;
+    var sc = R.W.S.scene; j.beacon = beaconMesh(j.kind === 'dash' ? 0x9fff8a : 0x5ee0ff, 7, 40); sc.add(j.beacon);
+    jobTarget(R);
+    hudMsg(0, 'JOB TAKEN<small>' + esc(j.text.split(' · ')[0]) + '</small>', '', 1.6); sfx('ok');
+  }
+  function jobTarget(R) {
+    var j = R.job, me = R.humans[0], t = null;
+    if (j.kind === 'courier') t = j.stage === 0 ? j.a : j.b;
+    else if (j.kind === 'dash') t = j.b;
+    else if (j.kind === 'valet') t = j.stage === 0 ? { x: j.car.x, z: j.car.z, id: null } : j.b;
+    j.tgt = t;
+    if (t) { j.beacon.visible = true; j.beacon.position.set(t.x, 0, t.z); j.route = t.id != null ? routeTo(t.id) : routeTo(nearestNode(t.x, t.z).id); } else { j.beacon.visible = false; j.route = null; }
+  }
+  function jobEnd(R, ok, why) {
+    var j = R.job; if (!j) return; R.job = null;
+    if (j.beacon) { R.W.S.scene.remove(j.beacon); }
+    if (ok) { var pay = Math.round(j.pay * wxMult(R)); R.bonus[0].cash += pay; R.bonus[0].jobs = (R.bonus[0].jobs || 0) + 1; SAVE.odd.jobs = (SAVE.odd.jobs | 0) + 1; persist(); hudMsg(0, 'JOB DONE · ' + money(pay) + '<small>' + (why || '') + '</small>', '', 3); sfx('takedown'); }
+    else { hudMsg(0, 'JOB BLOWN<small>' + (why || 'out of time') + '</small>', 'warn', 2.4); sfx('wreck', 0.3); }
+    $('jobHud').hidden = true;
+  }
+  function jobStep(R, dt) {
+    var me = R.humans[0]; if (!me || R.mode !== 'roam' || R.story) return;
+    if (R.jobOffer) { R.jobOffer.offered -= dt; if (R.jobOffer.offered <= 0) R.jobOffer = null; }
+    var j = R.job;
+    if (!j) { R.jobNext = (R.jobNext == null ? 25 : R.jobNext) - dt; if (R.jobNext <= 0 && !R.jobOffer && !TALK.on) { R.jobNext = 40 + Math.random() * 35; jobOffer(R); } return; }
+    j.t += dt; var left = j.limit - j.t, px = me.foot ? me.foot.x : me.x, pz = me.foot ? me.foot.z : me.z;
+    if (left <= 0) return jobEnd(R, false);
+    var st = '';
+    if (j.kind === 'courier') {
+      if (me.foot) return jobEnd(R, false, 'you got out');
+      var d = Math.hypot(j.tgt.x - px, j.tgt.z - pz);
+      if (d < 12) { if (j.stage === 0) { j.stage = 1; jobTarget(R); hudMsg(0, 'PICKED UP<small>now the amber light</small>', '', 1.6); sfx('ok'); } else return jobEnd(R, true, Math.round(left) + ' s to spare'); }
+      st = (j.stage ? 'DELIVER' : 'PICK UP') + ' · ' + Math.round(d) + ' m';
+    } else if (j.kind === 'dash') {
+      if (!me.foot) return jobEnd(R, false, 'on foot only');
+      var d2 = Math.hypot(j.tgt.x - px, j.tgt.z - pz); if (d2 < 7) return jobEnd(R, true, Math.round(left) + ' s to spare');
+      if (me.foot.fl) return jobEnd(R, false, 'flattened');
+      st = 'RUN · ' + Math.round(d2) + ' m';
+    } else if (j.kind === 'shave') {
+      var n = (R.bonus[0].shaves || 0) - j.n0; if (n >= j.need) return jobEnd(R, true, n + ' jumped'); st = 'SHAVES · ' + n + ' / ' + j.need;
+    } else if (j.kind === 'wheelie') {
+      if (!me.def.bike) return jobEnd(R, false, 'that\'s not a bike'); var wd = me.whlD || 0; if (wd >= j.need) return jobEnd(R, true, Math.round(wd) + ' m on the back wheel'); st = 'WHEELIE · ' + Math.round(wd) + ' / ' + j.need + ' m';
+    } else if (j.kind === 'valet') {
+      if (j.stage === 0) { if (me.special === j.car.special) { j.stage = 1; jobTarget(R); hudMsg(0, 'GOT IT<small>now the light</small>', '', 1.4); } else st = 'FIND ' + j.car.def.name.toUpperCase() + ' · ' + Math.round(Math.hypot(j.car.x - px, j.car.z - pz)) + ' m'; }
+      else { if (me.special !== j.car.special) return jobEnd(R, false, 'you left it'); var d3 = Math.hypot(j.tgt.x - px, j.tgt.z - pz); if (d3 < 11 && Math.abs(me.v) < 4) return jobEnd(R, true, 'parked'); st = 'DELIVER · ' + Math.round(d3) + ' m'; }
+    }
+    if (j.beacon && j.beacon.visible) j.beacon.userData.mat.uniforms.a.value = 0.7 + 0.3 * Math.sin(R.t * 4);
+    var el = $('jobHud'), txt = st + ' · ' + Math.ceil(left) + ' s'; if (el.textContent !== txt) el.textContent = txt; el.hidden = false; el.classList.toggle('late', left < 10);
+  }
+  function jobRoute(R, c) { return R.job && R.job.route && c.human != null && !c.foot && (R.job.kind === 'courier' || R.job.kind === 'valet') ? R.job.route : null; }
+
+  /* ── the wrong alleys ── */
+  var WRONG = [[0, 5], [2, 8], [4, 9]];
+  function alleyCentre(k) { var a = ALLEYS[k], b = CG.blocks[a[0] * CG.N + a[1]]; if (!b || !b.alley) return null; var A = b.alley; return A.axis === 'z' ? { x: A.c, z: (b.z0 + b.z1) / 2 } : { x: (b.x0 + b.x1) / 2, z: A.c }; }
+  function wrongStep(R, h, dt) {
+    var F = h.foot; if (!F || F.fl) return;
+    if (F.wrongCd > 0) { F.wrongCd -= dt; return; }
+    for (var p = 0; p < WRONG.length; p++) for (var q = 0; q < 2; q++) {
+      var A = alleyCentre(WRONG[p][q]), Bc = alleyCentre(WRONG[p][1 - q]); if (!A || !Bc) continue;
+      if (Math.hypot(A.x - F.x, A.z - F.z) < 1.6) {
+        F.x = Bc.x; F.z = Bc.z; F.wrongCd = 6; h.cam.userData = {}; footCam(h.cam, h, 0, true);
+        SAVE.odd.wrong = (SAVE.odd.wrong | 0) + 1; persist();
+        hudMsg(h.human, 'WRONG ALLEY<small>you came out somewhere else</small>', 'warn', 2.4); sfx('wreck', 0.25);
+        return;
+      }
+    }
   }
 
   /* ── boot ── */
@@ -7731,7 +7972,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var talk = stars ? (prev ? null : M.win) : M.lose;
     if (talk) setTimeout(function () { if (STATE === 'results') talkShow(talk, null, null); }, 700);
   }
-  window.__nd = { get race() { return RACE; }, get state() { return STATE; }, start: function (type, i, opt) { startRace(type, TRACKS[i], opt || {}); }, photo: function () { var o = {}; Object.keys(PHOTO).forEach(function (k) { o[k] = (PHOTO[k].wheels || []).map(function (w) { return [w.x.toFixed(3), w.y.toFixed(3), w.r.toFixed(3)]; }); }); return o; }, film: function (src) { if (src) FILM_SRC = src; return filmShow(false); }, auto: function (on) { AUTO = !!on; if (RACE) RACE.humans.forEach(function (h) { if (on && !h.ai) h.ai = { skill: 1, lane: 0, laneNow: 0, laneT: 2, nitroOn: false }; }); }, speed: function (s) { TS = s; }, _step: function (sec, fn) { for (var i = 0; i < Math.round(sec * 60); i++) { if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); if (fn) fn(i); } }, sim: function (sec) { for (var i = 0; i < Math.round(sec * 60); i++) if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); render(); }, save: function () { return SAVE; }, _STORY: STORY, storyGo: function (ci, mi) { storyStart(ci, mi); }, _storyResults: function () { storyResults(); }, _talk: function () { return TALK; }, card: function () { return photoCanvas().c.toDataURL('image/jpeg', 0.85); }, tracks: TRACKS, build: BUILD, city: function (opt) { startCity(CITY, opt || {}); }, _HW: HW, _STUNT: STUNT, _TRAPS: TRAPS, _BOARDS: function () { return BOARDS; }, _PROPS: function () { return PROPS; }, _CS: function () { return CS(); }, _surf: function (c) { return surfaceAt(c); }, _push: function (x, z, r, y) { CP_Y = y || 0; var p = cityPush(x, z, r), o = { x: p.x, z: p.z, n: p.n }; CP_Y = 0; return o; }, _sp: function (x, z, r, y) { return stuntPush(x, z, r, y); }, _hgp: function (x, z, r) { return hwGroundPush(x, z, r); }, _open: function () { return OPEN; }, _CITY_RACES: CITY_RACES, _CG: CG, _drive: drive, _newCar: newCar, _CAR: CAR, _ODD: function () { return ODD; }, _WALK: function () { return WALKERS; }, _STATIC: STATIC, _act: function () { ACT.edge = true; }, _radio: radioSet, _odd: { take: oddTake, near: oddNear }, info: function () { return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geos: renderer.info.memory.geometries, tex: renderer.info.memory.textures }; } };
+  window.__nd = { get race() { return RACE; }, get state() { return STATE; }, start: function (type, i, opt) { startRace(type, TRACKS[i], opt || {}); }, photo: function () { var o = {}; Object.keys(PHOTO).forEach(function (k) { o[k] = (PHOTO[k].wheels || []).map(function (w) { return [w.x.toFixed(3), w.y.toFixed(3), w.r.toFixed(3)]; }); }); return o; }, film: function (src) { if (src) FILM_SRC = src; return filmShow(false); }, auto: function (on) { AUTO = !!on; if (RACE) RACE.humans.forEach(function (h) { if (on && !h.ai) h.ai = { skill: 1, lane: 0, laneNow: 0, laneT: 2, nitroOn: false }; }); }, speed: function (s) { TS = s; }, _step: function (sec, fn) { for (var i = 0; i < Math.round(sec * 60); i++) { if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); if (fn) fn(i); } }, sim: function (sec) { for (var i = 0; i < Math.round(sec * 60); i++) if (RACE && (STATE === 'race' || STATE === 'results')) updateRace(1 / 60); render(); }, save: function () { return SAVE; }, _STORY: STORY, storyGo: function (ci, mi) { storyStart(ci, mi); }, _storyResults: function () { storyResults(); }, _talk: function () { return TALK; }, card: function () { return photoCanvas().c.toDataURL('image/jpeg', 0.85); }, tracks: TRACKS, build: BUILD, city: function (opt) { startCity(CITY, opt || {}); }, _HW: HW, _STUNT: STUNT, _TRAPS: TRAPS, _BOARDS: function () { return BOARDS; }, _PROPS: function () { return PROPS; }, _CS: function () { return CS(); }, _surf: function (c) { return surfaceAt(c); }, _push: function (x, z, r, y) { CP_Y = y || 0; var p = cityPush(x, z, r), o = { x: p.x, z: p.z, n: p.n }; CP_Y = 0; return o; }, _sp: function (x, z, r, y) { return stuntPush(x, z, r, y); }, _hgp: function (x, z, r) { return hwGroundPush(x, z, r); }, _open: function () { return OPEN; }, _CITY_RACES: CITY_RACES, _CG: CG, _drive: drive, _newCar: newCar, _CAR: CAR, _ODD: function () { return ODD; }, _WALK: function () { return WALKERS; }, _STATIC: STATIC, _act: function () { ACT.edge = true; }, _wx: function (k) { if (k) wxStart(RACE, k); return RACE && RACE.wx; }, _job: function () { return { offer: RACE.jobOffer, job: RACE.job }; }, _jobOffer: function (k) { jobOffer(RACE, k); }, _SPECIAL: SPECIAL, _radio: radioSet, _odd: { take: oddTake, near: oddNear }, info: function () { return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geos: renderer.info.memory.geometries, tex: renderer.info.memory.textures }; } };
 })();
 </script>
 </body>
