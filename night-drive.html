@@ -500,7 +500,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
 <script>
 (function () {
   'use strict';
-  var GAME_ID = 'night-drive', BUILD = '2026111608-nd';
+  var GAME_ID = 'night-drive', BUILD = '2026111609-nd';
   var $ = function (id) { return document.getElementById(id); };
   var EMBED = false; try { EMBED = window.top !== window; } catch (e) { EMBED = true; }
   function post(type, extra) { try { if (EMBED) window.parent.postMessage(Object.assign({ arcade: type, game: GAME_ID }, extra || {}), '*'); } catch (e) {} }
@@ -2826,7 +2826,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     emitSparks(R, c, 40, 1.4);
     if (c.human != null) {
       hudMsg(c.human, 'WRECKED', 'warn', 2); sfx('wreck');
-      if (c.def.bike && R.city && R.mode === 'roam' && !R.cps && !R.story && !c.foot) { var vb = velOf(c); exitCar(R, c, [vb[0] * 0.5, vb[1] * 0.5]); }
+      if (c.def.bike && R.city && R.mode === 'roam' && !R.cps && (!R.story || R.story.M.foot) && !c.foot) { var vb = velOf(c); exitCar(R, c, [vb[0] * 0.5, vb[1] * 0.5]); }
       if (R.humans.length === 1) R.slow = 1.1;
       R.bonus[c.human].wrecks++;
     } else {
@@ -4559,7 +4559,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     $('touch').hidden = !TOUCH; $('split').hidden = true; $('bg').hidden = true; $('cash').hidden = true;
     musicStop(); sfx('radio'); if (!race) musicStart('city');
     walkersBuild(R); oddBuild(R); wxInit(R); R.jobNext = 25;
-    if (!race && !opt.story) specialsSpawn(R);
+    if (!race && (!opt.story || opt.story.M.foot)) specialsSpawn(R);
     if (!race && !opt.story && radioStation().id === 'static' && staticOpen()) staticOn(R);
     resize();
   }
@@ -7043,7 +7043,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   }
   function carsNear(R, x, z, d) { var out = []; R.cars.forEach(function (c) { if (!c.gone && !c.block && Math.hypot(c.x - x, c.z - z) < d) out.push(c); }); (R.traffic || []).forEach(function (t) { if (!t.gone && Math.hypot(t.x - x, t.z - z) < d) out.push(t); }); return out; }
   function footMayExit(R, h) {
-    if (!R.city || R.mode !== 'roam' || R.cps || R.story || h.wreck || h.busted || h.air || h.deck >= 0) return 'no';
+    if (!R.city || R.mode !== 'roam' || R.cps || (R.story && !R.story.M.foot) || h.wreck || h.busted || h.air || h.deck >= 0) return 'no';
     if (Math.abs(h.v) > 2.2) return 'slow';
     return 'ok';   // 2026-11-16 (night): with the heat on you can still get out; their officers come after you on foot
   }
@@ -7866,7 +7866,9 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     nm: { n: 'Near misses', f: function (v) { return String(v); } },
     jumps: { n: 'Jumps landed', f: function (v) { return String(v); } },
     smash: { n: 'Smashed', f: function (v) { return String(v); } },
-    esc: { n: 'Cops lost', f: function (v) { return String(v); } }
+    esc: { n: 'Cops lost', f: function (v) { return String(v); } },
+    tapes: { n: 'Cassettes', f: function (v) { return String(v); } }, calls: { n: 'Calls answered', f: function (v) { return String(v); } },
+    photos: { n: 'Polaroids', f: function (v) { return String(v); } }, rides: { n: 'Strange rides', f: function (v) { return String(v); } }
   };
   function R6(car, name, skill, lv) { return { car: car, name: name, skill: skill, lv: lv }; }
   var STORY = [
@@ -8033,6 +8035,47 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
           win: [['VELVET', "And that's the Midnight Circuit, 1986. The Loop opens to the public in the morning. Tonight, it belonged to one car."],
             ['LOU', 'Go back for a while, kid. Then come back and drive.']],
           lose: [['LOU', 'Second on the Loop is still a hell of a night. Go again.']] }
+      ] },
+    // 2026-11-16 (late): Chapter 8, after the Loop. The missions are the strange things found on foot (see the ON FOOT block):
+    // tapes, phones, Polaroids, a race through the Static, the seven rides. foot: true lets you get out during a mission.
+    { id: 's8', title: 'The Other Side', place: 'YESTERDAYLAND · after three a.m.', city: true, rec: 'anything with a door',
+      intro: [['VELVET', "This is Velvet, and it's later than it's ever been. You won the Circuit. You got the Key. So why are you still driving?"],
+        ['CALLER', "Because you never got out. Stop the car. Open the door. It's the one thing in this town nobody does."],
+        ['VELVET', "There are twelve of my tapes out there, behind the lamps where no car can reach them. Six of them and the dial opens past the end."],
+        ['LOU', "Kid, whoever that is on the phone: don't listen to all of it. But the tapes are real. I've seen them."]],
+      missions: [
+        { id: 's8m1', name: 'Side B', kind: 'roam', foot: true, at: [1, 1], time: 900, traffic: 1, police: 0, goal: 'tapes', marks: [6, 9, 12], pay: 9000,
+          brief: 'Get out of the car. Twelve cassettes sit at the back of the sidewalks, one per block face, glowing. Six opens the Static.',
+          intro: [['VELVET', "Press the thing you never press. Get out. Walk to the back of the sidewalk, past where the car can go. The tapes glow."],
+            ['VELVET', "People will talk to you out there. Some of it's true."]],
+          radio: [[60, 'VELVET', "That one's 'Static Dreams'. Side A is a drive. Side B is the same drive, backwards."], [300, 'CALLER', "Six. Then turn the dial past RADIO OFF."]],
+          win: [['VELVET', "You've got my tapes. Tonight, after the last station, there's one more. Don't look up when the buildings go to wire."]],
+          lose: [['VELVET', "They're still out there. Back of the sidewalk, every block. Take your time, it's three a.m. forever."]] },
+        { id: 's8m2', name: 'Wrong Number', kind: 'roam', foot: true, at: [2, 3], time: 720, traffic: 1, police: 0, goal: 'calls', marks: [2, 3, 4], pay: 9000,
+          brief: 'Four payphones in four alleys ring when you walk past. Answer them. The caller says he is you.',
+          intro: [['CALLER', "The phones only ring for one person. Walk the alleys. Pick up."], ['LOU', "Alleys. On foot. At night. I'd bring the car, but I guess that's the point."]],
+          radio: [[90, 'CALLER', "You left the car running on Sunset. It's still running."], [400, 'CALLER', "Three more. I'll say it plainly on the last one."]],
+          win: [['CALLER', "You heard it. YESTERDAYLAND is a drive you took once, and liked, and never got out of. You get out when you stop the car and open the door."], ['CALLER', "But it's a good drive. Take the long way round."]],
+          lose: [['CALLER', "Still ringing. Alleys, not streets. They won't ring from a car."]] },
+        { id: 's8m3', name: 'The Polaroids', kind: 'roam', foot: true, at: [5, 8], time: 720, traffic: 1, police: 0, goal: 'photos', marks: [4, 6, 8], pay: 9000,
+          brief: 'Eight Polaroids in the lots and on the curbs. Each one is a memory somebody left out. Pick them up on foot.',
+          intro: [['LOU', "Somebody's been dropping photographs around town. The drive-in lot, the casino lot, the kerbs. They're of us."], ['TINA', "One of them's me, in the rain, 1984. I'd like it back. Or I'd like to know who took it."]],
+          radio: [[120, 'LOLA', "The one of me and Max: that car's yours. Same paint. We never owned it."], [420, 'SLY', "Look at my face in mine. I was scared of the Key. I still am."]],
+          win: [['LOU', "Lou's garage, '79. The night before Sly took it. Everybody's smiling. Nobody knows. Keep it, kid. I've got the garage back; you keep the night."]],
+          lose: [['TINA', "Lots and kerbs. Look for the white borders. They're small; the town isn't."]] },
+        { id: 's8m4', name: 'Static Run', kind: 'city', race: 3, isStatic: true, cast: [R6('exotic', 'Nova Kincaid', .88, 2), R6('wedge', 'Tina Starr', .89, 2), R6('hyper', 'Sly Vega', .9, 2)],
+          traffic: 1, police: 0, goal: 'place', marks: [3, 2, 1], pay: 14000, brief: 'The Grand Tour, with the radio tuned past the end. The city is wire, gravity is a suggestion, and the others are racing it too.',
+          intro: [['VELVET', "Turn the dial. One more click past RADIO OFF. There: between stations. Now race it."], ['NOVA', "I can see through the buildings. I can see you through the buildings. That's not fair on anyone."]],
+          radio: [[25, 'SLY', "Is this what the Key opens? I didn't want this."], [100, 'VELVET', "Don't look up, I said. Fine. Look up."]],
+          win: [['NOVA', "Nobody's ever won a race that wasn't there. Congratulations. I think."]],
+          lose: [['VELVET', "The Static doesn't care who wins. I do. Again."]] },
+        { id: 's8m5', name: 'The Long Way Round', boss: 'CALLER', kind: 'roam', foot: true, at: [3, 7], time: 900, traffic: 2, police: 1, goal: 'rides', marks: [3, 5, 7], pay: 20000,
+          brief: 'Seven strange vehicles wait around the city with their doors unlocked: a hearse, an ice-cream truck, a checker cab, a limo, a tow truck, a lunar rover, an ambulance. Find them on foot and drive each one once.',
+          intro: [['CALLER', "Last thing. Seven rides nobody owns. The hearse in the Manhattan alley. The truck at the drive-in. The cab in Midtown. The limo in the casino lot. The hook in the yard. The rover in the desert. Unit 9 on Ocean Drive."],
+            ['CALLER', "Drive each one once. Then you'll know every way there is to leave."]],
+          radio: [[180, 'LOU', "An ice-cream truck. You're driving an ice-cream truck. I gave you a hatch for this."], [500, 'BRIGGS', "Whoever's in the hearse: we see you. We're choosing not to."]],
+          win: [['CALLER', "That's all seven. That's every door in YESTERDAYLAND. You can stop now, if you want."], ['VELVET', "Or you can go back for a while. This is Velvet, on the night shift, and the night's still young. It always is."], ['LOU', "Go drive, kid."]],
+          lose: [['CALLER', "There are more doors. Keep opening them."]] }
       ] }
   ];
   var STORY_IDS = {}; STORY.forEach(function (ch, ci) { ch.missions.forEach(function (m, mi) { STORY_IDS[m.id] = [ci, mi]; }); });
@@ -8052,7 +8095,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
   UI.sci = 0;
   function renderStory() {
     var T = stTotals(), nx = stNext();
-    $('stSub').textContent = 'Lou needs his garage back. Six cities, six nights, then the Loop.  ·  ' + T[0] + ' / ' + T[1] + ' ★';
+    $('stSub').textContent = 'Lou needs his garage back. Six cities, six nights, then the Loop. Then the Other Side.  ·  ' + T[0] + ' / ' + T[1] + ' ★';
     $('stList').innerHTML = STORY.map(function (ch, ci) {
       var got = 0; ch.missions.forEach(function (m) { got += stStars(m.id); });
       var open = stOpen(ci, 0), still = ch.city ? CITY.still : TRACKS[ch.track].still, cur = nx && nx[0] === ci;
@@ -8113,7 +8156,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     var M = STORY[ci].missions[mi], st = { ci: ci, mi: mi, M: M, said: {} };
     if (M.kind === 'free') startRace('free', TRACKS[M.track], { laps: M.laps, rivals: M.cast.length, cast: M.cast, traffic: M.traffic, police: M.police, diff: 1, story: st });
     else if (M.kind === 'hp') startRace('hp', TRACKS[M.track], { laps: M.laps, rivals: M.rivals, traffic: M.traffic, story: st });
-    else if (M.kind === 'city') startCity(CITY, { mode: 'race', race: M.race, rivals: M.cast.length, cast: M.cast, traffic: M.traffic, police: M.police, diff: 1, story: st });
+    else if (M.kind === 'city') { startCity(CITY, { mode: 'race', race: M.race, rivals: M.cast.length, cast: M.cast, traffic: M.traffic, police: M.police, diff: 1, story: st }); if (M.isStatic && RACE) staticOn(RACE); }
     else startCity(CITY, { mode: 'roam', at: M.at, traffic: M.traffic, police: M.police, story: st });
     if (RACE) { st.left = M.time || 0; RACE.story = st; storyHud(true); hudMsg(0, esc(M.name.toUpperCase()) + '<small>' + esc(M.brief) + '</small>', '', 4.5); }
   }
@@ -8131,6 +8174,7 @@ body.film #grain,body.film #vig{display:none}   /* the film pass does grain and 
     if (M.goal === 'jumps') return B.jumps || 0;
     if (M.goal === 'smash') return (B.smash || 0) + (B.boards || 0) * 3;
     if (M.goal === 'esc') return B.esc || 0;
+    if (M.goal === 'tapes') return SAVE.odd.tapes.length; if (M.goal === 'calls') return SAVE.odd.calls.length; if (M.goal === 'photos') return SAVE.odd.photos.length; if (M.goal === 'rides') return (SAVE.odd.rides || []).length;
     return 0;
   }
   function stStarsFor(M, v) { var lo = GOAL[M.goal].lo, n = 0; M.marks.forEach(function (m) { if (lo ? v <= m : v >= m) n++; }); return n; }
